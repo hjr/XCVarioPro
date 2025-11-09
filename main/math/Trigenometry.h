@@ -24,12 +24,6 @@ constexpr float rad2deg(float rad)       { return rad * 180.0 / My_PIf; }
 int normalizeDeg(int angle);
 int angleDiffDeg(int a1, int a2);
 
-inline int fast_roundf_to_int(float a) {
-    return (int)((a >= 0.0f) ? (a + 0.5f) : (a - 0.5f));
-}
-
-float fast_floorf(float x);
-
 // fast gauge routines with reduced precision
 float fast_sin_deg(float angle);
 float fast_cos_deg(float angle);

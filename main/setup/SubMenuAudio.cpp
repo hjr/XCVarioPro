@@ -14,7 +14,7 @@
 #include "setup/SetupMenuValFloat.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupNG.h"
-#include "math/CompareFloat.h"
+#include "math/Floats.h"
 #include "Units.h"
 #include "logdef.h"
 

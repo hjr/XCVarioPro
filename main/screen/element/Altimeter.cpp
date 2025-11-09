@@ -10,6 +10,7 @@
 
 #include "Colors.h"
 #include "setup/SetupNG.h"
+#include "math/Floats.h"
 #include "Units.h"
 #include "AdaptUGC.h"
 #include "sensor.h"
@@ -144,7 +145,7 @@ void Altimeter::draw(float alt_m)
     _alt_prev = alt;
 
     // a rounded altitude as base for the display
-    alt = fast_roundf_to_int(altitude);
+    alt = fast_iroundf(altitude);
     char s[32]; // plain altimeter as a string
     MYUCG->setFont(ucg_font_fub25_hr, true);
     MYUCG->setColor(COLOR_WHITE);

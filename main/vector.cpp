@@ -14,10 +14,12 @@
  **
  ***********************************************************************/
 
-#include <cmath>
 #include "Units.h"
 #include "vector.h"
-#include "logdef.h"
+#include "math/Floats.h"
+#include "logdefnone.h"
+
+#include <cmath>
 
 Vector::Vector() :
 _angle(0.0),

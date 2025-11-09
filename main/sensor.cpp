@@ -35,7 +35,7 @@
 #include "screen/UiEvents.h"
 
 #include "math/Quaternion.h"
-#include "math/CompareFloat.h"
+#include "math/Floats.h"
 #include "wmm/geomag.h"
 #include "OTA.h"
 #include "S2fSwitch.h"
@@ -1424,7 +1424,7 @@ void system_startup(void *args){
 //     uint32_t start = XTHAL_GET_CCOUNT();
 //     // asm volatile("add a4, a1, a2");
 // 	idx = ((std::signbit(idx) ? -1 : 1));
-// 	// b1 = fast_roundf_to_int(b);
+// 	// b1 = fast_iroundf(b);
 // 	uint32_t end = XTHAL_GET_CCOUNT();
 // 	// for(b=0.; b<400.; b+=My_PIf)
 // 	ESP_LOGI(FNAME,"CMP %f %d", b, b1);

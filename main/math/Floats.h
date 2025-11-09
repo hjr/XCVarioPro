@@ -8,6 +8,19 @@
 
 #pragma once
 
+// compare
 bool floatEqual(float a, float b, float eps = 1e-6f);
 bool floatEqualFast(float a, float b);
 bool floatEqualFastAbs(float a, float b, float tol = 1e-5f);
+
+// rounding to nearest int, symmetric for negative values
+inline int fast_iroundf(float a) {
+    return (int)((a >= 0.0f) ? (a + 0.5f) : (a - 0.5f));
+}
+// for purely positive values
+inline int fast_iroundf_positive(float a) {
+    return (int)(a + 0.5f);
+}
+
+// flooring
+float fast_floorf(float x);

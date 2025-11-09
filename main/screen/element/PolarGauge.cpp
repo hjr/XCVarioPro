@@ -12,6 +12,7 @@
 #include "WindIndicator.h"
 #include "LargeFigure.h"
 #include "math/Trigenometry.h"
+#include "math/Floats.h"
 #include "Units.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
@@ -524,13 +525,13 @@ void PolarGauge::clearGauge()
 
 // get sin/cos position from gauge index in radian with gauge centered mapping
 int16_t PolarGauge::SinCentered(float val, int16_t len) const {
-    return _ref_y - static_cast<int16_t>(fast_roundf_to_int(fast_sin_rad(val) * len));
+    return _ref_y - static_cast<int16_t>(fast_iroundf(fast_sin_rad(val) * len));
 }
-int16_t PolarGauge::CosCentered(float val, int16_t len) const { return _ref_x - static_cast<int16_t>(fast_roundf_to_int(fast_cos_rad(val) * len)); }
+int16_t PolarGauge::CosCentered(float val, int16_t len) const { return _ref_x - static_cast<int16_t>(fast_iroundf(fast_cos_rad(val) * len)); }
 // based on discrete integral values with 0.5deg resolution
-int16_t PolarGauge::SinCenteredDeg2(int16_t val, int16_t len) const { return _ref_y - fast_roundf_to_int(fast_sin_idx(val) * len); }
-int16_t PolarGauge::CosCenteredDeg2(int16_t val, int16_t len) const { return _ref_x - fast_roundf_to_int(fast_cos_idx(val) * len); }
-int16_t PolarGauge::Sin(float val, int16_t len) const { return static_cast<int16_t>(fast_roundf_to_int(fast_sin_rad(val) * len)); }
-int16_t PolarGauge::Cos(float val, int16_t len) const { return static_cast<int16_t>(fast_roundf_to_int(fast_cos_rad(val) * len)); }
-int16_t PolarGauge::SinDeg2(int16_t val, int16_t len) const { return fast_roundf_to_int(fast_sin_idx(val) * len); }
-int16_t PolarGauge::CosDeg2(int16_t val, int16_t len) const { return fast_roundf_to_int(fast_cos_idx(val) * len); }
+int16_t PolarGauge::SinCenteredDeg2(int16_t val, int16_t len) const { return _ref_y - fast_iroundf(fast_sin_idx(val) * len); }
+int16_t PolarGauge::CosCenteredDeg2(int16_t val, int16_t len) const { return _ref_x - fast_iroundf(fast_cos_idx(val) * len); }
+int16_t PolarGauge::Sin(float val, int16_t len) const { return static_cast<int16_t>(fast_iroundf(fast_sin_rad(val) * len)); }
+int16_t PolarGauge::Cos(float val, int16_t len) const { return static_cast<int16_t>(fast_iroundf(fast_cos_rad(val) * len)); }
+int16_t PolarGauge::SinDeg2(int16_t val, int16_t len) const { return fast_iroundf(fast_sin_idx(val) * len); }
+int16_t PolarGauge::CosDeg2(int16_t val, int16_t len) const { return fast_iroundf(fast_cos_idx(val) * len); }

@@ -8,6 +8,7 @@
 
 #include "Trigenometry.h"
 
+#include "Floats.h"
 #include "logdef.h"
 
 #include <cmath>
@@ -28,10 +29,10 @@ int angleDiffDeg(int a1, int a2)
 }
 
 
-// Operation	    Rough Cycle Cost	Notes
-// (int)a           ~1–5 cycles	        Hardware FP convert, extremely fast
-// floorf(a)	    ~3802           	Implements proper rounding toward –∞
-// fmodf(a, 360.0f)	~3801       	    Software modulus, heavy overhead
+// Operation	    Rough Cycle Cost    Notes
+// (int)a           ~1–5 cycles         Hardware FP convert, extremely fast
+// floorf(a)	    ~3802               Implements proper rounding toward –∞
+// fmodf(a, 360.0f)	~3801               Software modulus, heavy overhead
 // sin(a)           ~14226
 // log2f(a)         ~12763
 // tanf(a)          ~47403
@@ -40,21 +41,14 @@ int angleDiffDeg(int a1, int a2)
 // atan2f(100., a)  ~14064
 // static_cast<int16_t>(std::roundf(a) ~2268
 // (int)std::roundf(a);    ~1823
-// fast_roundf_to_int(a) ~1818
+// fast_iroundf(a) ~1818
 // b1 = b1 - std::roundf(fast_sin_idx(idx) * b1); ~5000
-// b1 = b1 - fast_roundf_to_int(fast_sin_idx(idx) * b1); ~2753
+// b1 = b1 - fast_iroundf(fast_sin_idx(idx) * b1); ~2753
 // b1 = std::abs((int)b1); ~1
 // a = a * ((std::signbit(a) ? -1. : 1.));  ~176
 // idx = ((std::signbit(a) ? -1 : 1));  ~4
 // idx = ((std::signbit(idx) ? -1 : 1));  ~10
 
-
-
-// O():=1360c
-float fast_floorf(float x) {
-    int i = (int)x;  // truncates toward 0
-    return (x < 0.0f && x != (float)i) ? (float)(i - 1) : (float)i;
-}
 
 
 //

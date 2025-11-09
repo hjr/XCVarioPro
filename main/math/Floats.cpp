@@ -41,3 +41,10 @@ bool floatEqualFastAbs(float a, float b, float tol)
     float diff = a - b;
     return (diff < tol && diff > -tol);
 }
+
+
+// O() := 1360c
+float fast_floorf(float x) {
+    int i = (int)x;  // truncates toward 0
+    return (x < 0.0f && x != (float)i) ? (float)(i - 1) : (float)i;
+}
