@@ -142,6 +142,7 @@ void MessageBox::removeMsg()
 {
     MYUCG->setColor(COLOR_BLACK);
     MYUCG->drawBox(0, height - 26, width, 26);
+    MYUCG->setColor(COLOR_WHITE);
 }
 
 // drive and draw the message box
@@ -162,7 +163,7 @@ bool MessageBox::draw()
     _start_scroll++;
     if ( current->alert_level != 4 ) {
         // move text to expose the full message
-        if (_start_scroll > (4000/(CLOCK_DIVIDER*Clock::TICK_ATOM)) && _nr_scroll > 0) {
+        if (_start_scroll > (2000/(CLOCK_DIVIDER*Clock::TICK_ATOM)) && _nr_scroll > 0) {
             _nr_scroll--;
             _print_pos--;
             MYUCG->undoClipRange();
@@ -189,6 +190,7 @@ bool MessageBox::draw()
             MYUCG->setPrintPos(_print_pos, height-2);
             MYUCG->print(current->text.c_str());
             MYUCG->setClipRange(0, 0, width, height - 27);
+            MYUCG->setColor(COLOR_WHITE);
         }
     }
     return false;
