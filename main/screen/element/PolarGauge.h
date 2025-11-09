@@ -17,6 +17,7 @@ class WindIndicator;
 class LargeFigure;
 class CenterAid;
 
+
 // map gauge values to gauge scale angles
 class GaugeFunc
 {
@@ -44,6 +45,8 @@ class PolarGauge : public ScreenElement
 
 public:
     using GaugeFlavor = enum { VARIO, GLOAD, COMPASS};
+    using WindReference = enum { WR_HEADING, WR_NORTH };
+
     PolarGauge(int16_t refx, int16_t refy, int16_t scale_end, int16_t radius, int16_t flavor);
     ~PolarGauge();
     void forceAllRedraw();
@@ -53,7 +56,7 @@ public:
     void setColor(int color_idx);
     void setFigOffset(int16_t ox, int16_t oy);
     float clipValue(float a) const;
-    void setNorthUp(bool nup) { _north_up = nup; }
+    void setWindRef(int wref) { _wind_ref = wref; }
 
     void draw(float a);
     void drawIndicator(float a);
@@ -73,7 +76,7 @@ public:
     ArrowIndicator *_arrow = nullptr;
     WindIndicator *_wind_avg = nullptr;
     WindIndicator *_wind_live = nullptr;
-    bool _north_up = false;
+    int _wind_ref = WR_HEADING;
     float _scale_max = 1.57f; // half scale extend in rad
     int16_t _radius = 50; // pixel
     float _range = 5.; // max positive value of the scale

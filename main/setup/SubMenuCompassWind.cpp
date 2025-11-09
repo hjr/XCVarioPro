@@ -225,40 +225,12 @@ void options_menu_create_compasswind(SetupMenu *top) { // dynamic!
 		windcal->setHelp("Enable Wind calculation for straight flight (needs compass), circling, both or external source");
 		top->addEntry(windcal);
 
-		// Display option
-		SetupMenuSelect *winddis = new SetupMenuSelect("Display", RST_NONE, nullptr, &wind_display);
-		winddis->addEntry("Disable");
-		winddis->addEntry("Wind Digits");
-		winddis->addEntry("Wind Arrow");
-		winddis->addEntry("Wind Both");
-		winddis->addEntry("Compass");
-		winddis->setHelp(
-				"What is to be displayed, as digits or arrow or both, on retro style screen. If no wind available, compass is shown");
-		top->addEntry(winddis);
-
-		// Wind speed observation window
-		SetupMenuSelect *windref = new SetupMenuSelect("Arrow Ref", RST_NONE, nullptr, &wind_reference);
-		windref->addEntry("North");
-		windref->addEntry("Mag Heading");
-		windref->addEntry("GPS Course");
-		windref->setHelp(
-				"Choose wind arrow relative to geographic north or to true aircraft heading");
-		top->addEntry(windref);
-
 		SetupMenu *strWindM = new SetupMenu("Straight Wind", options_menu_create_compasswind_straightwind);
 		top->addEntry(strWindM);
 		strWindM->setHelp("Straight flight wind calculation needs compass module active",250);
 
 		SetupMenu *cirWindM = new SetupMenu("Circling Wind", options_menu_create_compasswind_circlingwind);
 		top->addEntry(cirWindM);
-
-		SetupMenuSelect *windlog = new SetupMenuSelect("Wind Logging", RST_NONE, nullptr, &wind_logging);
-		windlog->addEntry("Disable");
-		windlog->addEntry("Wind");
-		windlog->addEntry("GYRO/MAG");
-		windlog->addEntry("Both");
-		windlog->setHelp("Enable Wind logging NMEA output, to Navi port");
-		top->addEntry(windlog);
 	}
 	// compass menu only accessible with a connected compass
 	SetupMenu *cmenu = static_cast<SetupMenu*>(top->getEntry(0));

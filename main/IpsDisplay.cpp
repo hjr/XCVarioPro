@@ -316,7 +316,7 @@ void IpsDisplay::initDisplay() {
     if (!WNDgauge) {
         WNDgauge = new PolarGauge(AMIDX + AVGOFFX, AMIDY, 360, 50, PolarGauge::COMPASS);
     }
-    WNDgauge->setNorthUp(wind_northup.get());
+    WNDgauge->setWindRef(wind_reference.get());
     WNDgauge->setColor(needle_color.get());
     if (vario_centeraid.get()) {
         CenterAid::create(*WNDgauge);
@@ -946,16 +946,10 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 
 float getHeading(){
 	float heading = 0;
-	if( (wind_reference.get() & WR_HEADING) )  // wind relative to airplane, first choice compass, second is GPS true course
-	{
-		heading = mag_hdt.get();
-		if( (heading < 0) && Flarm::gpsStatus() )            // fall back to GPS course
-			heading = Flarm::getGndCourse();
-	}
-	else if( (wind_reference.get() & WR_GPS_COURSE) ){
-		if( Flarm::gpsStatus() ){
-			heading = Flarm::getGndCourse();
-		}
+	heading = mag_hdt.get();
+	if( (heading < 0) && Flarm::gpsStatus() ) {
+		// fall back to GPS course
+		heading = Flarm::getGndCourse();
 	}
 	return heading;
 }

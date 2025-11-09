@@ -171,8 +171,8 @@ bool StraightWind::calculateWind()
 
 	float deviation = theCompass->getDeviation( averageTH );
 
-	if( (wind_logging.get() != WLOG_DISABLE) && theCompass ){
-		if( wind_logging.get() & WLOG_WIND ){
+	if( (logging.get() != LOGG_DISABLE) && theCompass ){
+		if( logging.get() & LOGG_WIND ){
 		        char log[ProtocolItf::MAX_LEN];
 		        sprintf( log, "$WIND;");
 		        int pos = strlen(log);
@@ -181,12 +181,12 @@ bool StraightWind::calculateWind()
 			sprintf( log+pos, "\n");
 			const NmeaPrtcl *prtcl = DEVMAN->getNMEA(NAVI_DEV); // Todo preliminary solution ..
 			if ( prtcl ) {
-			prtcl->sendXCV(log);
+				prtcl->sendXCV(log);
 			}
 			ESP_LOGI( FNAME,"%s", log );
 		}
 
-		if( wind_logging.get() & WLOG_GYRO_MAG ){
+		if( logging.get() & LOGG_GYRO_MAG ){
 			char log2[ProtocolItf::MAX_LEN];
 			sprintf( log2, "$IMU;");
 			int pos = strlen(log2);

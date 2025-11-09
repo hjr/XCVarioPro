@@ -894,11 +894,11 @@ static void screens_menu_create_vario(SetupMenu *top) {
     wke->setHelp("Enable flap indicator to assist optimum flap setting depending on speed, G-load and ballast");
     top->addEntry(wke);
 
-    SetupMenuSelect *nup = new SetupMenuSelect("Wind Rose", RST_NONE, nullptr, &wind_northup);
-    nup->setHelp("Display wind relative to glider is default, choose north-up, if prefered");
-    nup->addEntry("Glider-Up");
-    nup->addEntry("North-Up");
-    top->addEntry(nup);
+    SetupMenuSelect *wref = new SetupMenuSelect("Wind Ref.", RST_NONE, nullptr, &wind_reference);
+    wref->setHelp("Display wind relative to glider is default, choose north-up, if prefered");
+    wref->addEntry("Heading-Up");
+    wref->addEntry("North-Up");
+    top->addEntry(wref);
 
     SetupMenuSelect *batv = new SetupMenuSelect("Battery Display", RST_NONE, nullptr, &battery_display);
     batv->setHelp("Display battery charge state either in Percentage e.g. 75% or Voltage e.g. 12.5V");
@@ -1370,8 +1370,12 @@ void system_menu_create(SetupMenu *sye) {
 	sye->addEntry(devices);
 
 	SetupMenuSelect *logg = new SetupMenuSelect("Logging", RST_NONE, nullptr, &logging);
-	logg->setHelp("R&D option, do not use!\n Collect raw sensor data with NMEA logger in XCSoar");
-	logg->mkEnable("Sensor RAW Data");
+	logg->setHelp("R&D option, do not just enable!\n Collect data with NMEA logger in XCSoar");
+	logg->addEntry("Disable");
+	logg->addEntry("Wind");
+	logg->addEntry("GYRO/MAG");
+	logg->addEntry("Both");
+	logg->addEntry("All Sensor Data");
 	sye->addEntry(logg);
 
 	// SetupAction *devdump = new SetupAction("Device Setup Dump", deviceDumpAction, 0);

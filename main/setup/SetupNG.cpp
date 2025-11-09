@@ -31,6 +31,7 @@
 #include "protocol/AliveMonitor.h"
 #include "screen/element/Battery.h"
 #include "screen/element/Altimeter.h"
+#include "screen/element/PolarGauge.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
@@ -362,14 +363,11 @@ SetupNG<float>          wind_as_filter( "WINDASF", 0.02, true, SYNC_NONE, PERSIS
 SetupNG<float>          wind_gps_lowpass( "WINDGPSLP", 1.00, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.1, 10.0, 0.1));
 SetupNG<float>          wind_dev_filter( "WINDDEVF", 0.010, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 0.05, 0.001));
 SetupNG<int> 			wind_enable( "WIND_ENA", WA_OFF );
-SetupNG<int> 			wind_northup( "WNDG_NUP", 0 );
-SetupNG<int> 			wind_logging( "WIND_LOG", 0 );
 SetupNG<float> 			wind_as_calibration("WIND_AS_CAL", 1.0 );
 SetupNG<float> 			wind_filter_lowpass("SWINDAVER", 60, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(5, 120, 1));
 SetupNG<float> 			wind_straight_course_tolerance("WINDSTOL", 7.5, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(2.0, 30.0, 0.1));
 SetupNG<float> 			wind_straight_speed_tolerance("WINDSSTOL", 15, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(1.0, 30.0, 1));
-SetupNG<int> 			wind_display( "WIND_DIS", WD_NONE, true, SYNC_FROM_MASTER );
-SetupNG<int> 			wind_reference( "WIND_REF", WR_HEADING );
+SetupNG<int> 			wind_reference( "WIND_REF", PolarGauge::WR_HEADING );
 SetupNG<float> 			wind_max_deviation("WIND_MDEV", 30.0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.0, 180.0, 1.0));
 SetupNG<int> 			s2f_blockspeed( "S2G_BLOCKSPEED", 0, true, SYNC_BIDIR );  // considering netto vario and g load for S2F or not
 SetupNG<int> 			needle_color("NEEDLE_COLOR", VN_COLOR_ORANGE );

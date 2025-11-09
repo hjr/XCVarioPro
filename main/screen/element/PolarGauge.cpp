@@ -190,7 +190,7 @@ void PolarGauge::drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival
 {
     int16_t heading = 0;
 
-    if ( ! _north_up ) {
+    if ( _wind_ref == WR_HEADING ) {
         heading = static_cast<int16_t>(std::roundf(getHeading()));
     }
 
@@ -475,7 +475,7 @@ void PolarGauge::drawRose(int16_t at) const
         }
         if (!(a%180) ) {
             MYUCG->setColor(COLOR_LBBLUE);
-            if ( _north_up ) {
+            if ( _wind_ref == WR_NORTH) {
                 // Draw a blue dot for heading-up, or N for north-up
                 MYUCG->setFont(ucg_font_fub11_hr);
                 char s[] = "N";
