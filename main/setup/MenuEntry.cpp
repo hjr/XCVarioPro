@@ -154,13 +154,16 @@ void MenuEntry::indentHighlight(int sel)
 	MYUCG->drawFrame(cur_indent, cur_row*25 + 3, dwidth-cur_indent-1, 25);
 }
 
-// simple heuristic based on "n" sized chars,
-// how many lines the help text will allocate
 void MenuEntry::indentPrintLn(const char *str) const
 {
+	MYUCG->setColor(COLOR_BLACK);
+	MYUCG->drawBox(cur_indent+3, cur_row*25 + 6, dwidth-3, 19);
+	MYUCG->setColor(COLOR_WHITE);
 	menuPrintLn(str, cur_row, cur_indent+7);
 }
 
+// simple heuristic based on "n" sized chars,
+// how many lines the help text will allocate
 bool MenuEntry::canInline() const
 {
 	return freeBottomLines() >= nrOfHelpLines() && !isRoot() && !bits._never_inline;
