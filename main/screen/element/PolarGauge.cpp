@@ -501,7 +501,7 @@ void PolarGauge::drawRose(int16_t at) const
                 MYUCG->print(s);
             }
             else {
-                MYUCG->drawDisc(_ref_x,_ref_y-_radius, 2, UCG_DRAW_ALL );
+                MYUCG->drawTriangle(_ref_x,_ref_y-_radius-6, _ref_x-4, _ref_y-_radius+2, _ref_x+4, _ref_y-_radius+2);
             }
         }
     }
