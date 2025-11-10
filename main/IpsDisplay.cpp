@@ -287,7 +287,7 @@ void IpsDisplay::initDisplay() {
             MCgauge = new McCready(1, DISPLAY_H + 2);
         }
         if ( !S2FBARgauge) {
-            S2FBARgauge = new S2FBar(DISPLAY_W - 54, AMIDY, 28, 32);
+            S2FBARgauge = new S2FBar(DISPLAY_W - 50, AMIDY, 28, 32);
         }
    }
     else {
@@ -369,8 +369,13 @@ void IpsDisplay::initDisplay() {
             S2FBARgauge->setWidth(36);
             S2FBARgauge->setGap(2);
         } else {
-            S2FBARgauge->setRef(DISPLAY_W - 54, AMIDY);
-            S2FBARgauge->setWidth(28);
+            if (FLAPSgauge) {
+                S2FBARgauge->setRef(DISPLAY_W - 50, AMIDY);
+                S2FBARgauge->setWidth(28);
+            } else {
+                S2FBARgauge->setRef(DISPLAY_W - 30, AMIDY);
+                S2FBARgauge->setWidth(50);
+            }
             S2FBARgauge->setGap(32);
         }
     }
@@ -825,7 +830,6 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 		// s+=0.04;
 		S2FBARgauge->draw(s2fd);
 		S2FBARgauge->drawSpeed(s2f);
-
 	}
 
 	// MC val
