@@ -8,11 +8,12 @@
 
 #include "WindIndicator.h"
 
+#include "math/Floats.h"
 #include "PolarGauge.h"
 #include "IpsDisplay.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cmath>
 #include <cstdio>
@@ -112,8 +113,8 @@ void WindIndicator::drawWind(bool erase)
     // a tip in direction the wind is blowing (180° other direction)
     x0 += _gauge._ref_x;
     y0 += _gauge._ref_y;
-    int16_t wx = std::roundf(si);
-    int16_t wy = std::roundf(co);
+    int16_t wx = fast_iroundf(si);
+    int16_t wy = fast_iroundf(co);
     if (_live) {
         int16_t bx = si * 4;
         int16_t by = co * 4;

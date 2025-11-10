@@ -7,12 +7,14 @@
  ***********************************************************/
 
 #include "CambridgeMsg.h"
+
+#include "math/Floats.h"
 #include "protocol/nmea_util.h"
 #include "comm/DataLink.h"
 #include "comm/Messages.h"
 #include "Units.h"
 
-#include "logdef.h"
+#include "logdefnone.h"
 
 
 // The Cambridge protocol parser.
@@ -38,10 +40,10 @@ dl_action_t CambridgeMsg::parseExcl_g(NmeaPlugin *plg)
         ESP_LOGI(FNAME,"parseNMEA, BORGELT, MC modification");
         float mc = atof(s+4);
         mc = mc*0.1;   // comes in knots*10, unify to knots
-        float mc_ms =  std::roundf(Units::knots2ms(mc)*10.f)/10.f; // hide rough knot resolution
+        float mc_ms =  fast_iroundf(Units::knots2ms(mc)*10.f)/10.f; // hide rough knot resolution
         // FIXME -> only SI units internally
         if( vario_unit.get() == SPEED_UNIT_KNOTS )
-            mc_ms =  std::roundf(Units::knots2ms(mc)*100.f)/100.f; // higher resolution for knots
+            mc_ms =  fast_iroundf(Units::knots2ms(mc)*100.f)/100.f; // higher resolution for knots
         ESP_LOGI(FNAME,"New MC: %1.1f knots, %f m/s", mc, mc_ms );
         MC.set( mc_ms );  // set mc in m/s
     }

@@ -14,7 +14,7 @@
 #include "setup/SetupNG.h"
 #include "Units.h"
 #include "AdaptUGC.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cstdio>
 
@@ -70,7 +70,7 @@ void MultiGauge::draw()
     int val = fast_iroundf(fval);
 
     if (val_prev == val && ! _dirty) return;
-    ESP_LOGI(FNAME, "draw val %d %d", val, val_prev);
+    ESP_LOGI(FNAME, "draw val %d (old: %d)", val, val_prev);
 
     MYUCG->setColor(COLOR_WHITE);
     MYUCG->setFont(ucg_font_fub25_hn, true);

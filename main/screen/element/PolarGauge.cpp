@@ -208,7 +208,7 @@ void PolarGauge::drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival
     int16_t heading = 0;
 
     if ( _wind_ref == WR_HEADING ) {
-        heading = static_cast<int16_t>(std::roundf(getHeading()));
+        heading = fast_iroundf(getHeading());
     }
 
     wval *= _unit_fac;
@@ -231,7 +231,10 @@ void PolarGauge::drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival
 }
 
 
-// idx [rad], end radius, width
+// a : in [rad]
+// l2 : line end radius in [pixel]
+// w : line width in [pixel]
+// cidx : color index
 void PolarGauge::drawOneScaleLine(float a, int16_t l2, int16_t w, int16_t cidx) const
 {
     float si = fast_sin_rad(a);
@@ -239,14 +242,14 @@ void PolarGauge::drawOneScaleLine(float a, int16_t l2, int16_t w, int16_t cidx) 
     int16_t l1 = _radius;
     int16_t w0 = w / 2;
     int16_t w1 = w - w0; // total width := w1 + w0
-    int16_t xn_0 = _ref_x - static_cast<int16_t>(std::roundf(co * l1 - si * w0));
-    int16_t yn_0 = _ref_y - static_cast<int16_t>(std::roundf(si * l1 + co * w0));
-    int16_t xn_1 = _ref_x - static_cast<int16_t>(std::roundf(co * l1 + si * w1));
-    int16_t yn_1 = _ref_y - static_cast<int16_t>(std::roundf(si * l1 - co * w1));
-    int16_t xn_2 = _ref_x - static_cast<int16_t>(std::roundf(co * l2 + si * w1));
-    int16_t yn_2 = _ref_y - static_cast<int16_t>(std::roundf(si * l2 - co * w1));
-    int16_t xn_3 = _ref_x - static_cast<int16_t>(std::roundf(co * l2 - si * w0));
-    int16_t yn_3 = _ref_y - static_cast<int16_t>(std::roundf(si * l2 + co * w0));
+    int16_t xn_0 = _ref_x - fast_iroundf(co * l1 - si * w0);
+    int16_t yn_0 = _ref_y - fast_iroundf(si * l1 + co * w0);
+    int16_t xn_1 = _ref_x - fast_iroundf(co * l1 + si * w1);
+    int16_t yn_1 = _ref_y - fast_iroundf(si * l1 - co * w1);
+    int16_t xn_2 = _ref_x - fast_iroundf(co * l2 + si * w1);
+    int16_t yn_2 = _ref_y - fast_iroundf(si * l2 - co * w1);
+    int16_t xn_3 = _ref_x - fast_iroundf(co * l2 - si * w0);
+    int16_t yn_3 = _ref_y - fast_iroundf(si * l2 + co * w0);
     // ESP_LOGI(FNAME,"drawTetragon  x0:%d y0:%d x1:%d y1:%d x2:%d y2:%d x3:%d y3:%d", xn_0, yn_0, xn_1, yn_1, xn_2, yn_2, xn_3, yn_3 );
     MYUCG->setColor(lne_color[cidx].color[0], lne_color[cidx].color[1], lne_color[cidx].color[2]);
     MYUCG->drawTetragon(xn_0, yn_0, xn_1, yn_1, xn_2, yn_2, xn_3, yn_3);
@@ -304,6 +307,8 @@ void PolarGauge::drawBow(int16_t idx, int16_t &old, int16_t w, int16_t off, int1
 }
 
 // Draw scale label numbers for -_range .. _range w/o sign
+// val: in [rad]
+// labl: label value
 void PolarGauge::drawOneLabel(float val, int16_t labl) const
 {
     // ESP_LOGI( FNAME,"drawOneLabel val %.2f, label %d", val, labl );
@@ -338,36 +343,36 @@ void PolarGauge::colorRange(float from, float to, int16_t color)
 // with radius _radius
 // to _ref_xy center [pixel]
 // and zero label offset according to (_mrange + _range) / 2
-// opt. small area refresh at [scale]
-void PolarGauge::drawScale(int16_t at)
+// opt. small area refresh at [scale], or <0 from at to - range
+void PolarGauge::drawScale(float at)
 {
     // line density on outer scale area
     int16_t modulo = (_range > 10) ? 20 : (_range < 6) ? 5 : 10;
 
     // for larger ranges put at least on extra label in the middle of each half scale
-    int16_t mid_lpos_upper = static_cast<int16_t>(std::roundf(func->invers(0.5 * (*func)(_range)))) * 10;
+    int16_t mid_lpos_upper = fast_iroundf(func->invers(0.5 * (*func)(_range))) * 10;
     mid_lpos_upper = (mid_lpos_upper / modulo) * modulo; // round down to the next modulo hit
-    int16_t mid_lpos_lower = static_cast<int16_t>(std::roundf(func->invers(0.5 * (*func)(_mrange)))) * 10;
+    int16_t mid_lpos_lower = fast_iroundf(func->invers(0.5 * (*func)(_mrange))) * 10;
     mid_lpos_lower = (mid_lpos_lower / modulo) * modulo;
     MYUCG->setFontPosCenter();
     MYUCG->setFont(ucg_font_fub14_hn);
 
     // calc pixel dist for interval 0.5-1 on scale bow
-    int16_t dist = std::roundf(((*func)(1.) - (*func)(0.5)) * _radius); // in pixel
+    int16_t dist = fast_iroundf(((*func)(1.) - (*func)(0.5)) * _radius); // in pixel
     ESP_LOGI(FNAME, "range %f/%f lines go m%d %d %d", _range, _mrange, modulo, dist, mid_lpos_upper);
 
     // increment in 1/10 scale steps
-    int16_t start = std::roundf(_range)*10, stop = std::roundf(_mrange)*10;
+    int16_t start = fast_iroundf(_range)*10, stop = fast_iroundf(_mrange)*10;
     int16_t l_start = start, l_stop = stop; // for labels
     if (at != -1000)
     {
         // partial scale repainting
         if ( at > 0 ) { // Redraw the AVG area
-            int16_t tmp = 10 * at + 5; // alias .5
+            int16_t tmp = (int)(at * 10) + 5; // alias .5
             if (tmp < start) {
                 start = tmp;
             }
-            tmp = 10 * at - 5;
+            tmp = (int)(at * 10) - 5;
             if (tmp > stop) {
                 stop = tmp;
             }
@@ -449,7 +454,9 @@ void PolarGauge::drawScale(int16_t at)
 void PolarGauge::drawScaleBottom()
 {
     // Area of -60° to -90° is concerned
-    drawScale( static_cast<int16_t>(std::roundf(func->invers(deg2rad(-60.)))) );
+    // start repaint <0 from /60def onwards
+    ESP_LOGI(FNAME, "restore scale at: %f", func->invers(deg2rad(-60.)) );
+    drawScale( func->invers(deg2rad(-60.)) );
 }
 
 // a [deg]; 0° ref on top
@@ -458,8 +465,8 @@ void PolarGauge::drawTwoDots(int16_t a, int16_t size, int16_t cidx) const
     float si = -fast_sin_idx(a*2);
     float co = fast_cos_idx(a*2);
     int16_t l1 = _radius + 2;
-    int16_t bx = static_cast<int16_t>(std::roundf(si * l1));
-    int16_t by = static_cast<int16_t>(std::roundf(co * l1));
+    int16_t bx = fast_iroundf(si * l1);
+    int16_t by = fast_iroundf(co * l1);
     MYUCG->setColor(lne_color[cidx].color[0], lne_color[cidx].color[1], lne_color[cidx].color[2]);
     if ( (a%360) != 0 ) { // skip the "north" position
         MYUCG->drawDisc(_ref_x-bx,_ref_y-by, size, UCG_DRAW_ALL );

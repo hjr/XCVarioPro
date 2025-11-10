@@ -66,7 +66,7 @@ public:
     void drawWind(int16_t wdir, int16_t wval, int16_t idir, int16_t ival);
     using BowColorIdx = enum { GREEN, BLUE, ORANGE, RED };
     void colorRange(float from, float to, int16_t color);
-    void drawScale(int16_t at = -1000);
+    void drawScale(float at = -1000.);
     void drawScaleBottom();
     void drawRose(int16_t at = -1000) const;
     void clearGauge();
@@ -94,8 +94,8 @@ public:
     // gauge function
     GaugeFunc *func = nullptr; // map value range to scale range [rad]
     // dice up into (arbitrary) discrete steps, map scale range into a 0,5° step counter
-    int16_t dice_up(float a) const { return (int16_t)(IDX_SCALE*(*func)(a)); }
-    int16_t dice_rad(float rad) const { return (int16_t)(rad*IDX_SCALE); }
+    int16_t dice_up(float a) const { return (int16_t)(IDX_SCALE*(*func)(a)); } // output in 0.5° steps
+    int16_t dice_rad(float rad) const { return (int16_t)(rad*IDX_SCALE); } // input in [rad], output in 0.5° steps
 
     // trigenometric macros
     int16_t SinCentered(float val, int16_t len) const; // output in pixel
@@ -110,7 +110,6 @@ public:
     // gauge helpers
     void drawOneScaleLine(float a, int16_t l2, int16_t w, int16_t cidx) const;
     void drawBow(int16_t idx, int16_t &old, int16_t w, int16_t off, int16_t cidx = 0) const;
-    void drawSeg(float a0, float a1) const;
     void drawOneLabel(float val, int16_t labl) const;
     void drawTwoDots(int16_t a, int16_t size, int16_t cidx) const;
 };

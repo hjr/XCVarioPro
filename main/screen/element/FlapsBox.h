@@ -9,9 +9,9 @@
 #pragma once
 
 #include "ScreenElement.h"
+#include "math/Floats.h"
 
 #include <cinttypes>
-#include <cmath>
 
 class Flap; // where all the data and logic resides
 
@@ -74,7 +74,7 @@ public:
 };
 
 constexpr FBoxStateHash::FBoxStateHash(float f, float minvd, float maxvd) :
-    wkidx10( (int)std::roundf(f*10.) )
+    wkidx10( fast_iroundf(f*10.) )
 {
     top_pix = static_cast<int16_t>(minvd * FlapsBox::PIX_PER_KMH);
     bottom_pix = static_cast<int16_t>(maxvd * FlapsBox::PIX_PER_KMH);

@@ -28,11 +28,11 @@ S2FBar::S2FBar(int16_t cx, int16_t cy, int16_t width, int16_t gap) :
 
 }
 
-// Accepts speed in kmh IAS/TAS, translates into configured unit
+// v : IAS in configured unit
 // right-aligned to value in 25 font size, no unit
 void S2FBar::drawSpeed(float v)
 {
-	int airspeed = (int)std::roundf(v);
+	int airspeed = fast_iroundf(v);
     if ( _prev_s2f_level == 0 ) {
 	    MYUCG->setColor(COLOR_DGREEN);
     }

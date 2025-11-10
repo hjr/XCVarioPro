@@ -7,6 +7,8 @@
  ***********************************************************/
 
 #include "XCVarioMsg.h"
+
+#include "math/Floats.h"
 #include "protocol/nmea_util.h"
 #include "comm/DataLink.h"
 #include "comm/Messages.h"
@@ -14,7 +16,7 @@
 #include "KalmanMPU6050.h"
 #include "sensor.h"
 
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <string>
 #include <cmath>
@@ -119,7 +121,7 @@ void NmeaPrtcl::sendStdXCVario(float baro, float dp, float te, float temp, float
         msg->buffer += str;
     }
     msg->buffer += ',' + std::to_string(!cruise);
-    std::sprintf(str, ",%2.1f", std::roundf(temp * 10.f) / 10.f);
+    std::sprintf(str, ",%2.1f", fast_iroundf(temp * 10.f) / 10.f);
     msg->buffer += str;
     std::sprintf(str, ",%4.1f", QNH.get());
     msg->buffer += str;
@@ -162,10 +164,10 @@ void NmeaPrtcl::sendXcvRPYL(float roll, float pitch, float yaw, float acc_z)
     msg->buffer = "$RPYL,";
     char str[50];
     sprintf(str, "%d,%d,%d,0,0,%d,0",
-            (int)std::roundf(roll*10.f),         // Bank == roll     (deg)
-            (int)std::roundf(pitch*10.f),        // Pitch            (deg)
-            (int)std::roundf(yaw*10.f),        // Magnetic Heading (deg) ?? fixme what ??
-            (int)std::roundf(acc_z*1000.f));
+            (int)fast_iroundf(roll*10.f),       // Bank == roll     (deg)
+            (int)fast_iroundf(pitch*10.f),      // Pitch            (deg)
+            (int)fast_iroundf(yaw*10.f),        // Magnetic Heading (deg) ?? fixme what ??
+            (int)fast_iroundf(acc_z*1000.f));
     msg->buffer += str;
     msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     DEV::Send(msg);
@@ -180,7 +182,7 @@ void NmeaPrtcl::sendXcvAPENV1(float ias, float alt, float te)
 
     msg->buffer = "$APENV1,";
     char str[50];
-    std::sprintf(str, "%d,%d,0,0,0,%d", (int)std::roundf(Units::kmh2knots(ias)),(int)std::roundf(Units::meters2feet(alt)),(int)std::roundf(Units::ms2fpm(te)));
+    std::sprintf(str, "%d,%d,0,0,0,%d", (int)fast_iroundf(Units::kmh2knots(ias)),(int)fast_iroundf(Units::meters2feet(alt)),(int)fast_iroundf(Units::ms2fpm(te)));
     msg->buffer += str;
     msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     DEV::Send(msg);
@@ -202,7 +204,7 @@ void NmeaPrtcl::sendXcvGeneric(float te, float alt, float tas)
 
     msg->buffer = "$PTAS1,";
     char str[50];
-    sprintf(str, "%d,0,%d,%d", (int)std::roundf(Units::ms2knots(te)*10.f+200.), (int)std::roundf(Units::meters2feet(alt)+2000.f), (int)std::roundf(Units::kmh2knots(tas)) );
+    sprintf(str, "%d,0,%d,%d", fast_iroundf(Units::ms2knots(te)*10.f+200.), fast_iroundf(Units::meters2feet(alt)+2000.f), fast_iroundf(Units::kmh2knots(tas)) );
     msg->buffer += str;
     msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     DEV::Send(msg);
