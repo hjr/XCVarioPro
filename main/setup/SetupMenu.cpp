@@ -13,6 +13,7 @@
 #include "setup/SubMenuGlider.h"
 #include "setup/SubMenuFlap.h"
 #include "setup/ShowBootMsg.h"
+#include "screen/element/MultiGauge.h"
 #include "IpsDisplay.h"
 #include "ESPAudio.h"
 #include "BMPVario.h"
@@ -341,6 +342,11 @@ static int startFlarmSimulation(SetupMenuSelect *p) {
 	if ( p->getSelect() == 1 ) {
 		FlarmSim::StartSim();
 	}
+	return 0;
+}
+
+static int multi_gauge_action(SetupMenuSelect *p) {
+	IpsDisplay::TOPgauge->setDisplay(static_cast<MultiGauge::MultiDisplay>(p->getValue()));
 	return 0;
 }
 
@@ -873,21 +879,20 @@ static void screens_menu_create_vario(SetupMenu *top) {
     scrcaid->mkEnable();
     top->addEntry(scrcaid);
 
-    SetupMenuSelect *tgauge = new SetupMenuSelect("Upper Gauge", RST_NONE, nullptr, &vario_upper_gauge);
+    SetupMenuSelect *tgauge = new SetupMenuSelect("Upper Gauge", RST_NONE, multi_gauge_action, &vario_upper_gauge);
     tgauge->setHelp("Choose the content for this gauge");
-    tgauge->addEntry("Disable");
-    tgauge->addEntry("Airspeed", GAUGE_SPEED);
-    tgauge->addEntry("Speed2Fly", GAUGE_S2F);
-    tgauge->addEntry("Net. Vario", NETTO_VARIO);
-    tgauge->addEntry("Heading", GAUGE_HEADING);
-    tgauge->addEntry("Slip Angle", GAUGE_SLIP);
+    tgauge->addEntry("Disable", MultiGauge::GAUGE_NONE);
+    tgauge->addEntry("Airspeed", MultiGauge::GAUGE_SPEED);
+    tgauge->addEntry("GND Speed", MultiGauge::GAUGE_GND_SPEED);
+    tgauge->addEntry("Speed2Fly", MultiGauge::GAUGE_S2F);
+    tgauge->addEntry("Net. Vario", MultiGauge::GAUGE_NETTO);
+    tgauge->addEntry("Heading", MultiGauge::GAUGE_HEADING);
+    tgauge->addEntry("Slip Angle", MultiGauge::GAUGE_SLIP);
     top->addEntry(tgauge);
 
     SetupMenuSelect *bgauge = new SetupMenuSelect("Lower Gauge", RST_NONE, nullptr, &vario_lower_gauge);
     bgauge->setHelp("Choose the content for this gauge");
-    bgauge->addEntry("Disable");
-    bgauge->addEntry("Altimeter", GAUGE_ALT);
-    // bgauge->addEntry("Life Wind", GAUGE_NONE);
+    bgauge->mkEnable("Altimeter");
     top->addEntry(bgauge);
 
     SetupMenuSelect *wke = new SetupMenuSelect("Flap Indicator", RST_NONE, nullptr, &flapbox_enable);

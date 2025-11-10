@@ -76,7 +76,6 @@ typedef enum e_speed_unit { SPEED_UNIT_KMH, SPEED_UNIT_MPH, SPEED_UNIT_KNOTS } e
 typedef enum e_vario_unit { VARIO_UNIT_MS, VARIO_UNIT_FPM, VARIO_UNIT_KNOTS } e_vario_unit_t;
 typedef enum e_qnh_unit { QNH_HPA, QNH_INHG } e_qnh_unit_t;
 typedef enum e_compasss_sensor_type { CS_DISABLE=0, CS_I2C=1, CS_CAN=3 } e_compasss_sensor_type_t;
-enum gauge_definition_t { GAUGE_NONE, GAUGE_SPEED, GAUGE_ALT, GAUGE_SLIP, GAUGE_S2F, NETTO_VARIO, GAUGE_HEADING, GAUGE_WIND };
 typedef enum e_sync { SYNC_NONE, SYNC_FROM_MASTER, SYNC_FROM_CLIENT, SYNC_BIDIR } e_sync_t;       // determines if data is synched from/to client. BIDIR means sync at commit from both sides
 typedef enum e_reset { RESET_NO, RESET_YES } e_reset_t;   // determines if data is reset to defaults on factory reset
 typedef enum e_volatility { VOLATILE, PERSISTENT, SEMI_VOLATILE } e_volatility_t;  // stored in RAM, FLASH, or into FLASH after a while
@@ -344,14 +343,17 @@ extern SetupNG<float>  		average_climb;
 extern SetupNG<float>  		flap_pos;
 extern SetupNG<float>  		altitude;
 extern SetupNG<float>  		ias;
+extern SetupNG<float>  		gnd_speed;
 extern SetupNG<float>  		te_vario;
+extern SetupNG<float>  		te_netto;
+extern SetupNG<float>  		slip_angle;
 
 extern SetupNG<int>  		xcv_alive;
 extern SetupNG<int>  		mags_alive;
 extern SetupNG<int>  		flarm_alive;
 extern SetupNG<int>  		airborne;
 
-extern SetupNG<int>  		s2f_ideal;
+extern SetupNG<float>  		s2f_ideal;
 extern SetupNG<int>  		s2f_switch_mode;
 extern SetupNG<float>  		s2f_threshold;
 extern SetupNG<float>  		s2f_flap_pos;

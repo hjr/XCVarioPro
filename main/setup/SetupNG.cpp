@@ -32,6 +32,7 @@
 #include "screen/element/Battery.h"
 #include "screen/element/Altimeter.h"
 #include "screen/element/PolarGauge.h"
+#include "screen/element/MultiGauge.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
@@ -213,20 +214,23 @@ SetupNG<int>  			extwind_sptc_speed( "EWDS", 0.0, false, SYNC_BIDIR, VOLATILE );
 SetupNG<int>  			extwind_inst_dir( "EIWDD", 0.0, false, SYNC_BIDIR, VOLATILE ); // instant external wind
 SetupNG<int>  			extwind_inst_speed( "EIWDS", 0.0, false, SYNC_BIDIR, VOLATILE );
 SetupNG<int>  			extwind_status( "EWST", -1, false, SYNC_BIDIR, VOLATILE );
-SetupNG<float>  		mag_hdm( "HDM", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		mag_hdm( "HDM", -1.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		mag_hdt( "HDT", -1.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		average_climb( "AVCL", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		flap_pos( "FLPS", 0.0, true, SYNC_BIDIR, VOLATILE );
 SetupNG<float>  		altitude( "ALTI", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<float>  		ias( "IASV", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		gnd_speed( "GNDV", -1.0, true, SYNC_NONE, VOLATILE );
 SetupNG<float>  		te_vario( "TEVA", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
+SetupNG<float>  		te_netto( "TENET", 0.0, true, SYNC_NONE, VOLATILE );
+SetupNG<float>  		slip_angle( "SLANGLE", 0.0, true, SYNC_FROM_MASTER, VOLATILE );
 
 SetupNG<int>  			xcv_alive( "AL_XCV", ALIVE_NONE, false, SYNC_NONE, VOLATILE );
 SetupNG<int>  			mags_alive( "AL_MAGS", ALIVE_NONE, false, SYNC_NONE, VOLATILE );
 SetupNG<int>  			flarm_alive( "AL_FLARM", ALIVE_NONE, false, SYNC_NONE, VOLATILE );
 SetupNG<int>  			airborne("AIRBORNE", 0, false, SYNC_FROM_MASTER, VOLATILE, &ch_airborne_state);
 
-SetupNG<int>  			s2f_ideal( "S2F_IDEAL", 100.0, false, SYNC_FROM_MASTER, VOLATILE);
+SetupNG<float>  		s2f_ideal( "S2F_IDEAL", 100.0, false, SYNC_FROM_MASTER, VOLATILE);
 SetupNG<int>  			s2f_switch_mode( "AUDIO_MODE", AM_SWITCH, false, SYNC_BIDIR, PERSISTENT );
 SetupNG<float>  		s2f_threshold( "S2F_SPEED", 100.0, true, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, LIMITS(20.0, 250.0, 1.0));
 SetupNG<float>  		s2f_flap_pos( "S2F_FLAP", 1, true, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_NONE, LIMITS(-3, 3, 0.1));
@@ -411,8 +415,8 @@ SetupNG<int> 			menu_long_press("MENU_LONG", 0 );
 SetupNG<int> 			screen_gmeter("SCR_GMET", SCREEN_OFF, false);
 SetupNG<int> 			screen_horizon("SCR_HORIZ", SCREEN_OFF);
 SetupNG<int> 			vario_centeraid("SCR_CA", 0, false);
-SetupNG<int> 			vario_upper_gauge("SCR_GT", GAUGE_NONE, false);
-SetupNG<int> 			vario_lower_gauge("SCR_GB", GAUGE_NONE, false);
+SetupNG<int> 			vario_upper_gauge("SCR_GT", MultiGauge::GAUGE_SPEED, false);
+SetupNG<int> 			vario_lower_gauge("SCR_GB", 1, false);
 SetupNG<int> 			vario_mc_gauge("SCR_GMC", 1, false);
 SetupNG<bitfield_compass>  calibration_bits("CALBIT", { 0,0,0,0,0,0 } );
 SetupNG<int> 			gear_warning("GEARWA", 0 );

@@ -8,6 +8,8 @@
 
 #include "IpsDisplay.h"
 
+#include "math/Floats.h"
+#include "screen/element/MultiGauge.h"
 #include "screen/element/PolarGauge.h"
 #include "screen/element/WindIndicator.h"
 #include "screen/element/McCready.h"
@@ -47,8 +49,6 @@
 // types
 
 
-static const char* AirspeedModeStr();
-
 // local variables
 int screens_init = INIT_DISPLAY_NULL;
 
@@ -62,6 +62,7 @@ McCready*   IpsDisplay::MCgauge = nullptr;
 S2FBar*     IpsDisplay::S2FBARgauge = nullptr;
 Battery*    IpsDisplay::BATgauge = nullptr;
 Altimeter*	IpsDisplay::ALTgauge = nullptr;
+MultiGauge*	IpsDisplay::TOPgauge = nullptr;
 CruiseStatus* IpsDisplay::VCSTATgauge = nullptr;
 FlapsBox*   IpsDisplay::FLAPSgauge = nullptr;
 
@@ -125,7 +126,6 @@ int IpsDisplay::s2falt=-1;
 int IpsDisplay::s2fdalt=0;
 bool IpsDisplay::wireless_alive = false;
 int IpsDisplay::tempalt = -2000;
-int IpsDisplay::as_prev = -1;
 
 float IpsDisplay::average_climbf = 0;
 
@@ -193,6 +193,10 @@ IpsDisplay::~IpsDisplay() {
     if (ALTgauge) {
         delete ALTgauge;
         ALTgauge = nullptr;
+    }
+    if (TOPgauge) {
+        delete TOPgauge;
+        TOPgauge = nullptr;
     }
     if (VCSTATgauge) {
         delete VCSTATgauge;
@@ -351,6 +355,16 @@ void IpsDisplay::initDisplay() {
             ALTgauge = nullptr;
         }
     }
+    if (vario_upper_gauge.get()) {
+        if (!TOPgauge) {
+            TOPgauge = new MultiGauge(INNER_RIGHT_ALIGN, SPEEDYPOS, (MultiGauge::MultiDisplay)vario_upper_gauge.get());
+        }
+    } else {
+        if (TOPgauge) {
+            delete TOPgauge;
+            TOPgauge = nullptr;
+        }
+    }
     if (S2FBARgauge) {
         if (display_orientation.get() == DISPLAY_NINETY) {
             S2FBARgauge->setRef(DISPLAY_W - 120, AMIDY);
@@ -369,7 +383,6 @@ void IpsDisplay::initDisplay() {
             FLAPSgauge->setLength(100);
         }
     }
-    redrawValues();
 
     // Unit's
     ucg->setFont(ucg_font_fub11_hr);
@@ -377,7 +390,7 @@ void IpsDisplay::initDisplay() {
     ucg->setColor(COLOR_HEADER);
     ucg->print(Units::VarioUnit());
     if (vario_upper_gauge.get()) {
-        drawTopGauge(0, INNER_RIGHT_ALIGN, SPEEDYPOS, true);
+        TOPgauge->drawUnit();
     }
 
     if (FLAPSgauge) {
@@ -462,10 +475,12 @@ void IpsDisplay::redrawValues()
     if (ALTgauge) {
         ALTgauge->forceRedraw();
     }
+    if (TOPgauge) {
+        TOPgauge->forceRedraw();
+    }
     if (S2FBARgauge) {
         S2FBARgauge->forceRedraw();
     }
-    as_prev = -1;
     mode_dirty = true;
 
 	average_climbf = -1000.0;
@@ -627,92 +642,6 @@ void IpsDisplay::setCruiseChanged()
     mode_dirty = true;
 }
 
-const char* AirspeedModeStr()
-{
-	if (airspeed_mode.get() == MODE_IAS)
-	{
-		return "IAS";
-	}
-	else if (airspeed_mode.get() == MODE_TAS)
-	{
-		return "TAS";
-	}
-	else if (airspeed_mode.get() == MODE_CAS)
-	{
-		return "CAS";
-	}
-	else
-	{
-		return "-";
-	}
-}
-
-// Accepts speed in kmh IAS/TAS, translates into configured unit
-// set dirty, when obscured from vario needle
-// right-aligned to value
-bool IpsDisplay::drawTopGauge(int val, int16_t x, int16_t y, bool inc_unit)
-{
-	switch ( vario_upper_gauge.get() ) {
-	case GAUGE_S2F:
-		val = Units::Airspeed(s2f_ideal.get());
-		break;
-	case NETTO_VARIO:
-		val = static_cast<int>(std::round(slipAngle*-10.f)); // todo better home for the variable
-		break;
-	case GAUGE_SLIP:
-		val = static_cast<int>(std::round(slipAngle*-10.f)); // todo better home for the variable
-		break;
-	case GAUGE_HEADING:
-		val = static_cast<int>(std::round(getHeading()));
-		break;
-	default:
-		break;
-	}
-
-
-	if ( as_prev == val ) return false;
-	// ESP_LOGI(FNAME,"draw val %d %d", val, as_prev );
-
-	ucg->setColor( COLOR_WHITE );
-	ucg->setFont(ucg_font_fub25_hn, true);
-
-	char s[32];
-	if ( vario_upper_gauge.get() != GAUGE_SLIP ) {
-		sprintf(s,"  %3d", val);
-	}
-	else {
-		sprintf(s,"  %2d.%01d", val/10, std::abs(val)%10 );  // Slip Angle
-	}
-	ucg->setPrintPos(x-ucg->getStrWidth(s), y);
-	ucg->print(s);
-	if ( inc_unit ) {
-		ucg->setFont(ucg_font_fub11_hr);
-		ucg->setColor( COLOR_HEADER );
-		ucg->setPrintPos(x+5,y-3);
-		if( vario_upper_gauge.get() == GAUGE_SPEED ||vario_upper_gauge.get() == GAUGE_S2F ) {
-			ucg->print(Units::AirspeedUnitStr() );
-			ucg->setPrintPos(x+5,y-17);
-			if ( vario_upper_gauge.get() == GAUGE_SPEED ) {
-				ucg->print(AirspeedModeStr());
-			}
-			else {
-				ucg->print("S2F");
-			}
-		}
-		else {
-			ucg->print("deg");
-		    ucg->setPrintPos(x+5,y-17);
-			if ( vario_upper_gauge.get() == GAUGE_SLIP ) {
-				ucg->print("SLIP");
-			}
-			else {
-				ucg->print("HDG");
-			}
-		}
-	}
-	as_prev = val;
-	return true;
-}
 
 //////////////////////////////////////////////
 // The load display
@@ -729,7 +658,7 @@ void IpsDisplay::drawLoadDisplayTexts(){
 	ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MNG_POS);
 	ucg->print( "MAX NEG G" );
 	ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MIAS_POS);
-	ucg->printf( "MAX IAS %s", Units::AirspeedUnitStr() );
+	ucg->printf( "MAX IAS %s", Units::SpeedUnitStr() );
 }
 
 void IpsDisplay::initLoadDisplay(){
@@ -834,7 +763,7 @@ void IpsDisplay::drawHorizon( float pitch, float roll, float yaw ){
 		ucg->undoClipRange();
 	}
 	if( theCompass ){
-		heading = static_cast<int>(rintf(mag_hdt.get()));
+		heading = fast_iroundf(mag_hdt.get());
 		ucg->setFont(ucg_font_fub20_hr, true);
 		ucg->setPrintPos(70,310);
 		if( heading >= 360 )
@@ -893,7 +822,7 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 			ucg->setColor(  COLOR_RED  );
 		ucg->setFont(ucg_font_fub20_hr, true);
 		ucg->setPrintPos(INNER_RIGHT_ALIGN-40, LOAD_MIAS_POS+30);
-		ucg->printf("  %3d   ", Units::AirspeedRounded( airspeed_max.get() ) );
+		ucg->printf("  %3d   ", Units::SpeedRounded( airspeed_max.get() ) );
 		old_ias_max = airspeed_max.get();
 	}
 
@@ -907,7 +836,7 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 }
 
 
-float getHeading(){
+float getHeading() { // fixme move to compass
 	float heading = 0;
 	heading = mag_hdt.get();
 	if( (heading < 0) && Flarm::gpsStatus() ) {
@@ -917,9 +846,9 @@ float getHeading(){
 	return heading;
 }
 
-
-void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
-		float temp, float volt, float s2fd_ms, float s2f_ms, float acl_ms, float wksensor ){
+// fixme arg not needed on stack
+void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
+		float temp, float volt, float s2fd_ms, float s2f_ms, float acl_ms){
 	// ESP_LOGI(FNAME,"drawDisplay polar_sink: %f AVario: %f m/s", polar_sink_ms, ate_ms );
 	if( !(screens_init & INIT_DISPLAY_RETRO) ){
 		initDisplay();
@@ -940,8 +869,8 @@ void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float
 
 	// Unit adaption for mph and knots
 	float acl = Units::Vario( acl_ms );
-	float s2f = Units::Airspeed( s2f_ms );
-	float s2fd = Units::Airspeed( s2fd_ms );
+	float s2f = Units::Speed( s2f_ms );
+	float s2fd = Units::Speed( s2fd_ms );
 	// int airspeed = fast_iroundf_positive(Units::Airspeed( airspeed_kmh ));
 
 	// average Climb
@@ -972,8 +901,9 @@ void IpsDisplay::drawDisplay( int airspeed_kmh, float te_ms, float ate_ms, float
 
 	// Upper gauge
 	if( vario_upper_gauge.get() && !(tick%3) ) {
-		drawTopGauge( airspeed_kmh, INNER_RIGHT_ALIGN, SPEEDYPOS );
+		TOPgauge->draw();
 	}
+
 	// Altitude
 	if( ALTgauge ) {
 		ALTgauge->draw(altitude_m);

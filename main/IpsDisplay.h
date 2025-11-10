@@ -23,6 +23,7 @@ class McCready;
 class S2FBar;
 class Battery;
 class Altimeter;
+class MultiGauge;
 class CruiseStatus;
 class FlapsBox;
 
@@ -38,8 +39,8 @@ public:
 	static void setGlobalColors();
 	static void writeText( int line, const char *text );
 	static void writeText( int line, std::string &text );
-	                          // airspeed,       TE,       aTE,       polar_sink,       alt, temperature, battery, s2f_delta, as2f, acl, wkf
-	static void drawDisplay( int airspeed, float te, float ate, float polar_sink, float alt, float temperature, float volt, float s2fd, float s2f, float acl, float wksensor );
+	                    //  TE,       aTE,       polar_sink,       alt, temperature, battery, s2f_delta, as2f, acl, wkf
+	static void drawDisplay(float te, float ate, float polar_sink, float alt, float temperature, float volt, float s2fd, float s2f, float acl);
 
 	static void drawLoadDisplay( float loadFactor );
 	static void drawHorizon( float pitch, float roll, float yaw );
@@ -59,6 +60,7 @@ public:
     static S2FBar *S2FBARgauge;
     static Battery *BATgauge;
     static Altimeter *ALTgauge;
+    static MultiGauge *TOPgauge;
     static CruiseStatus *VCSTATgauge;
     static FlapsBox *FLAPSgauge;
 
@@ -71,7 +73,6 @@ public:
 	static int s2fdalt;
 	static bool wireless_alive;
 	static int tempalt;
-	static int as_prev;
 
 	static float average_climbf;
 

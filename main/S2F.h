@@ -23,12 +23,12 @@ public:
 	void change_mc();
 	void setPolar();
 	static bool isPolarEqualTo(int idx);
-	double speed( double st, bool circling=false );
-	double sink( double v );
-	inline double minsink_speed() { return _min_speed; };
+	float speed( float st, bool circling=false );
+	float sink( float v );
+	inline float minsink_speed() { return _min_speed; };
 	void recalcSinkNSpeeds();
 	static float getBallastPercent();
-	inline double circlingSink(double v) {
+	inline float circlingSink(float v) {
 		if( v > polar_stall_speed.get()*0.6 )
 			return _circling_sink;
 		else
@@ -40,15 +40,15 @@ public:
 	float getVn( float v );
 
 private:
-	double myballast;
+	float myballast;
 	static float bal_percent;
-	double a0,a1,a2;
-	double w0,w1,w2;
-	double _min_speed;
-	double _min_sink;
-	double _circling_speed;
-	double _circling_sink;
-	double _stall_speed_ms;
+	float a0,a1,a2;
+	float w0,w1,w2;
+	float _min_speed;
+	float _min_sink;
+	float _circling_speed;
+	float _circling_sink;
+	float _stall_speed_ms;
 };
 
 #endif /* MAIN_S2F_H_ */

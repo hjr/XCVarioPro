@@ -3,7 +3,7 @@
 #include "math/Floats.h"
 #include "logdefnone.h"
 
-float Units::Airspeed(float as)
+float Units::Speed(float as)
 {
 	if (ias_unit.get() == SPEED_UNIT_KMH)
 	{ // km/h
@@ -19,7 +19,7 @@ float Units::Airspeed(float as)
 	}
 	else
 	{
-		ESP_LOGE(FNAME, "Wrong unit for AS");
+		ESP_LOGE(FNAME, "Wrong unit for Speed");
 	}
 	return 0;
 }
@@ -49,7 +49,7 @@ float Units::Distance(float d)
 	return d;
 }
 
-int Units::AirspeedRounded(float as)
+int Units::SpeedRounded(float as)
 {
 	float ret = 0;
 	if (ias_unit.get() == SPEED_UNIT_KMH)
@@ -68,7 +68,7 @@ int Units::AirspeedRounded(float as)
 	{
 		ESP_LOGE(FNAME, "Wrong unit for AS");
 	}
-	return (int)roundf(ret);
+	return fast_iroundf_positive(ret);
 }
 
 float Units::kmh2knots(float kmh)
@@ -154,7 +154,7 @@ const char* Units::TemperatureUnitStr(int idx)
 	return "'C"; // default °C
 }
 
-const char* Units::AirspeedUnitStr(int u)
+const char* Units::SpeedUnitStr(int u)
 {
 	if (u == -1)
 	{
@@ -496,7 +496,7 @@ float Units::value(float val, e_quantity_t u)
 	case QUANT_ALT:
 		return Altitude(val);
 	case QUANT_HSPEED:
-		return Airspeed(val);
+		return Speed(val);
 	case QUANT_VSPEED:
 		return Vario(val);
 	case QUANT_QNH:
@@ -517,7 +517,7 @@ const char* Units::unit(e_quantity_t u)
 	case QUANT_ALT:
 		return AltitudeUnit();
 	case QUANT_HSPEED:
-		return AirspeedUnitStr();
+		return SpeedUnitStr();
 	case QUANT_VSPEED:
 		return VarioUnit();
 	case QUANT_QNH:

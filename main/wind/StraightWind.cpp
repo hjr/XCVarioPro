@@ -177,7 +177,7 @@ bool StraightWind::calculateWind()
 		        char log[ProtocolItf::MAX_LEN];
 		        sprintf( log, "$WIND;");
 		        int pos = strlen(log);
-			sprintf( log+pos, "%d;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%d;%d;%.1f;%1.1f", _tick, averageTC, cgs, averageTH, ctas, newWindDir, newWindSpeed, windDir, windSpeed, circlingWindDir, circlingWindSpeed, (airspeedCorrection-1)*100, circleWind->getFlightMode(), gpsStatus, deviation, slipAngle );
+			sprintf( log+pos, "%d;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%.1f;%d;%d;%.1f", _tick, averageTC, cgs, averageTH, ctas, newWindDir, newWindSpeed, windDir, windSpeed, circlingWindDir, circlingWindSpeed, (airspeedCorrection-1)*100, circleWind->getFlightMode(), gpsStatus, deviation );
 			pos=strlen(log);
 			sprintf( log+pos, "\n");
 			const NmeaPrtcl *prtcl = DEVMAN->getNMEA(NAVI_DEV); // Todo preliminary solution ..
@@ -247,10 +247,10 @@ void StraightWind::calculateWind( float tc, float gs, float th, float tas, float
 	bool devOK = true;
 
 	// Gating for proper heading alignment
-	slipAverage += (slipAngle -slipAverage)*0.0005;
-	if( abs( slipAngle - slipAverage) > swind_sideslip_lim.get() ){
+	slipAverage += (slip_angle.get() - slipAverage)*0.0005;
+	if( abs( slip_angle.get() - slipAverage) > swind_sideslip_lim.get() ){
 		status = "Side Slip";
-		ESP_LOGI( FNAME, "Slip overrun %.2f, average %.2f", slipAngle, slipAverage );
+		ESP_LOGI( FNAME, "Slip overrun %.2f, average %.2f", slip_angle.get(), slipAverage );
 		return;
 	}
 	float headingDelta = Vector::angleDiffDeg( th , lastHeading );

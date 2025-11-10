@@ -80,7 +80,6 @@ extern float s2f_delta;
 extern float polar_sink;
 extern float alt_external;
 extern float wksensor;
-extern float slipAngle;
 
 extern S2F Speed2Fly;
 extern int MyGliderPolarIndex;

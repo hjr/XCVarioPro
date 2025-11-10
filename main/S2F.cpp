@@ -61,23 +61,23 @@ bool S2F::IsValid() const
 void S2F::recalculatePolar()
 {
 	ESP_LOGI(FNAME, "S2F::recalculatePolar() bugs: %f ", bugs.get());
-	double v1 = polar_speed1.get() / 3.6;
-	double v2 = polar_speed2.get() / 3.6;
-	double v3 = polar_speed3.get() / 3.6;
-	double w1 = polar_sink1.get();
-	double w2 = polar_sink2.get();
-	double w3 = polar_sink3.get();
+	float v1 = polar_speed1.get() / 3.6;
+	float v2 = polar_speed2.get() / 3.6;
+	float v3 = polar_speed3.get() / 3.6;
+	float w1 = polar_sink1.get();
+	float w2 = polar_sink2.get();
+	float w3 = polar_sink3.get();
 	ESP_LOGI(FNAME, "v1/s1 %.1f/%.3f", v1 * 3.6, w1);
 	ESP_LOGI(FNAME, "v2/s2 %.1f/%.3f", v2 * 3.6, w2);
 	ESP_LOGI(FNAME, "v3/s3 %.1f/%.3f", v3 * 3.6, w3);
 	// w= a0 + a1*v + a2*v^2   from ilec
 	// w=  c +  b*v +  a*v^2   from wiki
-	double d = v1 * v1 * (v2 - v3) + v2 * v2 * (v3 - v1) + v3 * v3 * (v1 - v2);
+	float d = v1 * v1 * (v2 - v3) + v2 * v2 * (v3 - v1) + v3 * v3 * (v1 - v2);
 	a2 = d == 0. ? 0. : ((v2 - v3) * (w1 - w3) + (v3 - v1) * (w2 - w3)) / d;
 	d = v2 - v3;
 	a1 = d == 0. ? 0. : (w2 - w3 - a2 * (v2 * v2 - v3 * v3)) / d;
 	a0 = w3 - a2 * v3 * v3 - a1 * v3;
-	const double loading_factor = sqrt((myballast + 100.0) / 100.0);
+	const float loading_factor = sqrt((myballast + 100.0) / 100.0);
 	a0 = a0 * loading_factor;
 	a2 = a2 / loading_factor; // wingload  e.g. 100l @ 500 kg = 1.2 and G-Force
 	a0 = a0 * ((bugs.get() + 100.0) / 100.0);
@@ -182,24 +182,24 @@ void S2F::change_mc()
 }
 
 float S2F::getVn( float v ){
-	float Vn = v*pow(getN(),0.5);
+	float Vn = v*std::powf(getN(),0.5);
 	if( Vn > _stall_speed_ms )
 		return Vn;
 	else
 		return _stall_speed_ms;
 }
 
-double S2F::sink( double v_in ) {
-	double v = v_in;
-	double v_stall = polar_stall_speed.get() * 0.9;
+float S2F::sink( float v_in ) {
+	float v = v_in;
+	float v_stall = polar_stall_speed.get() * 0.9;
 	if ( v_in < v_stall || !IsValid() ){
 		// ESP_LOGI(FNAME,"S2F::sink, warning, airspeed %.1f below minimum speed %.1f km/h", v_in, v_stall );
 		return 0.0;
 	}
 	v = v/3.6; // airspeed in meters per second
-	double n=getN();
-	double sqn = sqrt(n);
-	double s = a0*n*sqn + a1*v*n + a2*v*v*sqn;
+	float n=getN();
+	float sqn = sqrt(n);
+	float s = a0*n*sqn + a1*v*n + a2*v*v*sqn;
 	// ESP_LOGI(FNAME,"S2F::sink() V:%0.1f sink:%2.2f G-Load:%1.2f", v_in, s, n );
 	return s;
 }
@@ -207,7 +207,7 @@ double S2F::sink( double v_in ) {
 float S2F::cw( float v ){  // in m/s
 	float cw = 0;
 	if( v > 14.0 ) {
-		double cur_sink = sink(v*3.6);
+		float cur_sink = sink(v*3.6);
 		// ESP_LOGI(FNAME,"S2F::cw( %0.1f ) sink: %2.1f cw. %2.2f  G: %1.1f", v, sink, cw, getN() );
 		cw = cur_sink / v;
 	}
@@ -215,9 +215,9 @@ float S2F::cw( float v ){  // in m/s
 }
 
 
-double S2F::speed( double netto_vario, bool circling )
+float S2F::speed( float netto_vario, bool circling )
 {
-	double stf = 0;
+	float stf = 0;
 	if( circling ){  // Optimum speed for a load factor of 1.4 g what corresponds 45° angle of bank and factor 1.2 speed increase; 3.6*1.2 = 4.32
 		// fixme, calculate to current g-load
 		stf = _circling_speed;

@@ -5,9 +5,9 @@
 class Units
 {
 public:
-	static float Airspeed(float as);
+	static float Speed(float as);
 	static float Distance(float d);
-	static int AirspeedRounded(float as);
+	static int SpeedRounded(float as);
 	static float kmh2knots(float kmh);
 	static float kmh2ms(float kmh);
 	static float ms2kmh(float ms);
@@ -16,7 +16,7 @@ public:
 	static float ActualWingloadCorrection(float v);
 	static float TemperatureUnit(float t);
 	static const char* TemperatureUnitStr(int idx = -1);
-	static const char* AirspeedUnitStr(int u = -1);
+	static const char* SpeedUnitStr(int u = -1);
 	static float Vario(const float te);
 	static float Qnh(float qnh);
 	static int QnhRounded(float qnh);

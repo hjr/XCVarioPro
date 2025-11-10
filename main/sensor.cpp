@@ -147,8 +147,6 @@ static bool first_devices_run = false;
 float batteryVoltage = 0.;
 float dynamicP; // Pitot
 
-float slipAngle = 0.0;
-
 // global color variables for adaptable display variant
 uint8_t g_col_background; // black
 uint8_t g_col_highlight;
@@ -336,13 +334,13 @@ void clientLoop(void *pvParameters)
 
 		// Need to be done for client and main vario (Oops)
 		polar_sink = Speed2Fly.sink( ias.get() );
-		float netto = te_vario.get() - polar_sink;
-		as2f = Speed2Fly.speed( netto, !VCMode.getCMode() );
-		
-		s2f_ideal.set(static_cast<int>(std::round(as2f)));
+		te_netto.set(te_vario.get() - polar_sink);
+		as2f = Speed2Fly.speed( te_netto.get(), !VCMode.getCMode() );
+
+		s2f_ideal.set(as2f);
 		// low pass damping
 		s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta)* (1/(s2f_delay.get()*10));
-		// ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, netto, as2f, s2f_delta );
+		// ESP_LOGI( FNAME, "te: %f, polar_sink: %f, netto %f, s2f: %f  delta: %f", aTES2F, polar_sink, te_netto.get(), as2f, s2f_delta );
 
 		// Vario screen update for client
 		const int screenEvent = ScreenEvent(ScreenEvent::MAIN_SCREEN).raw;
@@ -465,8 +463,8 @@ void readSensors(void *pvParameters){
 		float as = tas/3.6;                  // tas in m/s
 		const float K = 4000 * 180/M_PI;      // airplane constant and Ay correction factor
 		if( tas > 25.0 ){
-			slipAngle += ((IMU::getGliderAccelY()*K / (as*as)) - slipAngle)*0.09;   // with atan(x) = x for small x
-			// ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", as, IMU::getGliderAccelY()*K / (as*as), slipAngle );
+			slip_angle.set(slip_angle.get() + ((IMU::getGliderAccelY()*K / (as*as)) - slip_angle.get())*0.12);   // with atan(x) = x for small x
+			// ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", as, IMU::getGliderAccelY()*K / (as*as), slip_angle.get() );
 		}
 
 		// ESP_LOGI(FNAME,"count %d ccp %d", count, ccp );
@@ -582,9 +580,9 @@ void readSensors(void *pvParameters){
 
 		// Need to be done for client and main vario (Oops)
 		polar_sink = Speed2Fly.sink( ias.get() );
-		float netto = te_vario.get() - polar_sink;
-		as2f = Speed2Fly.speed( netto, !VCMode.getCMode() );
-		
+		te_netto.set(te_vario.get() - polar_sink);
+		as2f = Speed2Fly.speed( te_netto.get(), !VCMode.getCMode() );
+
 		s2f_ideal.set(static_cast<int>(std::round(as2f)));
 		// low pass damping
 		s2f_delta = s2f_delta + ((as2f - ias.get()) - s2f_delta)* (1/(s2f_delay.get()*10));
