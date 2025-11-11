@@ -330,6 +330,16 @@ const std::array<TONE, 16> gload_seq4 = {{ {fG6}, {fC7}, {fC7}, {fC7}, {fC7}, {f
 const std::array<VOICECONF, 4> all_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {1, 128} }};
 const SOUND GloadWarn = { gload_tim.data(), { gload_seq1.data(), gload_seq2.data(), gload_seq3.data(), gload_seq4.data() }, all_vconf.data(), 0 };
 
+// Gear warning
+const std::array<DURATION, 9> gear_tim = {{ {60}, {60}, {120},   {80}, {120},  {120}, {140}, {800}, {0} }};
+const std::array<TONE, 9> gear_seq1 = {{ {118}, {224},  {115},  {0},  {104}, {96}, {96},  {0},   {0} }};
+const std::array<TONE, 9> gear_seq2 = {{ {354}, {343},  {446},  {0},  {201}, {290}, {259}, {0},  {0} }};
+const std::array<TONE, 9> gear_seq3 = {{ {470}, {570},  {880}, {0},  {798}, {774}, {0}, {0},  {0} }};
+const std::array<TONE, 9> gear_seq4 = {{ {3416}, {2734}, {0},   {0}, {0}, {0}, {0}, {0},  {0} }};
+const std::array<VOICECONF, 4> male_vconf = {{ {1, 150}, {0, 128}, {0, 128}, {1, 128} }};
+const SOUND GearWarn = { gear_tim.data(), { gear_seq1.data(), gear_seq2.data(), gear_seq3.data(), gear_seq4.data() }, male_vconf.data(), 1 };
+
+
 // Coded flarm alarm: Intro
 const std::array<DURATION, 11> flin_tim = {{ {33},  {33}, {33},  {33},   {33},   {33},  {33},  {33},     {70},  {30},   {0} }};
 const std::array<TONE, 11> flin_seq1    = {{ {fCs4},{fE4},{fG4}, {fBd4}, {fCs5}, {fE5}, {fG5}, {fBd5},   {fCs4}, {fCs4},{0} }};
@@ -377,7 +387,7 @@ const SOUND *Flarm[3][3] = {
 };
 static SOUND FlarmCode = {flev1_tim.data(), { flsame_seq3.data(), nullptr, nullptr, flsame_seq4.data() }, all_vconf.data(), 0 }; // set on the fly
 
-                    // Ding
+// Ding
 const std::array<DURATION, 11> ding_tim = {{  {10}, {10}, {10},    {160}, {160}, {160},     {40}, {40}, {40},        {600}, {0} }};
 const std::array<TONE, 11> ding_seq1 = {{  {6868}, {2643}, {6868}, {2643}, {2643}, {0},     {2643}, {0}, {2643},     {0}, {0} }};
 const std::array<TONE, 11> ding_seq2 = {{  {2643}, {6868}, {2643}, {6868}, {1250}, {2643},  {1250}, {2643}, {1250}, {2643}, {0} }};
@@ -407,7 +417,7 @@ const SOUND WindGust = { wind_tim.data(), { wind_seq1.data(), nullptr, nullptr, 
 // list of sounds
 const std::array<const SOUND*, 16> sound_list = { { &NoSound, &VarioSound, &CheckSound, &FailSound, 
                                                     &TurnOut, &TurnIn, &Ding, &WindGust, &TurnIn, &FlapForward, &FlapBack,
-                                                    &StallWarn, &GloadWarn, &StallWarn, &FlarmIntro, &FlarmCode } };
+                                                    &StallWarn, &GloadWarn, &GearWarn, &FlarmIntro, &FlarmCode } };
 
 // To call from ISR context
 void IRAM_ATTR VOICECMD::fastLoad(uint8_t idx) {
