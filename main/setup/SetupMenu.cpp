@@ -14,7 +14,7 @@
 #include "setup/SubMenuFlap.h"
 #include "setup/ShowBootMsg.h"
 #include "screen/element/MultiGauge.h"
-#include "IpsDisplay.h"
+#include "Colors.h"
 #include "ESPAudio.h"
 #include "BMPVario.h"
 #include "S2F.h"
@@ -345,10 +345,6 @@ static int startFlarmSimulation(SetupMenuSelect *p) {
 	return 0;
 }
 
-static int multi_gauge_action(SetupMenuSelect *p) {
-	IpsDisplay::TOPgauge->setDisplay(static_cast<MultiGauge::MultiDisplay>(p->getValue()));
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // SetupMenu
@@ -879,7 +875,7 @@ static void screens_menu_create_vario(SetupMenu *top) {
     scrcaid->mkEnable();
     top->addEntry(scrcaid);
 
-    SetupMenuSelect *tgauge = new SetupMenuSelect("Upper Gauge", RST_NONE, multi_gauge_action, &vario_upper_gauge);
+    SetupMenuSelect *tgauge = new SetupMenuSelect("Upper Gauge", RST_NONE, nullptr, &vario_upper_gauge);
     tgauge->setHelp("Choose the content for this gauge");
     tgauge->addEntry("Disable", MultiGauge::GAUGE_NONE);
     tgauge->addEntry("Airspeed", MultiGauge::GAUGE_SPEED);

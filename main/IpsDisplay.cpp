@@ -325,8 +325,8 @@ void IpsDisplay::initDisplay() {
     if (!WNDgauge) {
         // create it always, because also the center aid is using it (keep it simple here)
         WNDgauge = new PolarGauge(AMIDX + AVGOFFX, AMIDY, 360, 50, PolarGauge::COMPASS);
-        WNDgauge->enableWindIndicator(true, wind_enable.get() == WA_EXTERNAL);
     }
+    WNDgauge->enableWindIndicator(wind_enable.get() > WA_OFF, wind_enable.get() == WA_EXTERNAL);
     WNDgauge->setWindRef(wind_reference.get());
     WNDgauge->setColor(needle_color.get());
 
@@ -354,6 +354,8 @@ void IpsDisplay::initDisplay() {
     if (vario_upper_gauge.get()) {
         if (!TOPgauge) {
             TOPgauge = new MultiGauge(INNER_RIGHT_ALIGN, SPEEDYPOS, (MultiGauge::MultiDisplay)vario_upper_gauge.get());
+        } else {
+            TOPgauge->setDisplay((MultiGauge::MultiDisplay)(vario_upper_gauge.get()));
         }
     } else {
         if (TOPgauge) {
@@ -371,7 +373,7 @@ void IpsDisplay::initDisplay() {
                 S2FBARgauge->setRef(DISPLAY_W - 50, AMIDY);
                 S2FBARgauge->setWidth(28);
             } else {
-                S2FBARgauge->setRef(DISPLAY_W - 30, AMIDY);
+                S2FBARgauge->setRef(DISPLAY_W - 34, AMIDY);
                 S2FBARgauge->setWidth(50);
             }
             S2FBARgauge->setGap(32);
@@ -390,7 +392,7 @@ void IpsDisplay::initDisplay() {
     ucg->setPrintPos(2, 50);
     ucg->setColor(COLOR_HEADER);
     ucg->print(Units::VarioUnit());
-    if (vario_upper_gauge.get()) {
+    if (TOPgauge) {
         TOPgauge->drawUnit();
     }
 

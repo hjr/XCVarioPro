@@ -54,6 +54,8 @@ public:
 	static inline AdaptUGC *getDisplay() { return ucg; };
 	static AdaptUGC *ucg;
 
+
+  private:
     static PolarGauge *MAINgauge;
     static PolarGauge *WNDgauge;
     static McCready *MCgauge;
@@ -63,8 +65,6 @@ public:
     static MultiGauge *TOPgauge;
     static CruiseStatus *VCSTATgauge;
     static FlapsBox *FLAPSgauge;
-
-  private:
 
 	static int tick;
 

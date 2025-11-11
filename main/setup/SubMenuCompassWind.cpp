@@ -16,7 +16,6 @@
 #include "logdef.h"
 #include "setup/SetupNG.h"
 #include "wind/WindCalcTask.h"
-#include "IpsDisplay.h"
 
 #include <string_view>
 
@@ -42,14 +41,6 @@ static int compassSensorCalibrateAction(SetupMenuSelect *p) {
 		CompassMenu::sensorCalibrationAction(p);
 	}
 	p->setSelect(0);
-	return 0;
-}
-
-static int windSettingsAction(SetupMenuSelect *p) {
-	WindCalcTask::createWindResources();
-	if ( IpsDisplay::WNDgauge ) {
-		IpsDisplay::WNDgauge->enableWindIndicator(wind_enable.get() > WA_OFF, wind_enable.get() == WA_EXTERNAL);
-	}
 	return 0;
 }
 
@@ -223,7 +214,7 @@ void options_menu_create_compasswind(SetupMenu *top) { // dynamic!
 		top->addEntry(compassMenu);
 
 		// Wind speed observation window
-		SetupMenuSelect *windcal = new SetupMenuSelect("Wind Calculation", RST_NONE, windSettingsAction, &wind_enable);
+		SetupMenuSelect *windcal = new SetupMenuSelect("Wind Calculation", RST_NONE, nullptr, &wind_enable);
 		windcal->addEntry("Disable", WA_OFF);
 		windcal->addEntry("Straight", WA_STRAIGHT);
 		windcal->addEntry("Circling", WA_CIRCLING);
