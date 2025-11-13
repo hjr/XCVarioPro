@@ -10,6 +10,7 @@
 
 #include <esp_attr.h>
 #include <cassert>
+#include <mutex>
 
 // Timer isr's
 class WdTimeOut {
@@ -46,23 +47,20 @@ WatchDog_C::~WatchDog_C()
 // Start
 void WatchDog_C::start(const unsigned int t_ms)
 {
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     esp_timer_stop(_timer);
     _timeout = t_ms * 1000;
     esp_timer_start_once(_timer, _timeout);
-    portEXIT_CRITICAL(&_mux);
 }
 
 // Re-Start, returns true for a real start of the timer
 // might be called from ISR !
 bool IRAM_ATTR WatchDog_C::restart()
 {
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     bool ret = ! esp_timer_is_active(_timer);
     esp_timer_stop(_timer);
     esp_timer_start_once(_timer, _timeout);
-    portEXIT_CRITICAL(&_mux);
-
     return ret;
 }
 
@@ -70,41 +68,36 @@ bool IRAM_ATTR WatchDog_C::restart()
 bool WatchDog_C::startCond(const unsigned int t_ms)
 {
     bool ret = false;
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     if ( ! esp_timer_is_active(_timer) ) {
         _timeout = t_ms * 1000;
         esp_timer_start_once(_timer, _timeout);
     }
-    portEXIT_CRITICAL(&_mux);
-
     return ret;
 }
 
 // Pet
 void WatchDog_C::pet()
 {
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     if ( esp_timer_is_active(_timer) ) {
         esp_timer_stop(_timer);
         esp_timer_start_once(_timer, _timeout);
     }
-    portEXIT_CRITICAL(&_mux);
 }
 
 // Stop
 void WatchDog_C::stop()
 {
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     esp_timer_stop(_timer);
-    portEXIT_CRITICAL(&_mux);
 }
 
 // Check
 bool WatchDog_C::isRunning() const
 {
-    portENTER_CRITICAL(&_mux);
+    std::lock_guard<SemaphoreMutex> lock(_mux);
     bool ret = esp_timer_is_active(_timer);
-    portEXIT_CRITICAL(&_mux);
     return ret;
 }
 

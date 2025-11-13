@@ -10,7 +10,7 @@
 
 #include "WatchDogIntf.h"
 
-#include <freertos/FreeRTOS.h>
+#include <comm/Mutex.h>
 
 #include <esp_timer.h>
 #include <cstdint>
@@ -38,5 +38,5 @@ private:
     esp_timer_handle_t _timer;
     uint64_t _timeout = 1000000;
     WDBark_I* _cb;
-    mutable portMUX_TYPE _mux = portMUX_INITIALIZER_UNLOCKED;
+    mutable SemaphoreMutex _mux;
 };
