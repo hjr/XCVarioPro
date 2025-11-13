@@ -15,6 +15,7 @@
 #include "setup/SubMenuFlap.h"
 #include "IpsDisplay.h"
 #include "ESPAudio.h"
+#include "Units.h"
 
 #include "sensor.h"
 #include "logdef.h"

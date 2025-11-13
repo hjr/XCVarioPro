@@ -171,7 +171,6 @@ void chg_display_orientation(){
 
 static void ch_airborne_state(){
 	ESP_LOGI(FNAME, "airborne state changed");
-
 }
 
 //////////////////////////
@@ -338,7 +337,6 @@ SetupNG<int>		    wk_sens_pos_4("WKSP1", 2000);
 SetupNG<int>		    wk_sens_pos_5("WKSP2", 1500);
 SetupNG<int>		    wk_sens_pos_6("WKSP3", 1000);
 SetupNG<int>            stall_warning( "STALL_WARN", 0, true, SYNC_BIDIR, PERSISTENT );
-SetupNG<float>			polar_stall_speed( "STALL_SPEED", 70, true, SYNC_BIDIR, PERSISTENT, 0, QUANT_HSPEED, &polar_speed_limits);
 SetupNG<int>            flarm_warning( "FLARM_LEVEL", 1, true, SYNC_BIDIR, PERSISTENT );
 SetupNG<float>          flarm_alarm_time( "FLARM_ALM", 5, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(1, 15, 1));
 SetupNG<int>            flap_sensor( "FLAP_SENS", FLAP_SENSOR_DISABLE, false, SYNC_NONE, PERSISTENT, flap_act);

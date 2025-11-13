@@ -5,10 +5,9 @@
  *      Author: iltis
  */
 
-#ifndef MAIN_S2F_H_
-#define MAIN_S2F_H_
+#pragma once
 
-#include "Units.h"
+
 
 class S2F {
 public:
@@ -24,12 +23,13 @@ public:
 	void setPolar();
 	static bool isPolarEqualTo(int idx);
 	float speed( float st, bool circling=false );
+	float getStallSpeed() const { return _stall_speed_ms * 3.6; }
 	float sink( float v );
-	inline float minsink_speed() { return _min_speed; };
+	inline float minsink_speed() { return _min_sink_speed; };
 	void recalcSinkNSpeeds();
 	static float getBallastPercent();
 	inline float circlingSink(float v) {
-		if( v > polar_stall_speed.get()*0.6 )
+		if( v > _stall_speed_ms * 3.6 * 0.6 )
 			return _circling_sink;
 		else
 			return 0;
@@ -44,11 +44,10 @@ private:
 	static float bal_percent;
 	float a0,a1,a2;
 	float w0,w1,w2;
-	float _min_speed;
+	float _min_sink_speed;
 	float _min_sink;
 	float _circling_speed;
 	float _circling_sink;
 	float _stall_speed_ms;
 };
 
-#endif /* MAIN_S2F_H_ */

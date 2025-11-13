@@ -784,9 +784,6 @@ static void system_menu_create_airspeed(SetupMenu *top) {
 	stawaen->setHelp("Enable alarm sound when speed goes below configured stall speed (until 30% less)");
 	stawaen->mkEnable();
 	top->addEntry(stawaen);
-
-	SetupMenuValFloat *staspe = new SetupMenuValFloat("Stall Speed", "", nullptr, true, &polar_stall_speed);
-	top->addEntry(staspe);
 }
 
 static void options_menu_create_altimeter(SetupMenu *top) {

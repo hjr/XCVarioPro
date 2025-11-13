@@ -130,6 +130,7 @@ void UiEventLoop(void *arg)
                 // ESP_LOGI(FNAME, "Unknown event %x", event);
             }
             if (uiMonitor) {
+                ESP_LOGI(FNAME, "Ui monitor pet");
                 uiMonitor->pet(); // knob ui interaction happened
             }
         }
@@ -158,12 +159,12 @@ void UiEventLoop(void *arg)
                     acceleration = 0.3; // limit acceleration effect to minimum 30% of 1g
                 }
                 // accelerated and ballast(ed) stall speed
-                float acc_stall = polar_stall_speed.get() * sqrt(acceleration + (ballast.get() / 100));
-                if (ias.get() < acc_stall && ias.get() > acc_stall * 0.7) {
+                float acc_stall = Speed2Fly.getStallSpeed() * sqrt(acceleration);
+                if (ias.get() < acc_stall && ias.get() > acc_stall * 0.7 && airborne.get()) {
                     if (!stall_warning_active) {
                         MBOX->pushMessage(4, "! STALL !", 20); // 20 sec
                     }
-                    if (stall_warning_active % 10 == 0) {
+                    if (stall_warning_active % 50 == 0) {
                         AUDIO->startSound(AUDIO_ALARM_STALL);
                     }
                     stall_warning_active++;

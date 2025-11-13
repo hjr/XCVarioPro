@@ -14,6 +14,7 @@
 #include "comm/Messages.h"
 #include "setup/SetupNG.h"
 #include "KalmanMPU6050.h"
+#include "Units.h"
 #include "sensor.h"
 
 #include "logdefnone.h"

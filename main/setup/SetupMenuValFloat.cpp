@@ -11,6 +11,7 @@
 #include "IpsDisplay.h"
 #include "BMPVario.h"
 #include "glider/Polars.h"
+#include "Units.h"
 #include "sensor.h"
 #include "ESPAudio.h"
 #include "logdefnone.h"

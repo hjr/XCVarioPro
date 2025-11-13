@@ -179,8 +179,6 @@ float mpu_target_temp=45.0;
 const constexpr char passed_text[] = "PASSED\n";
 const constexpr char failed_text[] = "FAILED\n";
 
-const float glider_min_ias = 50.f; // todo replace with speed derived from glider type
-
 int IRAM_ATTR sign(int num) {
     return (num > 0) - (num < 0);
 }
@@ -361,6 +359,7 @@ void readSensors(void *pvParameters){
 
 	float tasraw = 0;
 	esp_task_wdt_add(NULL);
+	int16_t landed = 0; // airborne detection counter
 
 	while (1)
 	{
@@ -509,7 +508,18 @@ void readSensors(void *pvParameters){
 		aTE = bmpVario.readAVGTE();
 
 		if( (count % 2) == 0 ){
-			airborne.set(ias.get() > glider_min_ias);
+			if ( ! airborne.get() && (ias.get() >  Speed2Fly.getStallSpeed() + 7) ) {
+				airborne.set(true);
+			}
+			else if ( airborne.get() && (ias.get() <  5) ) {
+				if ( landed++ > 100 ) { // ias < 5 km/h for 10 seconds
+					airborne.set(false);
+				}
+			}
+			else {
+				landed = 0;
+			}
+			
 			toyFeed();
 		}
 
@@ -1053,7 +1063,7 @@ void system_startup(void *args){
 		ias.set( Atmosphere::pascal2kmh( dynamicP ) );
 
         // Initialize the airborne status
-        airborne.set(ias.get() > glider_min_ias);
+        airborne.set(ias.get() > Speed2Fly.getStallSpeed());
 
 		ESP_LOGI(FNAME,"Aispeed sensor current speed=%f", ias.get() );
 		if( !offset_plausible && ( ias.get() < 50 ) ){
