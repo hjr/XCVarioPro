@@ -12,6 +12,6 @@ set(BUILD_DIR ${CMAKE_BINARY_DIR})
 set(SDKCONFIG "${BUILD_DIR}/sdkconfig")
 set(SDKCONFIG_DEFAULTS "sdkconfig.defaults")
 
-project(sensor)
+project(xcvario_pro)
 
 include (${project_dir}/html/CMakeLists.txt)
