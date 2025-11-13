@@ -75,10 +75,16 @@ void UiEventLoop(void *arg)
                 else if (detail == ButtonEvent::ESCAPE) {
                     knob.sendEscape();
                 }
+                if (uiMonitor) {
+                    uiMonitor->pet(); // knob ui interaction happened
+                }
             }
             else if (event.isRotaryEvent()) {
                 // ESP_LOGI(FNAME, "Rotation step %d", event.getSDetail());
                 knob.sendRot(event.getSDetail());
+                if (uiMonitor) {
+                    uiMonitor->pet(); // knob ui interaction happened
+                }
             }
             else if (event.isScreenEvent()) {
                 // ESP_LOGI(FNAME, "Screen event %d", detail);
@@ -128,10 +134,6 @@ void UiEventLoop(void *arg)
             }
             else {
                 // ESP_LOGI(FNAME, "Unknown event %x", event);
-            }
-            if (uiMonitor) {
-                ESP_LOGI(FNAME, "Ui monitor pet");
-                uiMonitor->pet(); // knob ui interaction happened
             }
         }
 
