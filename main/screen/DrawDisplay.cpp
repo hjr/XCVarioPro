@@ -154,11 +154,11 @@ void UiEventLoop(void *arg)
             }
 
             // Stall Warning
-            if (stall_warning.get() && screen_gmeter.get() != SCREEN_PRIMARY) {
+            if (stall_warning.get() && screen_gmeter.get() != SCREEN_PRIMARY && airborne.get()) {
                 // In aerobatics stall warning is contra productive, we concentrate on G-Load Display if permanent enabled
                 float acceleration = IMU::getGliderAccelZ();
                 if (acceleration < 0.3) {
-                    acceleration = 0.3; // limit acceleration effect to minimum 30% of 1g
+                    acceleration = 0.3; // limit acceleration effect to minimum 0.3g
                 }
                 // accelerated and ballast(ed) stall speed
                 float acc_stall = Speed2Fly.getStallSpeed() * sqrt(acceleration);
@@ -217,20 +217,7 @@ void UiEventLoop(void *arg)
 			if( gflags.flarmWarning ) {
 				Flarm::drawFlarmWarning();
 			}
-			// G-Load Display fixme
-			// ESP_LOGI(FNAME,"Active Screen = %d", active_screen );
-			// if( ((IMU::getGliderAccelZ() > gload_pos_thresh.get() || IMU::getGliderAccelZ() < gload_neg_thresh.get()) && screen_gmeter.get() == SCREEN_DYNAMIC ) ||
-			// 		( screen_gmeter.get() == SCREEN_PRIMARY ) || (MenuRoot->getActiveScreen() == SCREEN_GMETER)  )
-			// {
-			// 	if( !gflags.gLoadDisplay ){
-			// 		gflags.gLoadDisplay = true;
-			// 	}
-			// }
-			// else{
-			// 	if( gflags.gLoadDisplay ) {
-			// 		gflags.gLoadDisplay = false;
-			// 	}
-			// }
+
 
             // G-Load alarm when limits reached
             if (screen_gmeter.get() != SCREEN_OFF) {

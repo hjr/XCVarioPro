@@ -186,6 +186,7 @@ SetupNG<float> 			polar_speed2( "POLAR_SPEED2",   125, true, SYNC_BIDIR, PERSIST
 SetupNG<float> 			polar_sink2( "POLAR_SINK2",    -0.97, true, SYNC_BIDIR, PERSISTENT, modifyPolar, QUANT_VSPEED, &polar_sink_limits);
 SetupNG<float> 			polar_speed3( "POLAR_SPEED3",   175, true, SYNC_BIDIR, PERSISTENT, modifyPolar, QUANT_HSPEED, &polar_speed_limits);
 SetupNG<float> 			polar_sink3( "POLAR_SINK3",    -2.24, true, SYNC_BIDIR, PERSISTENT, modifyPolar, QUANT_VSPEED, &polar_sink_limits);
+SetupNG<float>			polar_stall_speed( "STALL_SPEED", 0, true, SYNC_BIDIR, PERSISTENT, modifyPolar, QUANT_HSPEED, &polar_speed_limits);
 SetupNG<float> 			polar_max_ballast( "POLAR_MAX_BAL",  80, true, SYNC_BIDIR, PERSISTENT, change_ballast, QUANT_MASS, LIMITS(0, 500, 1));
 SetupNG<float> 			polar_wingarea( "POLAR_WINGAREA", 10.5, true, SYNC_BIDIR, PERSISTENT, change_ballast, QUANT_NONE, LIMITS(0, 50, 0.1));
 

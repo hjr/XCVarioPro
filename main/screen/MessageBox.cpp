@@ -68,6 +68,7 @@ void MessageBox::pushMessage(int alert_level, const char *str, int to, bool conf
     }
 }
 
+// todo messages should have id's to make this work properly
 void MessageBox::popMessage()
 {
     if ( current ) {

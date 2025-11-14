@@ -14,6 +14,7 @@
 #include "comm/DeviceMgr.h"
 #include "protocol/NMEA.h"
 #include "Flap.h"
+#include "setup/SetupNG.h"
 #include "sensor.h"
 #include "logdefnone.h"
 
@@ -97,6 +98,11 @@ void S2F::setPolar()
 	polar_sink2.set( p.sink2 );
 	polar_sink3.set( p.sink3 );
 	polar_wingload.set( p.wingload );
+	// set default min speed as estimated stall_speed * 1.05 )
+	// Vstall := sqrt( (2 * W/S * g) / ( rho * Clmax ) ) [m/s]
+	float stall_speed = std::sqrtf( ( 2.f * polar_wingload.get() * 9.81f) / (1.225f * 1.4f ) ) * 1.05f;
+	_stall_speed_ms = stall_speed;
+	polar_stall_speed.set(stall_speed * 3.6);
 	polar_max_ballast.set( p.max_ballast );
 	polar_wingarea.set( p.wingarea, true, false );
 	empty_weight.set( (p.wingload * p.wingarea) - 80.0, true, false ); // Calculate default for emtpy mass
@@ -249,16 +255,14 @@ void S2F::recalcSinkNSpeeds()
 	_min_sink = sink( _min_sink_speed );
 	_circling_speed = 1.2*_min_sink_speed;
 	_circling_sink = sink( _circling_speed );
-	// set min speed as max( minsink speed, stall speed * 1.05 )
-	// Vstall := sqrt( (2 * W/S * g) / ( rho * Clmax ) ) [m/s]
+	// use user defined/confirmed stall speed
 	const float loading_factor = sqrt((myballast + 100.0) / 100.0);
-	float stall_speed = std::sqrtf( ( 2.f * polar_wingload.get() * loading_factor * 9.81f) / (1.225f * 1.4f ) ) * 1.05f; // stall speed estimate
-	_stall_speed_ms = std::max( stall_speed, _min_sink_speed / 3.6f );
+	_stall_speed_ms = polar_stall_speed.get() / 3.6 * std::sqrtf(loading_factor);
 
 	ESP_LOGI(FNAME,"Airspeed @ min Sink =%3.1f kmh", _min_sink_speed );
 	ESP_LOGI(FNAME,"          min Sink  =%2.3f m/s", _min_sink );
 	ESP_LOGI(FNAME,"Circling Speed      =%3.1f kmh", _circling_speed );
-	ESP_LOGI(FNAME,"Stall    Speed      =%2.3f km/h", stall_speed * 3.6f );
+	ESP_LOGI(FNAME,"Stall    Speed      =%2.3f km/h", polar_stall_speed.get() );
 	ESP_LOGI(FNAME,"Stall warn @        =%2.3f",     _stall_speed_ms * 3.6f);
 }
 

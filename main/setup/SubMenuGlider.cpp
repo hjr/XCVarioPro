@@ -18,6 +18,7 @@ static int polar_select(SetupMenuSelect *p) {
 	glider_type.set(p->getValue());
 	p->getParent()->setBuzzword(p->value());
 	p->getParent()->setDirty();
+	static_cast<SetupMenu*>(p->getParent()->getEntry(1))->setDirty(); // all the polar points
 	return 0;
 }
 
@@ -51,6 +52,10 @@ static void glider_menu_create_polarpoints(SetupMenu *top) {
 	top->addEntry(pov3);
 	SetupMenuValFloat *pos3 = new SetupMenuValFloat("Sink  3", "m/s", nullptr, false, &polar_sink3);
 	top->addEntry(pos3);
+
+	SetupMenuValFloat *staspe = new SetupMenuValFloat("Stall Speed", "", nullptr, false, &polar_stall_speed);
+	staspe->setHelp("Stall speed estimate for the glider at reference wing-load. Feel free to adjust");
+	top->addEntry(staspe);
 }
 
 static void fill_glider_selection(SetupMenuSelect *glt)

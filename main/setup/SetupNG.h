@@ -310,6 +310,7 @@ extern SetupNG<float> 		polar_speed2;
 extern SetupNG<float> 		polar_sink2;
 extern SetupNG<float> 		polar_speed3;
 extern SetupNG<float> 		polar_sink3;
+extern SetupNG<float>		polar_stall_speed;
 extern SetupNG<float> 		polar_max_ballast;
 extern SetupNG<float> 		polar_wingarea;
 
