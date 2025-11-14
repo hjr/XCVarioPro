@@ -42,7 +42,6 @@ void UiEventLoop(void *arg)
 {
     ESPRotary &knob = *static_cast<ESPRotary *>(arg);
 	float temp = DEVICE_DISCONNECTED_C;
-	float airspeed = 0;
     int16_t stall_warning_active = 0;
     int16_t gload_warning_active = 0;
 	bool gear_warning_active = false;
@@ -143,17 +142,8 @@ void UiEventLoop(void *arg)
             if (gflags.validTemperature == false) {
                 temp = DEVICE_DISCONNECTED_C;
             }
-            if (airspeed_mode.get() == MODE_IAS) {
-                airspeed = ias.get();
-            } else if (airspeed_mode.get() == MODE_TAS) {
-                airspeed = tas;
-            } else if (airspeed_mode.get() == MODE_CAS) {
-                airspeed = cas;
-            } else {
-                airspeed = ias.get();
-            }
 
-            // Stall Warning
+            // Stall Warning fixme no need for this to be here, could be in sensor loop, no display context needed
             if (stall_warning.get() && screen_gmeter.get() != SCREEN_PRIMARY && airborne.get()) {
                 // In aerobatics stall warning is contra productive, we concentrate on G-Load Display if permanent enabled
                 float acceleration = IMU::getGliderAccelZ();
@@ -176,7 +166,7 @@ void UiEventLoop(void *arg)
                     MBOX->popMessage();
                 }
             }
-            // Gear Warning
+            // Gear Warning fixme no need for this to be here, could be in sensor loop, no display context needed
             if (gear_warning.get()) {
                 int gw = 0;
                 if (gear_warning.get() == GW_EXTERNAL) {
@@ -232,6 +222,7 @@ void UiEventLoop(void *arg)
                 }
             }
 
+            // fixme no need for this to be here, could be in sensor loop, no display context needed
             if (theCenteraid) {
 				theCenteraid->tick();
 			}
