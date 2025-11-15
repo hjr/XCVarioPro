@@ -174,7 +174,7 @@ bool CompassMenu::showSensorRawData(SetupMenuSelect *p)
 		ESP_LOGI( FNAME, "showSensorRawData(): no compass" );
 		return false;
 	}
-	t_magn_axes raw = theCompass->getRawAxes();
+	vector_i16 raw = theCompass->getRawAxes();
 	// ESP_LOGI( FNAME, "showSensorRawData() %d %d %d", raw.x, raw.y, raw.z );
 	MYUCG->setColor( COLOR_WHITE );
 	MYUCG->setPrintPos( 1, 60 );
@@ -266,13 +266,13 @@ int CompassMenu::sensorCalibrationAction( SetupMenuSelect *p )
 
 
 /** Method for receiving intermediate calibration results. */
-bool CompassMenu::calibrationReport( t_magn_axes raw, t_float_axes scale, t_float_axes bias, bitfield_compass b, bool print )
+bool CompassMenu::calibrationReport( vector_i16 raw, vector_f scale, vector_f bias, bitfield_compass b, bool print )
 {
-	static t_magn_axes  raw_back = {0, 0, 0};
-	static t_float_axes scale_back = {0., 0., 0.};
-	static t_float_axes bias_back = {0., 0., 0.};
-	static t_magn_axes mins = { 20000, 20000, 20000 };
-	static t_magn_axes maxs = { 0,0,0 };
+	static vector_i16  raw_back = {0, 0, 0};
+	static vector_f scale_back = {0., 0., 0.};
+	static vector_f bias_back = {0., 0., 0.};
+	static vector_i16 mins = { 20000, 20000, 20000 };
+	static vector_i16 maxs = { 0,0,0 };
 	static bitfield_compass bits_old;// = { 0, 0, 0, 0, 0, 0 };
 
 	if( menuPtr == nullptr )
@@ -343,7 +343,7 @@ bool CompassMenu::calibrationReport( t_magn_axes raw, t_float_axes scale, t_floa
 	if( !print ){
 		const uint16_t X = 180;
 		const uint16_t Y = 155;
-		t_magn_axes peak;
+		vector_i16 peak;
 
 		peak.x = int16_t((float)raw.x*160.f/32768);
 		peak.y = int16_t((float)raw.y*114.f/32768);
@@ -395,7 +395,7 @@ bool CompassMenu::calibrationReport( t_magn_axes raw, t_float_axes scale, t_floa
 			MYUCG->setColor( COLOR_RED );
 		MYUCG->drawLine( X, Y, X, Y+mins.z  );
 
-		static t_magn_axes old = { 0,0,0 };
+		static vector_i16 old = { 0,0,0 };
 		MYUCG->setColor( COLOR_BLACK );
 		MYUCG->drawCircle( X-old.y, Y+old.y, 2 );
 		MYUCG->drawCircle( X-old.x, Y, 2 );

@@ -15,18 +15,13 @@ Magnetic Sensor Abstraction.
 
 #include "vector_3d.h"
 
-
-typedef struct magn_axes {
-	int16_t x;
-	int16_t y;
-	int16_t z;
-}t_magn_axes;
+#include <esp_err.h>
 
 class CompassSink_I
 {
 public:
     virtual ~CompassSink_I() = default;
-    virtual void fromExternal(const t_magn_axes *magaxes) = 0;
+    virtual void fromExternal(const vector_i16 *magaxes) = 0;
 };
 
 // Class Template
@@ -40,7 +35,7 @@ public:
 	virtual void age_incr() = 0;
 	virtual esp_err_t selfTest() = 0;
 	virtual bool overflowFlag() = 0;
-	virtual bool readRaw( t_magn_axes &mag ) = 0;
+	virtual bool readRaw( vector_i16 &mag ) = 0;
 	virtual bool readBiased( vector_ijk &mag ) { return false; }
 	virtual int curX() = 0;
 	virtual int curY() = 0;

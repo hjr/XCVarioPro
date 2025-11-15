@@ -31,11 +31,11 @@ class MagnetSensor;
 
 class CompassSink_I;
 
-typedef struct float_axes {
+struct float_axes {
 	float x;
 	float y;
 	float z;
-}t_float_axes;
+};
 
 union bitfield_compass{
 	struct {
@@ -70,7 +70,7 @@ class Compass: public Deviation, public Clock_I
 private:
     // Creates instance for I2C connection with passing the desired parameters.
     // No action is done at the bus. The default address of the chip is 0x0D.
-	Compass( const uint8_t addr, const uint8_t odr=0,	const uint8_t range=0, const uint16_t osr=0, I2C_t *i2cBus=0 );
+	Compass( const uint8_t addr, const uint8_t odr=0,	const uint8_t range=0, const uint16_t osr=0, i2cbus::I2C *i2cBus=0 );
 
 public:
 	static Compass* createCompass(InterfaceId iid);
@@ -100,7 +100,7 @@ public:
 	float calY() { return ((float( (float)mysensor->curY() ) - bias.y) * scale.y); };
 	float calZ() { return ((float( (float)mysensor->curZ() ) - bias.z) * scale.z); };
 
-	t_magn_axes getRawAxes() { return magRaw; };
+	vector_i16 getRawAxes() { return magRaw; };
 	float filteredHeading( bool *okIn );
 	float filteredTrueHeading( bool *okIn, bool withDeviation=true );
 	void setGyroHeading( float hd );
@@ -110,7 +110,7 @@ public:
 
 	// Calibration releated methods
 	// Calibrate compass by using the read x, y, z raw values.
-	bool calibrate( bool (*reporter)( t_magn_axes raw, t_float_axes scale, t_float_axes bias, bitfield_compass b, bool print ), bool only_show );
+	bool calibrate( bool (*reporter)( vector_i16 raw, vector_f scale, vector_f bias, bitfield_compass b, bool print ), bool only_show );
 	 // Resets the whole compass calibration, also the saved configuration.
 	void resetCalibration();
     bool isCalibrated() const;
@@ -146,11 +146,11 @@ private:
 	int gyro_age;
 
 	/** Variables used by calibration. */
-	t_magn_axes avg_calib_sample;
-	t_float_axes bias;
-	t_float_axes scale;
-	t_magn_axes min;
-	t_magn_axes max;
+	vector_i16 avg_calib_sample;
+	vector_f bias;
+	vector_f scale;
+	vector_i16 min;
+	vector_i16 max;
 	Average<10, int16_t> *avgX = 0;
 	Average<10, int16_t> *avgY = 0;
 	Average<10, int16_t> *avgZ = 0;
@@ -169,7 +169,7 @@ private:
 	float fy;
 	float fz;
 	float _heading;
-	t_magn_axes magRaw;
+	vector_i16 magRaw;
 
 	CompassSink_I *_MagsensSink = nullptr;
 };

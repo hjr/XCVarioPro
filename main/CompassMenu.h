@@ -44,7 +44,7 @@ class CompassMenu
   static int declinationAction( SetupMenuValFloat *p );
 
   /** Method for receiving intermediate calibration results. */
-  static bool calibrationReport( t_magn_axes raw, t_float_axes scale, t_float_axes bias, bitfield_compass b, bool print );
+  static bool calibrationReport( vector_i16 raw, vector_f scale, vector_f bias, bitfield_compass b, bool print );
 
   /** Compass Menu Action method to calibrate sensor. */
   static int sensorCalibrationAction( SetupMenuSelect *p );

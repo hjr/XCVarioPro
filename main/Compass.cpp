@@ -233,7 +233,7 @@ void Compass::setHeading( float h ) {
 void Compass::calcCalibration(){
 	nrsamples++;
 	float variance = 0.f;
-	t_float_axes var;
+	vector_f var;
 	if( mysensor ){
 		if( ! mysensor->readRaw(magRaw) )
 		{
@@ -304,7 +304,7 @@ void Compass::calcCalibration(){
  * stopped by the reporter function which displays intermediate results of the
  * calibration action.
  */
-bool Compass::calibrate( bool (*reporter)( t_magn_axes raw, t_float_axes scale, t_float_axes bias, bitfield_compass b, bool print ), bool only_show  )
+bool Compass::calibrate( bool (*reporter)( vector_i16 raw, vector_f scale, vector_f bias, bitfield_compass b, bool print ), bool only_show  )
 {
 	// reset all old calibration data
 	ESP_LOGI( FNAME, "calibrate/show magnetic sensor, only_show=%d ", only_show );
@@ -461,9 +461,9 @@ float Compass::heading( bool *ok )
 		state = mysensor->readBiased( tmp );
 		if ( state ) {
 			// rotate -90Z and then 180X, to have the same orientation as the IMU reference system
-			fx = -tmp.b;
-			fy = -tmp.a;
-			fz = -tmp.c;
+			fx = -tmp.y;
+			fy = -tmp.x;
+			fz = -tmp.z;
 		}
 	}
 	else {
@@ -495,7 +495,7 @@ float Compass::heading( bool *ok )
 	// ESP_LOGI(FNAME, "gravity a %.2f, b %.2f, c %.2f MV: a %.2f, b %.2f, c %.2f ", gravity_vector.a, gravity_vector.b, gravity_vector.c, mv.a, mv.b, mv.c );
 	// ESP_LOGI(FNAME, "gravity a %.2f, b %.2f, c %.2f ME a %.2f, b %.2f, c %.2f MEV: a %.2f, b %.2f, c %.2f ", gravity_vector.a, gravity_vector.b, gravity_vector.c, mv.a, mv.b, mv.c, mev.a, mev.b, mev.c );
 	// ESP_LOGI(FNAME, "rot a %.2f, b %.2f, c %.2f, w %.2f - %.2f ", q.b, q.c, q.d, q.a, RAD_TO_DEG*q.getAngle() );
-	_heading = Compass_atan2( mev.b, mev.a );
+	_heading = Compass_atan2( mev.y, mev.x );
 	// ESP_LOGI(FNAME,"mag (%.2f,%.2f,%.2f) heading %.2f", mev.a, mev.b, mev.c, _heading);
 
 	_heading = Vector::normalizeDeg( _heading );  // normalize the +-180 degree model to 0..360°

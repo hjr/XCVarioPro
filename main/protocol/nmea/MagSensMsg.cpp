@@ -78,7 +78,7 @@ dl_action_t MagSensMsg::streamData(NmeaPlugin *plg)
     }
     ESP_LOGI(FNAME,"PMMD stream data %s", sm->_frame.c_str());
     if ( sm->_frame.at(6) == 'r' ) {
-        t_magn_axes tmp;
+        vector_i16 tmp;
         tmp.x = atoi(sm->_frame.c_str() + word->at(1));
         tmp.y = atoi(sm->_frame.c_str() + word->at(2));
         tmp.z = atoi(sm->_frame.c_str() + word->at(3));
