@@ -246,6 +246,68 @@ static int imu_gaa(SetupMenuValFloat *f) {
 	return 0;
 }
 
+
+static void doImuCalibration( SetupMenuSelect *p ){
+	MYUCG->setFont( ucg_font_ncenR14_hr, true );
+	p->clear();
+	MYUCG->setPrintPos( 1, 30 );
+	MYUCG->printf( "AHRS calibration" );
+	MYUCG->setPrintPos( 1, 60 );
+	MYUCG->printf( "Ensure ground is flat," );
+	MYUCG->setPrintPos( 1, 90 );
+	MYUCG->printf( "with zero inclination." );
+	MYUCG->setPrintPos( 1, 120 );
+	MYUCG->printf( "Press button to start" );
+	while( ! Rotary->readSwitch(100) ) ;
+	p->clear();
+	MYUCG->setPrintPos( 1, 30 );
+	MYUCG->printf( "Now put down RIGHT wing" );
+	MYUCG->setPrintPos( 1, 60 );
+	MYUCG->printf( "on the ground," );
+	MYUCG->setPrintPos( 1, 90 );
+	MYUCG->printf( "then press button.." );
+	while( ! Rotary->readSwitch(100) ) ;
+	float angle = 0.0;
+	int ret = IMU::getAccelSamplesAndCalib(IMU_RIGHT, angle);
+	if( ret<1 ){
+		p->clear();
+		MYUCG->setPrintPos( 1, 30 );
+		MYUCG->printf( "Error in sampling data," );
+		MYUCG->setPrintPos( 1, 60 );
+		MYUCG->printf( "Right wing: Error" );
+		delay(5000);
+		return;
+	}
+	p->clear();
+	MYUCG->setPrintPos( 1, 30 );
+	MYUCG->printf( "Now put down LEFT wing" );
+	MYUCG->setPrintPos( 1, 60 );
+	MYUCG->printf( "on the ground," );
+	MYUCG->setPrintPos( 1, 90 );
+	MYUCG->printf( "then press button.." );
+	while( ! Rotary->readSwitch(100) ) ;
+	ret=IMU::getAccelSamplesAndCalib(IMU_LEFT, angle);
+	if( ret<2 ){
+			p->clear();
+			MYUCG->setPrintPos( 1, 30 );
+			MYUCG->printf( "Angle <8° too small," );
+			MYUCG->setPrintPos( 1, 60 );
+			MYUCG->printf( "Left wing: Error" );
+			delay(5000);
+			return;
+	}else{
+		MYUCG->setPrintPos( 1, 130 );
+		MYUCG->printf( "Success, Finished!" );
+		MYUCG->setPrintPos( 1, 160 );
+		MYUCG->printf( "Wing Angle: %.2f°", rad2deg(angle) );
+		delay(1000);
+		MYUCG->setPrintPos( 1, 220 );
+		MYUCG->printf( "press button to return" );
+		while( ! Rotary->readSwitch(100) ) ;
+	}
+
+}
+
 static int imu_calib(SetupMenuSelect *p) {
 	ESP_LOGI(FNAME,"Collect AHRS data (%d)", p->getSelect() );
 	int sel = p->getSelect();
@@ -254,7 +316,7 @@ static int imu_calib(SetupMenuSelect *p) {
 		break; // cancel
 	case 1:
 		// collect samples
-		IMU::doImuCalibration(p);
+		doImuCalibration(p);
 		break;
 	case 2:
 		// reset to default
