@@ -10,7 +10,7 @@
 
 #include "Colors.h"
 #include "AdaptUGC.h"
-#include "logdef.h"
+#include "math/Floats.h"
 
 #include <cmath>
 #include <cstdio>
@@ -30,15 +30,20 @@ LargeFigure::LargeFigure(int16_t x, int16_t y) :
 }
 
 void LargeFigure::draw(float val) {
-    int16_t ival = std::rint(val * 10); // integer value in steps of 10th
+    int16_t ival = fast_iroundf(val * 10); // integer value in steps of 10th
     if (_value != ival || _dirty) {
         // only print if there is a change in rounded numeric string
         char s[32];
         MYUCG->setFont(ucg_font_fub35_hn, false);
         // MYUCG->setFontPosCenter(); // corrects wrongly for (asc-desc)/2 -> we want asc/2 + desc
-        sprintf(s, _format[std::abs(ival) > 100], float(abs(ival) / 10.));
+        if ( std::abs(ival) < 100 ) {
+            sprintf(s, "%2.1f", float(abs(ival) / 10.));
+        }
+        else {
+            sprintf(s, "%d.", abs(ival) / 10);
+        }
         int16_t tmp = MYUCG->getStrWidth(s)/2;
-        if (val < 0) {
+        if (val < 0.f) {
             MYUCG->setColor(COLOR_BBLUE);
         } else {
             MYUCG->setColor(COLOR_WHITE);
