@@ -180,3 +180,10 @@
     "idf.flashType": "UART",
     "C_Cpp.default.compilerPath": "/usr/bin/clang++"
 }
+
+{
+  "clangd.arguments": [
+    "--header-insertion=never",
+    "--clang-tidy"
+  ]
+}
