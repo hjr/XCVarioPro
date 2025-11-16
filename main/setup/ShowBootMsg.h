@@ -8,13 +8,5 @@
 
 #pragma once
 
-#include "setup/SetupMenuDisplay.h"
-
-class ShowBootMsg: public SetupMenuDisplay
-{
-public:
-    ShowBootMsg(const char *title);
-    ~ShowBootMsg() = default;
-
-    void display(int mode = 0) override;
-};
+class SetupMenuDisplay;
+int show_boot_log(SetupMenuDisplay *p, int mode);

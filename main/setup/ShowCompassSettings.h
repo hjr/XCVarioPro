@@ -19,15 +19,6 @@ Last update: 2021-03-08
 
 #pragma once
 
-#include "setup/SetupMenuDisplay.h"
+class SetupMenuDisplay;
+int show_compass_setting(SetupMenuDisplay *p, int mode);
 
-class ShowCompassSettings: public SetupMenuDisplay
-{
-  public:
-
-  ShowCompassSettings( const char* title );
-
-  virtual ~ShowCompassSettings() {}
-
-	void display(int mode=0) override;
-};

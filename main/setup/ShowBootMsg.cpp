@@ -6,25 +6,19 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-#include "ShowBootMsg.h"
+#include "setup/SetupMenuDisplay.h"
 
-#include "setup/SetupNG.h"
 #include "AdaptUGC.h"
 #include "sensor.h"
-#include "logdef.h"
 
 #include <sstream>
+#include <string>
 
 extern AdaptUGC *MYUCG;
 
-ShowBootMsg::ShowBootMsg( const char* title ) :
-    SetupMenuDisplay( title, nullptr )
+int show_boot_log(SetupMenuDisplay *p,int mode)
 {
-}
-
-void ShowBootMsg::display(int mode)
-{
-    if ( mode <= 1 ) { clear(); }
+    if ( mode <= 1 ) { p->clear(); }
 
     const int line_height = 20;
     int ln = line_height;
@@ -41,4 +35,5 @@ void ShowBootMsg::display(int mode)
         MYUCG->setPrintPos(20, ln+line_height);
         MYUCG->print("Press button to exit");
     }
+    return 0;
 }

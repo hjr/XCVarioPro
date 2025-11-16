@@ -19,15 +19,6 @@ Last update: 2021-02-25
 
 #pragma once
 
-#include "setup/SetupMenuDisplay.h"
+class SetupMenuDisplay;
 
-class DisplayDeviations: public SetupMenuDisplay
-{
-  public:
-
-  DisplayDeviations( const char* title );
-
-  virtual ~DisplayDeviations() {}
-
-	virtual void display(int mode=0) override;
-};
+int display_deviations_action(SetupMenuDisplay *p, int mode);

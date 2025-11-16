@@ -29,5 +29,5 @@ public:
 	virtual ~ShowCirclingWind() {}
 
 	void display(int mode=0) override;
-	void rot( int count ) override { display(5); };
+	void rot( int count ) override { display(5); }; // turn knob to update screen
 };

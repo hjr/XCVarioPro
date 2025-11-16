@@ -16,35 +16,25 @@ Author: Axel Pauli, February 2021
 Last update: 2021-02-25
 
  ****************************************************************************/
-#include "IpsDisplay.h"
+
 #include "setup/SetupMenuDisplay.h"
-#include "setup/SetupMenu.h"
-#include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <esp_system.h>
 
-SetupMenuDisplay::SetupMenuDisplay( const char* title, int (*action)(SetupMenuDisplay *p) ) :
-	MenuEntry()
-{
-	_title.assign(title);
-	_action = action;
+SetupMenuDisplay::SetupMenuDisplay(const char *title, int (*action)(SetupMenuDisplay *p, int mode)) : MenuEntry() {
+    _title.assign(title);
+    _action = action;
 }
 
-void SetupMenuDisplay::display(int mode)
-{
-  if( _action != nullptr ) {
-    // Call user's callback
-    (*_action)( this );
-  }
+void SetupMenuDisplay::display(int mode) {
+    if (_action != nullptr) {
+        ESP_LOGI(FNAME, "SetupMenuDisplay::display mode %d", mode);
+        // Call user's callback
+        (*_action)(this, mode);
+    }
 }
 
-void SetupMenuDisplay::press()
-{
-	exit();
-}
+void SetupMenuDisplay::press() { exit(); }
 
-void SetupMenuDisplay::longPress()
-{
-	press();
-}
+void SetupMenuDisplay::longPress() { press(); }

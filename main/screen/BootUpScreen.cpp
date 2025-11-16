@@ -13,6 +13,7 @@
 #include "UiEvents.h"
 #include "protocol/Clock.h"
 #include "setup/ShowBootMsg.h"
+#include "setup/SetupMenuDisplay.h"
 #include "AdaptUGC.h"
 #include "sensor.h"
 
@@ -202,7 +203,7 @@ BootUpScreen::~BootUpScreen()
 void BootUpScreen::finish(int part)
 {
     if ( gflags.schedule_reboot ) {
-        ShowBootMsg bm("");
+        SetupMenuDisplay bm("", show_boot_log);
         bm.display(part+1); // factory only case .. no display synch here
         return;
     }

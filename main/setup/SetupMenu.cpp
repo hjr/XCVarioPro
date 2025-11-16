@@ -25,6 +25,7 @@
 #include "Flap.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
+#include "setup/SetupMenuDisplay.h"
 #include "setup/SetupAction.h"
 #include "setup/SetupNG.h"
 #include "Flarm.h"
@@ -1145,7 +1146,7 @@ void system_menu_create_software(SetupMenu *top) {
 	top->addEntry(upd);
 
 	if ( logged_tests.size() > 0 ) {
-		SetupMenuDisplay *dis = new ShowBootMsg("Show Boot Messages");
+		SetupMenuDisplay *dis = new SetupMenuDisplay("Show Boot Messages", show_boot_log);
 		top->addEntry(dis);
 	}
 

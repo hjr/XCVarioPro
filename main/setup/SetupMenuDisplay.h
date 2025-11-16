@@ -25,22 +25,22 @@ Last update: 2021-02-25
 class SetupMenuDisplay: public MenuEntry
 {
 public:
-  SetupMenuDisplay( const char* title, int (*action)(SetupMenuDisplay *p) = nullptr );
+    explicit SetupMenuDisplay(const char *title, int (*action)(SetupMenuDisplay *p, int mode) = nullptr);
+    SetupMenuDisplay() = delete;
+    virtual ~SetupMenuDisplay() = default;
 
-  virtual ~SetupMenuDisplay() = default;
+    /**
+     * Make a class derive and overload this method with your own display method
+     * or handle all display stuff in your callback function action.
+     */
+    void display(int mode = 0) override;
 
-  /**
-   * Make a class derive and overload this method with your own display method
-   * or handle all display stuff in your callback function action.
-   */
-	void display(int mode=0) override;
-
-	const char *value() const override { return nullptr; }
-	void rot( int count ) override {}
-	void press() override;
-	void longPress() override;
+    const char *value() const override { return nullptr; }
+    void rot(int count) override {}
+    void press() override;
+    void longPress() override;
 
 private:
-	// User's callback function
-	int (*_action)( SetupMenuDisplay *p );
+    // User's callback function
+    int (*_action)(SetupMenuDisplay *p, int mode);
 };

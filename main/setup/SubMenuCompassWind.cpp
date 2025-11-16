@@ -96,7 +96,7 @@ static void options_menu_create_compasswind_compass(SetupMenu *top) {
 	top->addEntry(devMenu);
 
 	// Show comapss deviations
-	DisplayDeviations *smd = new DisplayDeviations("Show Deviations");
+	SetupMenuDisplay *smd = new SetupMenuDisplay("Show Deviations", display_deviations_action);
 	top->addEntry(smd);
 
 	SetupMenuSelect *sms = new SetupMenuSelect("Reset Deviations ", RST_NONE, compassResetDeviationAction);
@@ -114,7 +114,7 @@ static void options_menu_create_compasswind_compass(SetupMenu *top) {
 	compdamp->setHelp("Compass or magnetic heading damping factor in seconds");
 
 	// Show compass settings
-	ShowCompassSettings *scs = new ShowCompassSettings("Show Settings");
+	SetupMenuDisplay *scs = new SetupMenuDisplay("Show Settings", show_compass_setting);
 	top->addEntry(scs);
 }
 
