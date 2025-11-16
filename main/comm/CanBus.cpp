@@ -11,6 +11,8 @@
 
 #include <driver/gpio.h>
 #include <esp_err.h>
+#include <string>
+#include <mutex>
 
 
 /*
@@ -50,10 +52,9 @@ void canRxTask(void *arg)
         {
             msg.assign((char *)rx.data, rx.data_length_code);
             ESP_LOGD(FNAME, "CAN RX NMEA chunk, id:0x%x, len:%d msg: %s", (unsigned int)rx.identifier, rx.data_length_code, msg.c_str());
-            xSemaphoreTake(can->_dlink_mutex, portMAX_DELAY);
+            std::lock_guard<SemaphoreMutex> lock(can->_dlink_mutex);
             auto dl = can->_dlink.find(rx.identifier);
             bool valid = dl != can->_dlink.end();
-            xSemaphoreGive(can->_dlink_mutex);
             if ( valid ) {
                 dl->second->process(msg.data(), msg.size());
                 to_once = true;

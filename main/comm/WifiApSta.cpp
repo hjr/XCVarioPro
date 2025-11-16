@@ -15,6 +15,7 @@
 #include <esp_wifi.h>
 #include <esp_mac.h>
 #include <esp_event.h>
+#include <mutex>
 
 bool netif_initialized = false;
 
@@ -203,10 +204,9 @@ public:
 						if (sizeRead > 0) {
 							ESP_LOGI(FNAME, "FD socket recv: connection %d, port %d, read:%d bytes", config->sock_hndl, config->port, sizeRead );
 							tmp_alive = true;
-							xSemaphoreTake(wifi->_dlink_mutex, portMAX_DELAY);
+							std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
 							auto dl = wifi->_dlink.find(config->port);
 							bool valid = dl != wifi->_dlink.end();
-							xSemaphoreGive(wifi->_dlink_mutex);
 							if (valid) {
 								dl->second->process(r, sizeRead);
 							}
@@ -233,10 +233,9 @@ public:
 						if (sizeRead > 0) {
 							ESP_LOGI(FNAME, "FD socket recv: connection %d, port %d, read:%d bytes", client_rec.peer, config->port, sizeRead );
 							tmp_alive = true;
-							xSemaphoreTake(wifi->_dlink_mutex, portMAX_DELAY);
+							std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
 							auto dl = wifi->_dlink.find(config->port);
 							bool valid = dl != wifi->_dlink.end();
-							xSemaphoreGive(wifi->_dlink_mutex);
 							if (valid) {
 								dl->second->process(r, sizeRead);
 							}

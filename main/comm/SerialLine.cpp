@@ -12,10 +12,12 @@
 #include "setup/SetupNG.h"
 #include "logdefnone.h"
 
-#include <soc/uart_reg.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+
+#include <soc/uart_reg.h>
+#include <mutex>
+
 
 constexpr int BUF_LEN = 128;
 constexpr int UARTRXFIFO_LEN = 256;
@@ -53,10 +55,9 @@ void uartTask(SerialLine *s) {
         // sleep until the UART gives us something to do
         BaseType_t ret = xQueueReceive((QueueHandle_t)s->_event_queue, &event, pdMS_TO_TICKS(10000));
         // fetch the data link
-        xSemaphoreTake(s->_dlink_mutex, portMAX_DELAY);
+        std::lock_guard<SemaphoreMutex> lock(s->_dlink_mutex);
         auto dlit = s->_dlink.begin();
         bool valid = dlit != s->_dlink.end();
-        xSemaphoreGive(s->_dlink_mutex);
         if (ret != pdTRUE) {
             // time-out, propagate as empty message
             if (valid) {

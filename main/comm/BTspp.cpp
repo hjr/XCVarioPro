@@ -12,7 +12,7 @@
 #include <esp_bt_device.h>
 #include <esp_spp_api.h>
 #include <esp_gap_bt_api.h>
-
+#include <mutex>
 
 constexpr int RFCOMM_SERVER_CHANNEL = 1;
 // #define HEARTBEAT_PERIOD_MS 50
@@ -72,10 +72,9 @@ static void spp_event_handler(esp_spp_cb_event_t event, esp_spp_cb_param_t *para
 		{
 			rxBuf[count] = '\0';
 
-			xSemaphoreTake(BTspp->_dlink_mutex, portMAX_DELAY);
+			std::lock_guard<SemaphoreMutex> lock(BTspp->_dlink_mutex);
 			auto dlit = BTspp->_dlink.begin();
 			bool valid = dlit != BTspp->_dlink.end();
-			xSemaphoreGive(BTspp->_dlink_mutex);
 			if ( valid ) {
 				dlit->second->process(rxBuf, count);
 			}

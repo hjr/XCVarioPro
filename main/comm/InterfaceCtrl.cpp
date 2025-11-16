@@ -9,7 +9,9 @@
 #include "InterfaceCtrl.h"
 
 #include "DataLink.h"
-#include "logdef.h"
+#include "logdefnone.h"
+
+#include <mutex>
 
 // 1..n relation from interface to data link layer
 // Ability to set interface details through a common cotrol interface
@@ -18,7 +20,6 @@
 InterfaceCtrl::InterfaceCtrl(bool oto) :
     _one_to_one(oto)
 {
-    _dlink_mutex = xSemaphoreCreateMutex();
 }
 
 InterfaceCtrl::~InterfaceCtrl()
@@ -29,26 +30,22 @@ InterfaceCtrl::~InterfaceCtrl()
 // get/create data link for this port
 DataLink* InterfaceCtrl::newDataLink(int port)
 {
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
         // Always reuse
         if ( _dlink.empty() ) {
-            xSemaphoreTake(_dlink_mutex, portMAX_DELAY);
             _dlink[port] = new DataLink(port, getId());
-            xSemaphoreGive(_dlink_mutex);
         }
         return _dlink.begin()->second;
     }
     else {
         // Should be a different port to all in the list, or reuse
-        xSemaphoreTake(_dlink_mutex, portMAX_DELAY);
         auto it = _dlink.find(port);
         if ( it != _dlink.end()) {
-            xSemaphoreGive(_dlink_mutex);
             return it->second;
         }
         DataLink *newdl = new DataLink(port, getId());
         _dlink[port] = newdl;
-        xSemaphoreGive(_dlink_mutex);
         return newdl;
     }
 }
@@ -56,7 +53,7 @@ DataLink* InterfaceCtrl::newDataLink(int port)
 // precondition: dl not yet in the map
 void InterfaceCtrl::addDataLink(DataLink *dl)
 {
-    xSemaphoreTake(_dlink_mutex, portMAX_DELAY);
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
         // Always replace
         if ( ! _dlink.empty() ) {
@@ -75,14 +72,13 @@ void InterfaceCtrl::addDataLink(DataLink *dl)
             _dlink[dl->getPort()] = dl;
         }
     }
-    xSemaphoreGive(_dlink_mutex);
 }
 
 // returns possibly a nullptr, when port is not found in the map
 DataLink *InterfaceCtrl::MoveDataLink(int port)
 {
     DataLink *tmp = nullptr;
-    xSemaphoreTake(_dlink_mutex, portMAX_DELAY);
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
         tmp = _dlink.begin()->second;
         _dlink.clear();
@@ -94,13 +90,12 @@ DataLink *InterfaceCtrl::MoveDataLink(int port)
             _dlink.erase(it);
         }
     }
-    xSemaphoreGive(_dlink_mutex);
     return tmp;
 }
 
 void InterfaceCtrl::DeleteDataLink(int port)
 {
-    xSemaphoreTake(_dlink_mutex, portMAX_DELAY);
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
         DeleteAllDataLinks();
     }
@@ -112,11 +107,11 @@ void InterfaceCtrl::DeleteDataLink(int port)
             delete tmp;
         }
     }
-    xSemaphoreGive(_dlink_mutex);
 }
 
 void InterfaceCtrl::DeleteAllDataLinks()
 {
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     for (auto &it : _dlink ) {
         delete it.second;
     }
@@ -126,6 +121,7 @@ void InterfaceCtrl::DeleteAllDataLinks()
 void InterfaceCtrl::startMonitoring(ItfTarget tgt)
 {
     // all data links
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     for ( auto dl : _dlink ) {
         ESP_LOGI(FNAME, "Mdl %x<>%x", (unsigned)dl.second->getTarget().raw, (unsigned)tgt.raw );
         if ( dl.second->getTarget() == tgt ) {
@@ -139,6 +135,7 @@ void InterfaceCtrl::startMonitoring(ItfTarget tgt)
 void InterfaceCtrl::stopMonitoring()
 {
     // all data links
+    std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     for ( auto dl : _dlink ) {
         dl.second->setMonitor(false);
     }

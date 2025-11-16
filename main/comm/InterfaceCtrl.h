@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
+#include "Mutex.h"
 
 #include <cstdint>
 #include <map>
@@ -89,7 +88,7 @@ public:
 
 protected:
     std::map<int, DataLink*> _dlink;
-    mutable SemaphoreHandle_t _dlink_mutex;
+    mutable SemaphoreMutex _dlink_mutex;
     bool _functional = false; // to be flipped from self tests
 private:
     bool _one_to_one;
