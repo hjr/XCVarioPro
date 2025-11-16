@@ -26,7 +26,7 @@ private:
     explicit FlarmSim(Device *d);
     ~FlarmSim();
 
-    int     _next_msg = 0;
+    int     _tick_count = 0;
     Device  *_d; // hijacked device
     // Active flagging instance
     static FlarmSim *_sim;

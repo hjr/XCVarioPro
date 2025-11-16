@@ -22,40 +22,48 @@
 // A FLARM "AU" message simulator
 
 // Messages to simulate FLARM AU sentences sequence
+// -> Level, rel. bearing, craft type, rel. vertical, rel. distance
 const char *pflau_msg[] = {
-    "1,-60,2,-100,355",
-    "1,-20,2,-100,255",
-    "1,-10,2,-80,175",
-    "2,10,2,-40,150",
-    "2,20,2,-20,130",
-    "3,30,2,0,120",
-    "3,60,2,20,125",
-    "2,80,2,40,160",
-    "1,90,2,80,210",
-    "1,90,2,80,280",
+    "1,-30, 2, -60, 300",
+    "1,-22, 2, -54, 260",
+    "1,-15, 2, -50, 205",
+    "1, -5, 2, -45, 157",
+    "2, 14, 2, -40, 110",
+    "2, 45, 2, -35, 90",
+    "3, 80, 2, -30, 100",
+    "3, 95, 2, -25, 137",
+    "2, 97, 2, -20, 167",
+    "1, 96, 2, -15, 167",
+    "1, 96, 2, -10, 166",
     ""
     };
 
 FlarmSim *FlarmSim::_sim = nullptr;
 
+// wait 5 seconds before first message 
 // iterate and inject through messages every other second
+// then delete simulator
 bool FlarmSim::tick()
 {
     ESP_LOGI(FNAME,"flarmSim tick");
 
-    if ( *pflau_msg[_next_msg] != '\0' )
-    {
-        std::string msg("$PFLAU,3,1,2,1,");
-        msg += pflau_msg[_next_msg];
-        msg += ",1234*";
-        msg += NMEA::CheckSum(msg.c_str()) + "\r\n";
-        _d->_link->process(msg.c_str(), msg.size());
-        _next_msg++;
+    int nextmsg = _tick_count-5;
+
+    if ( nextmsg >= 0 ) {
+        if ( *pflau_msg[nextmsg] != '\0' )
+        {
+            std::string msg("$PFLAU,3,1,2,1,");
+            msg += pflau_msg[nextmsg];
+            msg += ",1234*";
+            msg += NMEA::CheckSum(msg.c_str()) + "\r\n";
+            _d->_link->process(msg.c_str(), msg.size());
+        }
+        else {
+            delete this;
+            return true;
+        }
     }
-    else {
-        delete this;
-        return true;
-    }
+    _tick_count++;
     return false;
 }
 
@@ -75,6 +83,7 @@ FlarmSim::~FlarmSim()
     _sim = nullptr;
 }
 
+// start a flarm alarm situation simulation
 // precondition: Flarm device is configured
 void FlarmSim::StartSim()
 {
