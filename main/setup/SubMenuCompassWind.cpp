@@ -2,7 +2,6 @@
 #include "SubMenuCompassWind.h"
 
 #include "comm/Devices.h"
-#include "screen/element/PolarGauge.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 
@@ -10,14 +9,11 @@
 #include "ShowCompassSettings.h"
 #include "ShowCirclingWind.h"
 #include "ShowStraightWind.h"
-#include "Compass.h"
 #include "CompassMenu.h"
 #include "comm/DeviceMgr.h"
 #include "logdef.h"
 #include "setup/SetupNG.h"
 #include "wind/WindCalcTask.h"
-
-#include <string_view>
 
 // compass menu handlers.
 static int compassDeviationAction(SetupMenuSelect *p) {
@@ -42,6 +38,12 @@ static int compassSensorCalibrateAction(SetupMenuSelect *p) {
 	}
 	p->setSelect(0);
 	return 0;
+}
+
+static int windResourcesAction(SetupMenuSelect *p) {
+    ESP_LOGI(FNAME, "Enable/Disable Wind");
+    WindCalcTask::createWindResources();
+    return 0;
 }
 
 static void options_menu_create_compasswind_compass_dev(SetupMenu *top) {
@@ -214,7 +216,7 @@ void options_menu_create_compasswind(SetupMenu *top) { // dynamic!
 		top->addEntry(compassMenu);
 
 		// Wind speed observation window
-		SetupMenuSelect *windcal = new SetupMenuSelect("Wind Calculation", RST_NONE, nullptr, &wind_enable);
+		SetupMenuSelect *windcal = new SetupMenuSelect("Wind Calculation", RST_NONE, windResourcesAction, &wind_enable);
 		windcal->addEntry("Disable", WA_OFF);
 		windcal->addEntry("Straight", WA_STRAIGHT);
 		windcal->addEntry("Circling", WA_CIRCLING);
