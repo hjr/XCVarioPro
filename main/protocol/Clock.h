@@ -20,6 +20,7 @@ public:
 
 public:
     Clock();
+    ~Clock();
 
     // API
     static void start(Clock_I *cb);
