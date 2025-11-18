@@ -138,7 +138,7 @@ dl_action_t FlarmMsg::parsePFLAE(NmeaPlugin *plg)
 //
 dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
 {
-    ESP_LOGD(FNAME,"parsePFLAU");
+    ESP_LOGI(FNAME,"parsePFLAU");
     ProtocolState *sm = plg->getNMEA().getSM();
     const std::vector<int> *word = &sm->_word_start;
     if ( word->size() < 9 ) {
@@ -152,10 +152,13 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
     Flarm::Power       = atoi(s + word->at(3));
     Flarm::AlarmLevel  = atoi(s + word->at(4));
     Flarm::RelativeBearing  = atoi(s + word->at(5));
-    Flarm::RelativeVertical = atoi(s + word->at(6));
-    Flarm::RelativeDistance = atoi(s + word->at(7));
-    sprintf( Flarm::ID, "%06x", atoi(s + word->at(8)));
-    // ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
+    Flarm::RelativeVertical = atoi(s + word->at(7));
+    Flarm::RelativeDistance = atoi(s + word->at(8));
+    Flarm::ID[0] = '\0';
+    if ( word->size() >= 10 ) {
+        sprintf( Flarm::ID, "%06x", atoi(s + word->at(9)));
+    }
+    ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
     Flarm::_tick=0;
 
     if ( !status_ok && Flarm::GPS > 0 && Flarm::TX > 0 ) {
