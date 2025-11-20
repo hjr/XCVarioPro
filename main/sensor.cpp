@@ -655,7 +655,7 @@ void readTemp(void *pvParameters)
 			if( (OAT.get() > -55.0) && (OAT.get() < 85.0) )
 				gflags.validTemperature = true;
 		}
-		Flarm::progress();
+		// Flarm::progress();
 		esp_task_wdt_reset();
 
 		if( (ttick++ % 50) == 0) {

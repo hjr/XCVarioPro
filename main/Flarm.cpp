@@ -137,11 +137,11 @@ void Flarm::initFlarmWarning(){
 
 void Flarm::drawFlarmWarning(){
 	// ESP_LOGI(FNAME,"drawFlarmWarning");
-	if( !( screens_init & INIT_DISPLAY_FLARM ) ){
-		initFlarmWarning();
-		screens_init |= INIT_DISPLAY_FLARM;
-		ESP_LOGI(FNAME,"init drawFlarmWarning");
-	}
+	// if( !( screens_init & INIT_DISPLAY_FLARM ) ){
+	// 	initFlarmWarning();
+	// 	screens_init |= INIT_DISPLAY_FLARM;
+	// 	ESP_LOGI(FNAME,"init drawFlarmWarning");
+	// }
 	_tick++;
 	if( _tick > 500 ) {
 		// age FLARM alarm in case there is no more input  50 per second = 10 sec
@@ -149,14 +149,14 @@ void Flarm::drawFlarmWarning(){
 	}
 	bool dirty = false;
 	if( oldDist !=  RelativeDistance ) {
-		ucg->setPrintPos(130, 140 );
-		ucg->setFontPosCenter();
-		ucg->setColor( COLOR_WHITE );
-		ucg->setFont(ucg_font_fub25_hr, true);
-		char d[32] = "\0";
-		int dist = rint(Units::Distance(RelativeDistance)/10)*10;
-		sprintf(d,"%d   ",dist);
-		ucg->printf( d );
+		// ucg->setPrintPos(130, 140 );
+		// ucg->setFontPosCenter();
+		// ucg->setColor( COLOR_WHITE );
+		// ucg->setFont(ucg_font_fub25_hr, true);
+		// char d[32] = "\0";
+		// int dist = rint(Units::Distance(RelativeDistance)/10)*10;
+		// sprintf(d,"%d   ",dist);
+		// ucg->printf( d );
 		oldDist = RelativeDistance;
 	}
 	static int altDiff = 1;
@@ -166,26 +166,26 @@ void Flarm::drawFlarmWarning(){
 		if ( currDiff > 1 ) { currDiff = 1; }
 		dirty = currDiff != altDiff;
 		altDiff = currDiff;
-		ucg->setPrintPos(130, 220 );
-		ucg->setFontPosCenter();
-		ucg->setColor( COLOR_WHITE );
-		ucg->setFont(ucg_font_fub25_hr, true);
-		char v[32];
+		// ucg->setPrintPos(130, 220 );
+		// ucg->setFontPosCenter();
+		// ucg->setColor( COLOR_WHITE );
+		// ucg->setFont(ucg_font_fub25_hr, true);
+		// char v[32];
 		int vdiff = RelativeVertical;
 		if( alt_unit.get() != 0 ){  // then its ft or FL -> feet
 			vdiff = rint((vdiff/10)*10);
 		}
-		sprintf(v,"%d    ",  vdiff );
-		ucg->printf( v );
+		// sprintf(v,"%d    ",  vdiff );
+		// ucg->printf( v );
 		float relDist =  (float)RelativeDistance;
 		if( RelativeBearing < 0 )
 			relDist = -relDist;
 		float horizontalAngle = rad2deg( atan2( relDist, (float)RelativeVertical) );
 		ESP_LOGI(FNAME,"horizontalAngle: %f  vert:%d", horizontalAngle, RelativeVertical );
 
-		drawClearVerticalTriangle( 70, 220, horizontalAngle, 0, 50, 6 );
-		ucg->setColor( COLOR_WHITE );
-		drawAirplane( 70, 220, true );
+		// drawClearVerticalTriangle( 70, 220, horizontalAngle, 0, 50, 6 );
+		// ucg->setColor( COLOR_WHITE );
+		// drawAirplane( 70, 220, true );
 		oldVertical = RelativeVertical;
 	}
 	static int side = 1;
@@ -195,31 +195,31 @@ void Flarm::drawFlarmWarning(){
 		if ( currSide > 1 ) { currSide = 1; }
 		dirty |= currSide != side;
 		side = currSide;
-		ucg->setPrintPos(130, 80 );
-		ucg->setFontPosCenter();
-		ucg->setColor( COLOR_WHITE );
-		ucg->setFont(ucg_font_fub25_hr, true );
-		char b[32];
+		// ucg->setPrintPos(130, 80 );
+		// ucg->setFontPosCenter();
+		// ucg->setColor( COLOR_WHITE );
+		// ucg->setFont(ucg_font_fub25_hr, true );
+		// char b[32];
 		int quant=15;
 		if( RelativeBearing < 0 )
 			quant=-15;
 		int clock = int((RelativeBearing+quant)/30);
 		if( clock <= 0 )
 			clock += 12;
-		sprintf(b,"  %d  ", clock );
-		ucg->printf( b );
-		drawClearTriangle( 70,120, RelativeBearing, 0, 50, 4 );
-		ucg->setColor( COLOR_WHITE );
-		drawAirplane( 70, 120 );
+		// sprintf(b,"  %d  ", clock );
+		// ucg->printf( b );
+		// drawClearTriangle( 70,120, RelativeBearing, 0, 50, 4 );
+		// ucg->setColor( COLOR_WHITE );
+		// drawAirplane( 70, 120 );
 		oldBear = RelativeBearing;
 	}
 
 	if( AlarmLevel != alarmOld ) {
-		ucg->setPrintPos(200, 25 );
-		ucg->setFontPosCenter();
-		ucg->setColor( COLOR_WHITE );
-		ucg->setFont(ucg_font_fub20_hr, true);
-		ucg->printf( "%d ", AlarmLevel );
+		// ucg->setPrintPos(200, 25 );
+		// ucg->setFontPosCenter();
+		// ucg->setColor( COLOR_WHITE );
+		// ucg->setFont(ucg_font_fub20_hr, true);
+		// ucg->printf( "%d ", AlarmLevel );
 		alarmOld = AlarmLevel;
 		dirty = true;
 	}
