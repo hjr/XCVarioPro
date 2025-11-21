@@ -14,6 +14,7 @@
 #include "SetupRoot.h"
 #include "MessageBox.h"
 #include "BootUpScreen.h"
+#include "FlarmScreen.h"
 
 #include "setup/SetupMenuValFloat.h"
 #include "setup/SetupMenuDisplay.h"
@@ -40,10 +41,11 @@ static unsigned long int flarm_alarm_holdtime = 0;
 void UiEventLoop(void *arg)
 {
     ESPRotary &knob = *static_cast<ESPRotary *>(arg);
-	float temp = DEVICE_DISCONNECTED_C;
+    float temp = DEVICE_DISCONNECTED_C;
     int16_t stall_warning_active = 0;
     int16_t gload_warning_active = 0;
-	bool gear_warning_active = false;
+    bool gear_warning_active = false;
+    bool flarm_warning_active = false;
 
     xQueueReset(uiEventQueue);
 
@@ -97,7 +99,7 @@ void UiEventLoop(void *arg)
                                 Display->drawLoadDisplay( IMU::getGliderAccelZ() );
                                 break;
                             case SCREEN_HORIZON:
-                                Display->drawHorizon( IMU::getPitchRad(), IMU::getRollRad(), 0 );
+                                Display->drawHorizon( IMU::getAHRSQuaternion() );
                                 break;
                         }
                     }
@@ -108,10 +110,16 @@ void UiEventLoop(void *arg)
                     }
                 } else if (detail == ScreenEvent::BOOT_SCREEN) {
                     BootUpScreen::draw(); // time triggered boot screen update
-                }
-                // else if ( detail == ScreenEvent::FLARM_ALARM ) {
-                // }
-                else if (detail == ScreenEvent::QNH_ADJUST) {
+                } else if ( detail == ScreenEvent::FLARM_ALARM ) {
+                    if ( ! FLARMSCREEN ) {
+                        ESP_LOGI(FNAME,"Flarm::alarmLevel: %d, flarm_warning.get() %d", Flarm::alarmLevel(), flarm_warning.get() );
+                        MenuRoot->push(FlarmScreen::create());
+                    } else {
+                        FLARMSCREEN->display(1);
+                    }
+                } else if (detail == ScreenEvent::BOOT_SCREEN) {
+                    BootUpScreen::draw(); // time triggered boot screen update
+                } else if (detail == ScreenEvent::QNH_ADJUST) {
                     MenuRoot->begin(SetupMenu::createQNHMenu());
                 } else if (detail == ScreenEvent::BALLAST_CONFIRM) {
                     MenuRoot->begin(SetupMenu::createBallastMenu());
@@ -187,25 +195,22 @@ void UiEventLoop(void *arg)
             }
 
             // Flarm Warning Screen
-			if( flarm_warning.get() && !stall_warning_active && Flarm::alarmLevel() >= flarm_warning.get() ){ // 0 -> Disable
-				// ESP_LOGI(FNAME,"Flarm::alarmLevel: %d, flarm_warning.get() %d", Flarm::alarmLevel(), flarm_warning.get() );
-				if( !gflags.flarmWarning ) {
-					gflags.flarmWarning = true;
-					delay(100);
-					Display->clear();
-				}
-				flarm_alarm_holdtime = millis()+flarm_alarm_time.get()*1000;
-			}
-			else{
-				if( gflags.flarmWarning && (millis() > flarm_alarm_holdtime) ){
-					gflags.flarmWarning = false;
-					Display->clear();
-				}
-			}
-			if( gflags.flarmWarning ) {
-				Flarm::drawFlarmWarning();
-			}
-
+            // if (!stall_warning_active && Flarm::alarmLevel() > flarm_warning.get()) { // 4 -> Disable
+            //     ESP_LOGI(FNAME,"Flarm::alarmLevel: %d, flarm_warning.get() %d", Flarm::alarmLevel(), flarm_warning.get() );
+            //     if (!flarm_warning_active) {
+            //         flarm_warning_active = true;
+            //         MenuRoot->push(getFlarmScreenInstance());
+            //         flarm_alarm_holdtime = millis() + flarm_alarm_time.get() * 1000;
+            //     }
+            // } else {
+            //     if (flarm_warning_active && (millis() > flarm_alarm_holdtime)) {
+            //         flarm_warning_active = false;
+            //         getFlarmScreenInstance()->exit();
+            //     }
+            // }
+            // if (flarm_warning_active) {
+            //     Flarm::drawFlarmWarning();
+            // }
 
             // G-Load alarm when limits reached
             if (screen_gmeter.get() != SCREEN_OFF) {

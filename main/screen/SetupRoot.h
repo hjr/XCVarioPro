@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "setup/MenuEntry.h"
 #include "setup/SetupMenu.h"
 #include "protocol/WatchDog.h"
 
@@ -27,13 +28,14 @@ class SetupRoot final : public SetupMenu, public WDBark_I
 public:
     SetupRoot(IpsDisplay *display); // defines root
     virtual ~SetupRoot();
-    void display(int mode=0) override {};
+    void display(int mode=0) override;
     const char* value() const override { return nullptr; }
     void barked() override;
 
     // API
     static void initScreens();
-    void begin(MenuEntry *setup=nullptr);
+    void begin(MenuEntry *setup=nullptr); // enter setup from outside, or schedule the next one
+    void push(MenuEntry *menu); // push menu on top, e.g. the flarm traffic display
     void exit(int levels=0) override;
     int getActiveScreen() const  { return active_screen; }
     // interaction

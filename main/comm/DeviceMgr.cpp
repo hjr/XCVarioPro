@@ -446,6 +446,10 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         if ( did == MAGLEG_DEV || did == MAGSENS_DEV ) {
             Compass::createCompass(itf->getId());
         }
+        // todo creat flarm processor
+        // if ( did == FLARM_DEV ) {
+        //     Flarm::createFlarmProcessor(itf->getId());
+        // }
     }
 
     EnumList pl = dev->_link->addProtocol(proto, did, send_port); // Add proto, if not yet there

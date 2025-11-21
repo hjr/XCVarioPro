@@ -25,7 +25,6 @@ union global_flags {
 		bool haveIMU :1;
 		bool ahrsKeyValid  :1;
 		bool standard_setting :1;
-		bool flarmWarning :1 ;
 		bool validTemperature :1 ;
 		bool mpu_pwm_initalized: 1;
 		bool gear_warn_external :1;

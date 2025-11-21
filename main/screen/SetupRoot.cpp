@@ -15,6 +15,7 @@
 #include "setup/SubMenuFlap.h"
 #include "IpsDisplay.h"
 #include "ESPAudio.h"
+#include "Flarm.h"
 #include "Units.h"
 
 #include "sensor.h"
@@ -40,6 +41,11 @@ SetupRoot::SetupRoot(IpsDisplay *display) :
 SetupRoot::~SetupRoot()
 {
     detach();
+}
+
+void SetupRoot::display(int mode)
+{
+    ESP_LOGI(FNAME,"SetupRoot display mode %d", mode);
 }
 
 // time-out on ui interaction while airborne
@@ -88,6 +94,28 @@ void SetupRoot::begin(MenuEntry *setup)
         _childs.front()->enter();
     }
     SetupMenu::initGearWarning(); // Huh fixme
+}
+
+void SetupRoot::push(MenuEntry *menu)
+{
+    ESP_LOGI(FNAME,"Push Menu %s", menu->getTitle());
+    gflags.inSetup = true;
+    if ( _childs.empty() ) {
+        addEntry(menu);
+        ESP_LOGW(FNAME,"Push flarm screen");
+        menu->enter();
+    }
+    else {
+        MenuEntry *sel = getSelected();
+        if ( sel->isLeaf() ) {
+            ESP_LOGW(FNAME,"Cannot push menu on leaf");
+            sel->exit();
+        }
+        SetupMenu *parent = static_cast<SetupMenu*>(getSelected());
+        menu->hookToParent(parent);
+        ESP_LOGW(FNAME,"Push flarm screen hooked");
+        menu->enter();
+    }
 }
 
 void SetupRoot::exit(int levels)

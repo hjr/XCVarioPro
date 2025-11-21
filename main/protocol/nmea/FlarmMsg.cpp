@@ -9,6 +9,8 @@
 #include "FlarmMsg.h"
 #include "protocol/FlarmBin.h"
 #include "Flarm.h"
+#include "screen/UiEvents.h"
+#include "screen/DrawDisplay.h"
 #include "sensor.h"
 #include "screen/MessageBox.h"
 #include "comm/DeviceMgr.h"
@@ -161,10 +163,17 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
     ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
     Flarm::_tick=0;
 
+    if ( Flarm::AlarmLevel > 0 ) {
+        ESP_LOGI(FNAME,"FLARM ALARM LEVEL %d", Flarm::AlarmLevel);
+        // Send a flarm event to update display
+        int evt = ScreenEvent(ScreenEvent::FLARM_ALARM).raw;
+        xQueueSend(uiEventQueue, &evt, 0);
+    }
+
     if ( !status_ok && Flarm::GPS > 0 && Flarm::TX > 0 ) {
         ESP_LOGI(FNAME, "FLARM status OK %d,%d,%d,%d", Flarm::RX, Flarm::TX, Flarm::GPS, Flarm::Power);
         status_ok = true;
-        MBOX->pushMessage(0, "FLARM status Okay");
+        MBOX->pushMessage(1, "FLARM status Okay");
     }
     return DO_ROUTING;
 }

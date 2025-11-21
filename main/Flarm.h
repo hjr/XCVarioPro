@@ -7,11 +7,13 @@ class AdaptUGC;
 class FlarmMsg;
 class GarminMsg;
 class GpsMsg;
+class FlarmScreen;
 
 class Flarm {
 	friend class FlarmMsg;
 	friend class GarminMsg;
 	friend class GpsMsg;
+	friend class FlarmScreen;
 public:
 	static void setDisplay( AdaptUGC *theUcg ) { ucg = theUcg; };
 	static void drawAirplane( int x, int y, bool fromBehind=false, bool smallSize=false );

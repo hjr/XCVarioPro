@@ -16,8 +16,6 @@
 
 #include "logdefnone.h"
 
-#include <cstring>
-
 // The CAN master registry, the host side protocol parser. One query is supported:
 //
 // - Registration query: The drive (client) requests a CAN id to listen on commands from the master, and a response
