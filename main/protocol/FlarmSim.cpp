@@ -10,10 +10,10 @@
 
 #include "nmea_util.h"
 #include "comm/DeviceMgr.h"
-#include "protocol/ClockIntf.h"
 #include "protocol/Clock.h"
+#include "math/Trigonometry.h"
 
-#include <logdefnone.h>
+#include "logdefnone.h"
 
 #include <string>
 
@@ -21,22 +21,28 @@
 
 // A FLARM "AU" message simulator
 
-// Messages to simulate FLARM AU sentences sequence
-// -> Level, rel. bearing, craft type, rel. vertical, rel. distance
-const char *pflau_msg[] = {
-    "1,-30, 2, -60, 300",
-    "1,-22, 2, -54, 260",
-    "1,-15, 2, -50, 205",
-    "2, -5, 2, -45, 157",
-    "2, 14, 2, -40, 110",
-    "3, 45, 2, -35, 90",
-    "3, 80, 2, -30, 100",
-    "2, 95, 2, -25, 137",
-    "1, 97, 2, -20, 167",
-    "1, 96, 2, -15, 167",
-    "1, 96, 2, -10, 166",
-    ""
-    };
+
+struct SIMRUN {
+    vector_f target_rel_pos; // x=front, y=right, z=up
+    vector_f target_rel_velocity; // x=front, y=right, z=up
+    float target_omega;
+    float ownship_omega;
+};
+// Assume ownship at origin, flying along x axis at 27m/s (~100km/h)
+// Target position and velocity relative to ownship
+const SIMRUN simVariant[5] = {
+    // simVariant 0: crossing from left to right, descending
+    { {300.f, -100.f, -30.f}, {0.f, 20.f, -1.5f}, 0.f, 0.f },
+    // simVariant 1: crossing from right to left, climbing
+    { {300.f, 100.f, 0.f}, {0.f, -20.f, 2.f}, 0.f, 0.f },
+    // simVariant 2: head-on, descending
+    { {300.f, 0.f, -20.f}, {-20.f, 0.f, -2.f}, 0.f, 0.f },
+    // simVariant 3: overtaking from behind left, climbing
+    { {-70.f, -50.f, 10.f}, {37.f, 0.7f, 0.7f}, 0.f, 0.f },
+    // simVariant 4: crossing from left to right, level
+    { {300.f, -100.f, 0.f}, {0.f, 20.f, 0.f}, 0.1f, 0.f }
+};
+
 
 FlarmSim *FlarmSim::_sim = nullptr;
 
@@ -47,16 +53,29 @@ bool FlarmSim::tick()
 {
     ESP_LOGI(FNAME,"flarmSim tick");
 
-    int nextmsg = _tick_count-5;
-
-    if ( nextmsg >= 0 ) {
-        if ( *pflau_msg[nextmsg] != '\0' )
+    if ( _tick_count >= 0 ) {
+        if ( _tick_count < 20 || ! _done )
         {
+            // Messages to simulate FLARM AU sentences sequence
+            // -> Level, rel. bearing, craft type, rel. vertical, rel. distance
+            vector_f o_to_t = _target_pos - _own_pos;
+            int dist = o_to_t.get_norm();
+            if ( dist > 310 ) { _done = true;}
+            int bear = rad2deg( fast_atan2(o_to_t.y, o_to_t.x) );
+            int vert = o_to_t.z;
+            int levl = 3 - (dist / 50);
+            if ( levl < 1 ) { levl = 1; }
             std::string msg("$PFLAU,3,1,2,1,");
-            msg += pflau_msg[nextmsg];
+            msg += std::to_string(levl) + "," + std::to_string(bear) + ",2," + std::to_string(vert) 
+                + "," + std::to_string(dist);
+            ESP_LOGI(FNAME,"SimMsg: %s", msg.c_str());
             msg += ",1234*";
             msg += NMEA::CheckSum(msg.c_str()) + "\r\n";
             _d->_link->process(msg.c_str(), msg.size());
+
+            // increment own, and target position
+            _own_pos.x += 27.f; // ownship at 100km/h
+            _target_pos += _target_inc;
         }
         else {
             delete this;
@@ -67,10 +86,14 @@ bool FlarmSim::tick()
     return false;
 }
 
-FlarmSim::FlarmSim(Device *d) :
+FlarmSim::FlarmSim(Device *d, const SIMRUN *sv) :
     Clock_I(100), // generates a time-out callback ca. every second
     _d(d)
 {
+    // init vectors
+    _target_pos = sv->target_rel_pos;
+    _target_inc = sv->target_rel_velocity;
+    _own_pos = vector_f{0.f, 0.f, 0.f};
     ESP_LOGI(FNAME,"Kick ticker");
     Clock::start(this);
 }
@@ -85,10 +108,10 @@ FlarmSim::~FlarmSim()
 
 // start a flarm alarm situation simulation
 // precondition: Flarm device is configured
-void FlarmSim::StartSim()
+void FlarmSim::StartSim(int variant)
 {
     if ( ! _sim ) {
-        ESP_LOGI(FNAME,"Start Simulator");
+        ESP_LOGI(FNAME,"Start Simulator %d", variant);
         // only one at a time
         Device *d = DEVMAN->getDevice(FLARM_DEV);
         if ( d ) {
@@ -96,7 +119,7 @@ void FlarmSim::StartSim()
             // a Flarm is connected
             InterfaceCtrl *ic = d->_itf;
             ic->MoveDataLink(0); // the device has a backup of the data link pointer
-            _sim = new FlarmSim(d);
+            _sim = new FlarmSim(d, simVariant + variant);
         }
 
     }

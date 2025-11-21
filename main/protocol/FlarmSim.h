@@ -9,25 +9,32 @@
 #pragma once
 
 #include "ClockIntf.h"
+#include "vector_3d.h"
 
 class DataLink;
 class Device;
+struct SIMRUN;
 
 class FlarmSim final : public Clock_I
 {
 public:
-    static void StartSim();
+    static void StartSim(int variant=0);
 
     // Clock tick callback
     bool tick() override;
 
 private:
     FlarmSim() = delete;
-    explicit FlarmSim(Device *d);
+    explicit FlarmSim(Device *d, const SIMRUN *simrun);
     ~FlarmSim();
 
     int     _tick_count = 0;
+    bool    _done = false;
     Device  *_d; // hijacked device
     // Active flagging instance
     static FlarmSim *_sim;
+    // tracked vectors
+    vector_f _target_pos; // all metric
+    vector_f _target_inc;
+    vector_f _own_pos;
 };

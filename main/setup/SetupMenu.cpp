@@ -401,8 +401,8 @@ int bug_adj(SetupMenuValFloat *p) {
 }
 
 static int startFlarmSimulation(SetupMenuSelect *p) {
-	if ( p->getSelect() == 1 ) {
-		FlarmSim::StartSim();
+	if ( p->getSelect() > 0 ) {
+		FlarmSim::StartSim(p->getSelect()-1);
 	}
 	return 0;
 }
@@ -885,22 +885,25 @@ void options_menu_create_flarm(SetupMenu *top) {
 	SetupMenuSelect *flarml = new SetupMenuSelect("Level Threshold", RST_NONE, nullptr, &flarm_warning);
 	flarml->setHelp(
 			"Level of FLARM alarm to enable: 1 is lowest (13-18 sec), 2 medium (9-12 sec), 3 highest (0-8 sec) until impact");
-	flarml->addEntry("Disable");
-	flarml->addEntry("Level 1");
-	flarml->addEntry("Level 2");
-	flarml->addEntry("Level 3");
+	flarml->addEntry("Disable", 4);
+	flarml->addEntry("Level 1", 1);
+	flarml->addEntry("Level 2", 2);
+	flarml->addEntry("Level 3", 3);
 	top->addEntry(flarml);
 
 	SetupMenuValFloat *flarmt = new SetupMenuValFloat("Alarm Timeout", "sec", nullptr, false, &flarm_alarm_time);
-	flarmt->setHelp(
-			"The time FLARM alarm warning keeps displayed after alarm went off");
+	flarmt->setHelp("The time FLARM alarm warning keeps displayed after alarm went off");
 	top->addEntry(flarmt);
 
 	SetupMenuSelect *flarms = new SetupMenuSelect("Alarm Check", RST_NONE, startFlarmSimulation, nullptr, false, true);
 	flarms->setHelp(
 			"Simulate an airplane crossing from left to right with different alarm levels and vertical distance in 5 seconds");
 	flarms->addEntry("Cancel");
-	flarms->addEntry("Start Simulation");
+	flarms->addEntry("Simulation A");
+	flarms->addEntry("Simulation B");
+	flarms->addEntry("Simulation C");
+	flarms->addEntry("Simulation D");
+	flarms->addEntry("Simulation E");
 	top->addEntry(flarms);
 }
 
