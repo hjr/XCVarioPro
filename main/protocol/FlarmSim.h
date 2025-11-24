@@ -36,5 +36,7 @@ private:
     // tracked vectors
     vector_f _target_pos; // all metric
     vector_f _target_inc;
+    float    _target_omega;
     vector_f _own_pos;
+    int      _icao_id = 0;
 };

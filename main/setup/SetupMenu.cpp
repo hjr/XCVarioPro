@@ -889,14 +889,14 @@ void options_menu_create_flarm(SetupMenu *top) {
 	top->addEntry(flarmt);
 
 	SetupMenuSelect *flarms = new SetupMenuSelect("Alarm Check", RST_NONE, startFlarmSimulation, nullptr, false, true);
-	flarms->setHelp(
-			"Simulate an airplane crossing from left to right with different alarm levels and vertical distance in 5 seconds");
+	flarms->setHelp("Simulate an airplane crossing from left to right with different alarm levels and vertical distance in 5 seconds");
 	flarms->addEntry("Cancel");
-	flarms->addEntry("Simulation A");
-	flarms->addEntry("Simulation B");
-	flarms->addEntry("Simulation C");
-	flarms->addEntry("Simulation D");
-	flarms->addEntry("Simulation E");
+	flarms->addEntry("Cross Deeper");
+	flarms->addEntry("Cross Higher");
+	flarms->addEntry("Head-on Deeper");
+	flarms->addEntry("Overtake Left");
+	flarms->addEntry("Cross Level");
+	flarms->addEntry("Circling Left");
 	top->addEntry(flarms);
 }
 
