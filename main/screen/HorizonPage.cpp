@@ -27,6 +27,7 @@
 extern AdaptUGC *MYUCG;
 
 static int heading_old = -1;
+bool BasePage::_DIRTY = true;
 HorizonPage *HorizonPage::instance = nullptr;
 
 HorizonPage* HorizonPage::HORIZON()
@@ -40,7 +41,6 @@ HorizonPage* HorizonPage::HORIZON()
 
 HorizonPage::HorizonPage()
 {
-    Display->clear();
     int16_t left = (DISPLAY_W-BOX_SIZE) / 2;
     int16_t top = (DISPLAY_H-BOX_SIZE) / 2;
     // ( 20, 60, 200, 200 );
@@ -48,27 +48,33 @@ HorizonPage::HorizonPage()
     horizon_box[1] = {(int16_t)(left+BOX_SIZE), (int16_t)(top+BOX_SIZE)};
     horizon_box[2] = {(int16_t)(left+BOX_SIZE), top};
     horizon_box[3] = {left, top};
-
-    // int16_t center_x = left + BOX_SIZE / 2;
-    int16_t center_y = top + BOX_SIZE / 2;
-    MYUCG->setColor( COLOR_WHITE );
-    MYUCG->drawTriangle(left - 19, center_y - 10, left, center_y, left - 19, center_y + 10); // Triangles l/r
-    MYUCG->drawTriangle(left + 200 + 20, center_y - 10, left + 200, center_y, left + 200 + 20, center_y + 10);
-    for (int i = -80; i <= 80; i += 20) { // 10° scale
-        MYUCG->drawHLine(left - 19, center_y + i, 20);
-        MYUCG->drawHLine(left + 200, center_y + i, 20);
-    }
-    for (int i = -70; i <= 70; i += 20) { // 5° scale
-        MYUCG->drawHLine(left - 10, center_y + i, 10);
-        MYUCG->drawHLine(left + 200, center_y + i, 10);
-    }
+    _DIRTY = true;
 }
 
 void HorizonPage::draw( Quaternion q )
 {
+    if ( _DIRTY ) {
+        Display->clear();
+
+        int16_t left = (DISPLAY_W-BOX_SIZE) / 2;
+        int16_t top = (DISPLAY_H-BOX_SIZE) / 2;
+        // int16_t center_x = left + BOX_SIZE / 2;
+        int16_t center_y = top + BOX_SIZE / 2;
+        MYUCG->setColor( COLOR_WHITE );
+        MYUCG->drawTriangle(left - 19, center_y - 10, left, center_y, left - 19, center_y + 10); // Triangles l/r
+        MYUCG->drawTriangle(left + 200 + 20, center_y - 10, left + 200, center_y, left + 200 + 20, center_y + 10);
+        for (int i = -80; i <= 80; i += 20) { // 10° scale
+            MYUCG->drawHLine(left - 19, center_y + i, 20);
+            MYUCG->drawHLine(left + 200, center_y + i, 20);
+        }
+        for (int i = -70; i <= 70; i += 20) { // 5° scale
+            MYUCG->drawHLine(left - 10, center_y + i, 10);
+            MYUCG->drawHLine(left + 200, center_y + i, 10);
+        }
+    }
     // draw sky and earth
     Line l( q, DISPLAY_W/2, DISPLAY_H/2 );
-    if ( ! l.similar(previous_horizon_line) ) {
+    if ( ! l.similar(previous_horizon_line) || _DIRTY ) {
         previous_horizon_line = l;
         Point above[6], below[6];
         int na, nb;
@@ -94,5 +100,7 @@ void HorizonPage::draw( Quaternion q )
 			heading_old = heading;
 		}
 	}
+
+    _DIRTY = false;
 }
 

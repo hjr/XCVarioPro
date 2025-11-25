@@ -13,7 +13,14 @@
 
 #include <cstdint>
 
-class HorizonPage {
+class BasePage
+{
+public:
+    static bool _DIRTY; // valid for all pages, set when page cycles
+};
+
+class HorizonPage : public BasePage
+{
 public:
     static HorizonPage* HORIZON();
     ~HorizonPage() = default;

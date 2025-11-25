@@ -9,6 +9,7 @@
 #include "SetupRoot.h"
 
 #include "DrawDisplay.h"
+#include "HorizonPage.h"
 #include "UiEvents.h"
 #include "setup/SubMenuAudio.h"
 #include "setup/SubMenuDevices.h"
@@ -147,6 +148,7 @@ void SetupRoot::exit(int levels)
             setRotDynamic(2.5f); // only for volume control
         }
         initScreens(); // re-evaluate available screens
+        BasePage::_DIRTY = true;
     }
 }
 
@@ -182,8 +184,7 @@ void SetupRoot::press()
 {
     ESP_LOGI(FNAME,"root press active_srceen %d (0x%x)", active_screen, (unsigned)all_screens);
 
-    // AUDIO->dump();
-    // return;
+    int current_screen = active_screen;
 
     // cycle through screens, incl. setup
     if (!gflags.inSetup)
@@ -201,6 +202,11 @@ void SetupRoot::press()
             ESP_LOGI(FNAME, "select vario screen");
             active_screen = SCREEN_VARIO;
         }
+    }
+    if ( current_screen != active_screen )
+    {
+        ESP_LOGI(FNAME, "Switching screen from %d to %d", current_screen, active_screen);
+        BasePage::_DIRTY = true;
     }
     // only if menu long press is not set, jump into the setup befor going back to the vario screen
     if (!menu_long_press.get() && active_screen == SCREEN_VARIO && !gflags.inSetup)
