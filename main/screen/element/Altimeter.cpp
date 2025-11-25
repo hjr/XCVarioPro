@@ -139,24 +139,23 @@ void Altimeter::draw(float alt_m)
         alt = (int)(altitude * (20.0 / used_quant)); // respect difference according to choosen quantisation
     }
     // the dirty criterion
-    if (alt == _alt_prev && !_dirty)
-        return;
+    if (alt == _alt_prev && !_dirty) { return; }
     _alt_prev = alt;
 
     // a rounded altitude as base for the display
     alt = fast_iroundf(altitude);
     char s[32]; // plain altimeter as a string
-    MYUCG->setFont(ucg_font_fub25_hr, true);
-    MYUCG->setColor(COLOR_WHITE);
     sprintf(s, "  %03d", alt); // need the string with at least three digits !!
-    // FL also now also displayed fancy with low quant looks good to allow switching with no artefacts
+    // FL now also displayed fancy with low quant looks good to allow switching with no artefacts
     if (used_quant != _last_quant)
     { // cleanup artefacts from higher digits
         _last_quant = used_quant;
         MYUCG->setColor(COLOR_BLACK);
         MYUCG->drawBox(_ref_x - 2 * _char_width, _ref_y - _char_height * 1.5, 2 * _char_width, _char_height * 2);
     }
-
+    MYUCG->setFont(ucg_font_fub25_hr, true);
+    MYUCG->setColor(COLOR_WHITE);
+    
     if (!used_quant)
     {
         // Plain plot of altitude for m and ft
