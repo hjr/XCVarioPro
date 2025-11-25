@@ -25,7 +25,6 @@ public:
     void rot(int count) override {}
     void press() override;
     void longPress() override { press(); }
-    void goOn();
     void draw();
 
 protected:

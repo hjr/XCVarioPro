@@ -106,7 +106,7 @@ void FlarmScreen::display(int mode)
     ESP_LOGI(FNAME,"ClippPt %d,%d", p.x, p.y);
 
     // Put alarm level into color
-    if ( Flarm::AlarmLevel == 1 ) {
+    if ( Flarm::AlarmLevel <= 1 ) {
         MYUCG->setColor(COLOR_LGREY);
     }
     else if ( Flarm::AlarmLevel == 2 ) {
@@ -154,7 +154,9 @@ void FlarmScreen::display(int mode)
 
     // start encoded audio alarm
     uint16_t alarm = Audio::encFlarmParam(AUDIO_ALARM_FCODE, Flarm::AlarmLevel, currSide, altDiff);
-    if (mode > 0 && Flarm::AlarmLevel > 0 && (alarm > _prev_alarm || (_tick-_alarmtick) > 5)) {
+    int pause = 4;
+    if ( Flarm::AlarmLevel > 1 ) { pause = 4 - Flarm::AlarmLevel; };
+    if (mode > 0 && Flarm::AlarmLevel > 0 && (alarm > _prev_alarm || (_tick-_alarmtick) > pause)) {
         _prev_alarm = alarm;
         _alarmtick = _tick;
         AUDIO->startSound(alarm);
@@ -166,11 +168,6 @@ void FlarmScreen::press() {
     // set the confirmed time to mute this alarm for 30 seconds
     Flarm::setConfirmed();
     exit();
-}
-
-void FlarmScreen::goOn()
-{
-    _time_out.pet();
 }
 
 void FlarmScreen::draw()
