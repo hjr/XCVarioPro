@@ -60,7 +60,7 @@ void UiEventLoop(void *arg)
         {
             UiEvent event(eparam);
             uint8_t detail = event.getUDetail();
-            // ESP_LOGI(FNAME, "Event param %x", eparam);
+            ESP_LOGI(FNAME, "Event (%d) param %x", uxQueueMessagesWaiting(uiEventQueue), eparam);
             if (event.isButtonEvent())
             {
                 // ESP_LOGI(FNAME, "Button event %x", detail);
@@ -115,6 +115,14 @@ void UiEventLoop(void *arg)
                         MenuRoot->push(FlarmScreen::create());
                     } else {
                         FLARMSCREEN->display(1);
+                    }
+                    if (uiMonitor) {
+                        // classify flarm as ui interaction, because flarm screen could have been pushed on top of the UI stack
+                        uiMonitor->pet();
+                    }
+                } else if ( detail == ScreenEvent::FLARM_ALARM_TIMEOUT ) {
+                    if ( FLARMSCREEN ) {
+                        FLARMSCREEN->remove();
                     }
                 } else if (detail == ScreenEvent::BOOT_SCREEN) {
                     BootUpScreen::draw(); // time triggered boot screen update

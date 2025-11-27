@@ -642,7 +642,7 @@ static bool IRAM_ATTR dacdma_done(dac_continuous_handle_t h, const dac_event_dat
         xQueueSendFromISR(AudioQueue, &ev, &high_task_wakeup);
     }
     else {
-        // handle voice sequence switching, timing and stopping voices
+        // handle rough voice sequence switching, timing and stopping voices for overlays
         for (int j = 0; j < MAX_VOICES; j++)
         {
             VOICECMD& v = vl[j];

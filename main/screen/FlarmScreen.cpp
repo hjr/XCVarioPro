@@ -159,34 +159,38 @@ void FlarmScreen::display(int mode)
     if (mode > 0 && Flarm::AlarmLevel > 0 && (alarm > _prev_alarm || (_tick-_alarmtick) > pause)) {
         _prev_alarm = alarm;
         _alarmtick = _tick;
+        ESP_LOGI(FNAME,"Start sound alarm %u", alarm);
         AUDIO->startSound(alarm);
     }
 }
 
 void FlarmScreen::press() {
     ESP_LOGI(FNAME,"FlarmScreen press - exit");
-    // set the confirmed time to mute this alarm for 30 seconds
-    Flarm::setConfirmed();
-    exit();
+    int expected = 0;
+    if ( atomic_compare_exchange_strong(&_done, &expected, 1) ) {
+        ESP_LOGI(FNAME,"FlarmScreen press - done");
+        // set the confirmed time to mute this alarm for 30 seconds
+        Flarm::setConfirmed();
+        exit();
+    }
 }
 
-void FlarmScreen::draw()
+void FlarmScreen::remove()
 {
-    ESP_LOGI(FNAME,"FlarmScreen draw");
-    _time_out.pet();
-    _tick++;
-    MYUCG->setFont(ucg_font_fub11_tr);
-    MYUCG->setPrintPos(100, 160);
-    MYUCG->setColor(COLOR_WHITE);
-    MYUCG->print(_tick);
+    ESP_LOGI(FNAME,"FlarmScreen remove - called");
+    // protect double/competing exit calls from watch dog and e.g. UI interaction
+    int expected = 0;
+    if ( atomic_compare_exchange_strong(&_done, &expected, 1) ) {
+        ESP_LOGI(FNAME,"FlarmScreen remove - done");
+        exit();
+    }
 }
-
 
 void FlarmScreen::barked()
 {
     ESP_LOGI(FNAME,"FlarmScreen barked - timeout");
     // timeout
-    int exitWarn = ButtonEvent(ButtonEvent::SHORT_PRESS).raw;
+    int exitWarn = ScreenEvent(ScreenEvent::FLARM_ALARM_TIMEOUT).raw;
     // Route this event to the DrawDisplay context
     xQueueSend(uiEventQueue, &exitWarn, 0);
 }

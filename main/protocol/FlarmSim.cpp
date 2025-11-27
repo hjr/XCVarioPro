@@ -58,14 +58,14 @@ bool FlarmSim::tick()
 {
     ESP_LOGI(FNAME,"flarmSim tick");
 
-    if ( _tick_count < 20 || ! _done )
+    if ( _tick_count >= 0 )
     {
         // Messages to simulate FLARM AU sentences sequence
         // -> Level, rel. bearing, craft type, rel. vertical, rel. distance
         vector_f own_pos{0., 0., 0.};
         vector_f o_to_t = _target_pos - own_pos;
         int dist = o_to_t.get_norm();
-        if ( dist > 310 ) { _done = true;}
+        if ( dist > 700 || _tick_count > 20 ) { _done = true; ESP_LOGI(FNAME,"done"); }
         int bear = rad2deg( -fast_atan2(o_to_t.y, o_to_t.x) );
         int vert = o_to_t.z;
         int levl = 0;
@@ -101,7 +101,8 @@ bool FlarmSim::tick()
         _target_pos += _target_inc;
         _target_pos.x -= 27.f; // ownship at 100km/h
     }
-    else {
+
+    if ( _done ) {
         delete this;
         return true;
     }

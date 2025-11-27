@@ -11,6 +11,8 @@
 #include "setup/MenuEntry.h"
 #include "protocol/WatchDog.h"
 
+#include <atomic>
+
 struct Point;
 struct Line;
 
@@ -18,14 +20,14 @@ class FlarmScreen: public MenuEntry, public WDBark_I
 {
 public:
     static FlarmScreen *create();
+    void remove(); // triggered by time-out
 
-    virtual void exit(int ups=1) override;
+    void exit(int ups=1) override;
     void display(int mode = 0) override;
     const char *value() const override { return nullptr; }
     void rot(int count) override {}
     void press() override;
     void longPress() override { press(); }
-    void draw();
 
 protected:
     // warn timeout
@@ -40,6 +42,7 @@ private:
     int _alarmtick = 0;
     WatchDog_C _time_out;
     uint16_t _prev_alarm = 0;
+    volatile std::atomic<int> _done = 0; // int because of atomic operations
 };
 
 

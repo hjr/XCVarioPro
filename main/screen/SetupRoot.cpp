@@ -49,7 +49,7 @@ void SetupRoot::display(int mode)
     ESP_LOGI(FNAME,"SetupRoot display mode %d", mode);
 }
 
-// time-out on ui interaction while airborne
+// time-out on UI interaction while airborne and walking through setup
 void SetupRoot::barked()
 {
     int exitMenu = ButtonEvent(ButtonEvent::ESCAPE).raw;

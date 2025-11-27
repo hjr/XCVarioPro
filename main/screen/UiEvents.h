@@ -53,6 +53,7 @@ struct ScreenEvent
         BOOT_SCREEN,
         MAIN_SCREEN,
         FLARM_ALARM,
+        FLARM_ALARM_TIMEOUT,
         VOLT_ADJUST,
         POLAR_CONFIG,
         QNH_ADJUST,
