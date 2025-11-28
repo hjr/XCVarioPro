@@ -14,6 +14,7 @@
 #include "sensor.h"
 #include "screen/MessageBox.h"
 #include "comm/DeviceMgr.h"
+#include "setup/SetupNG.h"
 
 #include "logdefnone.h"
 
@@ -162,7 +163,7 @@ dl_action_t FlarmMsg::parsePFLAU(NmeaPlugin *plg)
     }
     ESP_LOGI(FNAME,"RB: %d ALT:%d  DIST %d", Flarm::RelativeBearing, Flarm::RelativeVertical, Flarm::RelativeDistance);
 
-    if ( Flarm::AlarmLevel > 0 && ! Flarm::isConfirmed() ) {
+    if ( Flarm::AlarmLevel >= flarm_warning.get() && ! Flarm::isConfirmed() ) {
         ESP_LOGI(FNAME,"FLARM ALARM LEVEL %d", Flarm::AlarmLevel);
         // Send a flarm event to update display
         int evt = ScreenEvent(ScreenEvent::FLARM_ALARM).raw;
