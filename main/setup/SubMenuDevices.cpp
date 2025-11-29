@@ -20,7 +20,7 @@
 #include "protocol/NMEA.h"
 #include "setup/DataMonitor.h"
 #include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <esp_wifi.h>
 

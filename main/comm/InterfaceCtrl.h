@@ -90,6 +90,8 @@ protected:
     std::map<int, DataLink*> _dlink;
     mutable SemaphoreMutex _dlink_mutex;
     bool _functional = false; // to be flipped from self tests
+
 private:
+    void DeleteAllDataLinksLocked();
     bool _one_to_one;
 };

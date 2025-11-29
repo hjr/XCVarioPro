@@ -24,13 +24,14 @@
 #include "Compass.h"
 
 #include "sensor.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
 
 #include <deque>
+#include <mutex>
 
 // global variables
 DeviceManager* DEVMAN = nullptr; // singleton like
@@ -328,8 +329,6 @@ static void transmit_task(void *arg)
 DeviceManager::DeviceManager()
 {
     ItfSendQueue = xQueueCreate( MSG_POOL_SIZE+1, sizeof(Message*) );
-    _devmap_mutex = xSemaphoreCreateMutex();
-
 }
 
 DeviceManager::~DeviceManager()
@@ -455,13 +454,12 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     EnumList pl = dev->_link->addProtocol(proto, did, send_port); // Add proto, if not yet there
     dev->_protos.insert(pl.begin(), pl.end());
 
-    xSemaphoreTake(_devmap_mutex, portMAX_DELAY);
     if ( is_new ) {
+        std::lock_guard<SemaphoreMutex> lock(_devmap_mutex);
         // Add only if new
         _device_map[did] = dev; // and add, in case this dev is new
         _interface_map[itf->getId()] = itf;
     }
-    xSemaphoreGive(_devmap_mutex);
     refreshRouteCache();
 
     if ( nvsave && (is_new || !pl.empty()) ) {
@@ -528,15 +526,17 @@ int DeviceManager::getSendPort(DeviceId did, ProtocolType proto)
 // returns true, when a reboot is needed
 bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
 {
-    xSemaphoreTake(_devmap_mutex, portMAX_DELAY);
-    DevMap::iterator it = _device_map.find(did);
     Device* dev = nullptr;
-    if ( it != _device_map.end() ) {
-        dev = it->second;
-        ESP_LOGI(FNAME, "Delete device %d", did);
-        _device_map.erase(it);
+    {
+        std::lock_guard<SemaphoreMutex> lock(_devmap_mutex);
+
+        DevMap::iterator it = _device_map.find(did);
+        if ( it != _device_map.end() ) {
+            dev = it->second;
+            ESP_LOGI(FNAME, "Delete device %d", did);
+            _device_map.erase(it);
+        }
     }
-    xSemaphoreGive(_devmap_mutex); // handling device map is done
     bool ret = false;
 
     if ( dev ) {
@@ -594,13 +594,12 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
 // routing lookup table
 InterfaceCtrl* DeviceManager::getIntf(DeviceId did)
 {
-    xSemaphoreTake(_devmap_mutex, portMAX_DELAY);
+    std::lock_guard<SemaphoreMutex> lock(_devmap_mutex);
     DevMap::iterator it = _device_map.find(did);
     InterfaceCtrl* tmp = nullptr;
     if ( it != _device_map.end() ) {
         tmp = it->second->_itf;
     }
-    xSemaphoreGive(_devmap_mutex);
     return tmp;
 }
 

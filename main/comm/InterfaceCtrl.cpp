@@ -57,7 +57,7 @@ void InterfaceCtrl::addDataLink(DataLink *dl)
     if ( _one_to_one ) {
         // Always replace
         if ( ! _dlink.empty() ) {
-            DeleteAllDataLinks();
+            DeleteAllDataLinksLocked();
         }
         _dlink[dl->getPort()] = dl;
     }
@@ -97,7 +97,7 @@ void InterfaceCtrl::DeleteDataLink(int port)
 {
     std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
-        DeleteAllDataLinks();
+        DeleteAllDataLinksLocked();
     }
     else {
         auto it = _dlink.find(port);
@@ -112,10 +112,7 @@ void InterfaceCtrl::DeleteDataLink(int port)
 void InterfaceCtrl::DeleteAllDataLinks()
 {
     std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
-    for (auto &it : _dlink ) {
-        delete it.second;
-    }
-    _dlink.clear();
+    DeleteAllDataLinksLocked();
 }
 
 void InterfaceCtrl::startMonitoring(ItfTarget tgt)
@@ -139,4 +136,12 @@ void InterfaceCtrl::stopMonitoring()
     for ( auto dl : _dlink ) {
         dl.second->setMonitor(false);
     }
+}
+
+void InterfaceCtrl::DeleteAllDataLinksLocked()
+{
+    for (auto &it : _dlink ) {
+        delete it.second;
+    }
+    _dlink.clear();
 }

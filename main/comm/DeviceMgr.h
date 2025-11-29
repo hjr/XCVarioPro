@@ -11,6 +11,7 @@
 #include "Devices.h"
 #include "DataLink.h"
 #include "InterfaceCtrl.h"
+#include "Mutex.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -121,7 +122,7 @@ private:
     // Hash table for routing purpose
     DevMap _device_map;
     ItfMap _interface_map; // as convenience cashed access to interfaces, dev map is primary source of info
-    mutable SemaphoreHandle_t _devmap_mutex;
+    mutable SemaphoreMutex _devmap_mutex;
     // Flarm specific trace to handle the Flarm binary protocol
     DataLink *_flarm_bp = nullptr; // the flarm binary protocol initiator
 };
