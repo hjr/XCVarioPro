@@ -37,9 +37,6 @@ struct VOICECONF;
 // the global access to the audio functions
 Audio *AUDIO = nullptr;
 
-constexpr unsigned NIMBLE_AUDIO = 8; // frequency update every 80msec
-constexpr unsigned SLOW_AUDIO = 16; // frequency update every 160msec
-
 // Internal queue to handle audio sequences and multi voice
 static QueueHandle_t AudioQueue = nullptr;
 
