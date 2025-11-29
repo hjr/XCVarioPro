@@ -10,7 +10,7 @@ class vector_3d
 public:
 	vector_3d() = default;
 	vector_3d( const vector_3d &o ) { x=o.x; y=o.y; z=o.z; };
-	vector_3d(T a, T b, T c);
+	vector_3d(T px, T py, T pz);
 	vector_3d(vector_3d&&) = default; // Allow the move optimization
 	vector_3d<T>& operator=(const vector_3d<T>&) = default;
 
