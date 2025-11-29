@@ -77,12 +77,12 @@ void FlarmScreen::display(int mode)
     ESP_LOGI(FNAME,"BearingVec %1.1f,%1.1f,%1.1f", bearingVec.x, bearingVec.y, bearingVec.z );
 
     // determine side and altDiff for audio alarm
-    int altDiff = Flarm::RelativeVertical / 50 + 1; // classify in 0,1,2 for <-50m, -50..+50m, >+50m
-    if ( altDiff < 0 ) { altDiff = 0; }
-    if ( altDiff > 2 ) { altDiff = 2; }
-    int currSide = -bearingVec.y / 50 + 1; // classify in 0,1,2 for >50m left, <50 any side, >50m right
-    if ( currSide < 0 ) { currSide = 0; }
-    if ( currSide > 2 ) { currSide = 2; }
+    constexpr const int   MID_FUNNEL_DEG = 30;
+    constexpr const float MID_FUNNEL_RAD = 0.577350269; // eval manually .. fast_tan_deg(static_cast<float>(MID_FUNNEL_DEG));
+    float dist = (Flarm::RelativeDistance>0) ? Flarm::RelativeDistance : 0.1f;
+    int alt_bear = (std::abs((float)Flarm::RelativeVertical/dist) < MID_FUNNEL_RAD) ? 1 : (Flarm::RelativeVertical > 0 ? 2 : 0);
+    int side_bear = (std::abs(std::abs(Flarm::RelativeBearing) - 90) < (90 - MID_FUNNEL_DEG)) ? 2 : 1;
+    if ( Flarm::RelativeBearing < 0 ) { side_bear = 0; }
         
     // rotate according to own attitude
     vector_ijk buddyVec = attq * bearingVec;
@@ -153,7 +153,7 @@ void FlarmScreen::display(int mode)
     }
 
     // start encoded audio alarm
-    uint16_t alarm = Audio::encFlarmParam(AUDIO_ALARM_FCODE, Flarm::AlarmLevel, currSide, altDiff);
+    uint16_t alarm = Audio::encFlarmParam(AUDIO_ALARM_FCODE, Flarm::AlarmLevel, side_bear, alt_bear);
     int pause = 4;
     if ( Flarm::AlarmLevel > 1 ) { pause = 4 - Flarm::AlarmLevel; };
     if (mode > 0 && Flarm::AlarmLevel > 0 && (alarm > _prev_alarm || (_tick-_alarmtick) > pause)) {
