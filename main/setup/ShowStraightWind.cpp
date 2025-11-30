@@ -30,7 +30,7 @@ extern AdaptUGC *MYUCG;
 StraightWind *straightWind = nullptr;
 
 ShowStraightWind::ShowStraightWind( const char* title ) :
-SetupMenuDisplay( title, nullptr )
+    SetupMenuDisplay( title, nullptr )
 {
 	ESP_LOGI(FNAME, "ShowStraightWind(): title='%s'", title );
 }

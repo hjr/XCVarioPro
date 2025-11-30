@@ -35,7 +35,7 @@ FlarmScreen *FlarmScreen::create()
 }
 
 FlarmScreen::FlarmScreen() :
-    MenuEntry(),
+    MenuEntry(""),
     _time_out( this )
 {
     ESP_LOGI(FNAME,"FlarmScreen created");

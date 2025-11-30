@@ -14,12 +14,11 @@ const std::string_view ENABLE_MODE[5] = { "Disable", "Enable", "Dynamic", "Prima
 
 SetupMenuSelect::SetupMenuSelect( const char* title, e_restart_mode_t restart, int (*action)(SetupMenuSelect *p),
 									SetupNG<int> *anvs, bool ext_handler, bool end_menu ) :
-	MenuEntry(),
+	MenuEntry(title),
 	_action(action),
 	_nvs(anvs)
 {
 	// ESP_LOGI(FNAME,"SetupMenuSelect( %s ) action: %x", title, (int)action );
-	_title.assign(title);
 	bits._ext_handler = ext_handler;
 	bits._end_setup = end_menu;
 	bits._restart = restart;

@@ -37,8 +37,10 @@ class MenuEntry : public RotaryObserver
 	friend class SetupRoot;
 
 public:
-	MenuEntry();
+	MenuEntry(const char *t) : RotaryObserver() { _title.assign(t); }
 	virtual ~MenuEntry() = default;
+
+	static void grabDisplaySize();
 
 	// from Observer
 	void release() override {} // not used
@@ -71,6 +73,7 @@ public:
     void unHighlight(int sel) const;
     void indentHighlight(int sel);
 	void indentPrintLn(const char *str) const;
+	void focusPosLn(const char *str, int16_t pos) const;
 	bool canInline() const;
 	int nrOfHelpLines() const;
 	bool showhelp(bool inln=false);

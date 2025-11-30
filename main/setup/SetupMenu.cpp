@@ -412,12 +412,11 @@ static int startFlarmSimulation(SetupMenuSelect *p) {
 // SetupMenu
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 SetupMenu::SetupMenu(const char *title, SetupMenuCreator_t menu_create, int cont_id) :
-	MenuEntry(),
+	MenuEntry(title),
 	populateMenu(menu_create),
 	content_id(cont_id)
 {
 	// ESP_LOGI(FNAME,"SetupMenu::SetupMenu( %s ) ", title );
-	_title.assign(title);
 	setRotDynamic(1.f);
 }
 

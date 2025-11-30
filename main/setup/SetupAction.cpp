@@ -17,13 +17,12 @@ extern AdaptUGC *MYUCG;
 constexpr const char action_help[] = "Long Press to exit action control.";
 
 SetupAction::SetupAction(const char *title, int (*action)(SetupAction *), int code, bool end_menu) :
-    MenuEntry(),
+    MenuEntry(title),
     _action(action),
     _code(code),
     _end_menu(end_menu)
 {
     ESP_LOGI(FNAME, "SetupAction( %s ) ", title);
-    _title.assign(title);
     // helptext = action_help;
 }
 

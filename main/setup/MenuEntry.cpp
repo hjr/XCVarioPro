@@ -25,8 +25,7 @@ int16_t MenuEntry::cur_row;
 int16_t MenuEntry::dwidth;
 int16_t MenuEntry::dheight;
 
-MenuEntry::MenuEntry()
-	: RotaryObserver()
+void MenuEntry::grabDisplaySize()
 {
 	dwidth = MYUCG->getDisplayWidth();
 	dheight = MYUCG->getDisplayHeight();
@@ -129,13 +128,13 @@ bool MenuEntry::isRoot() const
 void MenuEntry::doHighlight(int sel) const
 {
 	MYUCG->setColor(COLOR_WHITE);
-	MYUCG->drawFrame(1, (sel+1)*25+3, dwidth-2, 25 );
+	MYUCG->drawFrame(1, (sel+1)*25+2, dwidth-2, 25 );
 }
 
 void MenuEntry::unHighlight(int sel) const
 {
 	MYUCG->setColor(COLOR_BLACK);
-	MYUCG->drawFrame(1, (sel+1)*25+3, dwidth-2, 25 );
+	MYUCG->drawFrame(1, (sel+1)*25+2, dwidth-2, 25 );
 }
 
 void MenuEntry::indentHighlight(int sel)
@@ -143,9 +142,9 @@ void MenuEntry::indentHighlight(int sel)
 	cur_indent = MYUCG->getStrWidth(_title.c_str()) + 4;
 	cur_row = sel+1;
 	MYUCG->setColor(COLOR_BLACK);
-	MYUCG->drawFrame(1, cur_row*25 + 3, dwidth-2, 25);
+	MYUCG->drawFrame(1, cur_row*25 + 2, dwidth-2, 25);
 	MYUCG->setColor(COLOR_WHITE);
-	MYUCG->drawFrame(cur_indent, cur_row*25 + 3, dwidth-cur_indent-1, 25);
+	MYUCG->drawFrame(cur_indent, cur_row*25 + 2, dwidth-cur_indent-1, 25);
 }
 
 void MenuEntry::indentPrintLn(const char *str) const
@@ -154,6 +153,23 @@ void MenuEntry::indentPrintLn(const char *str) const
 	MYUCG->drawBox(cur_indent+3, cur_row*25 + 6, dwidth-3, 19);
 	MYUCG->setColor(COLOR_WHITE);
 	menuPrintLn(str, cur_row, cur_indent+7);
+}
+
+void MenuEntry::focusPosLn(const char *str, int16_t pos) const
+{
+    indentPrintLn(str);
+    MYUCG->setColor(COLOR_RED);
+    int16_t w = 0;
+    if ( pos > 0) {
+        char pbuf[100];
+        strncpy(pbuf, str, pos);
+        pbuf[pos] = '\0';
+        w = MYUCG->getStrWidth(pbuf);
+    }
+    char buf[2];
+    buf[0] = str[pos];
+    buf[1] = '\0';
+    menuPrintLn(buf, cur_row, cur_indent+7 + w);
 }
 
 // simple heuristic based on "n" sized chars,

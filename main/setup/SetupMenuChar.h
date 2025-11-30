@@ -7,39 +7,50 @@
 
 #pragma once
 
-#include "setup/SetupNG.h"
 #include "setup/MenuEntry.h"
 
-class SetupMenuChar:  public MenuEntry
-{
+#include <cstdint>
+#include <string>
+
+class CharFilter {
 public:
-	SetupMenuChar() = delete;
-	SetupMenuChar( const char* title, e_restart_mode_t restart=RST_NONE, int (*action)(SetupMenuChar *p) = nullptr,
-		char *achar=0, uint32_t index=0, bool ext_handler=false, bool end_menu=false );
-	virtual ~SetupMenuChar() = default;
-	void display(int mode=0) override;
-	void rot(int count);
-	void press() override;
-	void longPress() override;
-	const char *value() const override;
-
-	bool existsEntry( std::string ent );
-    void addEntry( const char* ent );
-	void addEntryList( const char ent[][4], int size );
-	void delEntry( const char * ent );
-	inline void updateEntry( const char *ent, int num ) { _values[ num ] = ent; }
-	int getSelect();
-	void setSelect( int sel );
-	inline uint32_t getCharIndex() const { return (uint32_t)_char_index; };
-	int numEntries() { return _values.size(); };
-
+    CharFilter( const char *chset );
+    bool isValidChar( char c );
+    char succChar(char c);
+    char predChar(char c);
 private:
-	mutable int  _select = 0;
-	int  _select_save = 0;
-	int  _char_index = 0;   // position of character to be altered
-	std::vector<const char *> _values;
-	int (*_action)( SetupMenuChar *p );
-	char *_mychar = nullptr;
-	bool _show_inline;
+    struct {
+        uint16_t upper:1;
+        uint16_t lower:1;
+        uint16_t digit:1;
+        uint16_t special:1;
+        uint16_t whitespace:1;
+    } _flags;
 };
 
+class SetupMenuChar : public MenuEntry {
+public:
+    SetupMenuChar() = delete;
+    SetupMenuChar(const char *title, const char *chset, int mlen, e_restart_mode_t restart = RST_NONE, int (*action)(SetupMenuChar *p) = nullptr, char *achar = 0);
+    virtual ~SetupMenuChar() = default;
+    void display(int mode = 0) override;
+    void rot(int count);
+    void press() override;
+    void longPress() override;
+    const char *value() const override;
+
+    int valSize() { return _value.size(); };
+
+private:
+    CharFilter _chfilter;
+    int16_t _m_len = 0; // max length of the char array
+    bool _mode = false; // false: select char index, true: edit character
+    // mutable int _select = 0;
+    // int _select_save = 0;
+    int16_t _char_index = 0; // position of character to be altered
+    std::string _value; // current value as string
+    // std::vector<const char *> _values;
+    int (*_action)(SetupMenuChar *p);
+    // char *_mychar = nullptr;
+    bool _dirty = false;
+};

@@ -24,7 +24,6 @@
 
 #include <esp_wifi.h>
 
-#include <cinttypes>
 #include <string_view>
 
 static DeviceId new_device;
@@ -85,40 +84,11 @@ int update_wifi_power(SetupMenuValFloat *p)
 }
 
 static int update_id(SetupMenuChar *p) {
-	const char *c = p->value();
-	ESP_LOGI(FNAME,"New Letter %c Index: %d", *c, (int)p->getCharIndex() );
+	ESP_LOGI(FNAME,"New id %s", p->value());
 	char id[10] = { 0 };
-	strncpy(id, custom_wireless_id.get().id, 10);
-	id[p->getCharIndex()] = *c;
-	ESP_LOGI(FNAME,"New ID %s", id );
+	strncpy(id, p->value(), 10);
 	custom_wireless_id.set(id);
 	return 0;
-}
-
-static void wifi_menu_create_wireless_custom_id(SetupMenu *top)
-{
-    SetupMenuChar *c1 = new SetupMenuChar("Letter 1", RST_NONE, update_id, custom_wireless_id.get().id, 0);
-    SetupMenuChar *c2 = new SetupMenuChar("Letter 2", RST_NONE, update_id, custom_wireless_id.get().id, 1);
-    SetupMenuChar *c3 = new SetupMenuChar("Letter 3", RST_NONE, update_id, custom_wireless_id.get().id, 2);
-    SetupMenuChar *c4 = new SetupMenuChar("Letter 4", RST_NONE, update_id, custom_wireless_id.get().id, 3);
-    SetupMenuChar *c5 = new SetupMenuChar("Letter 5", RST_NONE, update_id, custom_wireless_id.get().id, 4);
-    SetupMenuChar *c6 = new SetupMenuChar("Letter 6", RST_NONE, update_id, custom_wireless_id.get().id, 5);
-    top->addEntry(c1);
-    top->addEntry(c2);
-    top->addEntry(c3);
-    top->addEntry(c4);
-    top->addEntry(c5);
-    top->addEntry(c6);
-    static const char keys[][4]{"", "0", "1", "2", "3", "4", "5", "6", "7",
-                                "8", "9", "-", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-                                "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W",
-                                "X", "Y", "Z"};
-    c1->addEntryList(keys, sizeof(keys) / 4);
-    c2->addEntryList(keys, sizeof(keys) / 4);
-    c3->addEntryList(keys, sizeof(keys) / 4);
-    c4->addEntryList(keys, sizeof(keys) / 4);
-    c5->addEntryList(keys, sizeof(keys) / 4);
-    c6->addEntryList(keys, sizeof(keys) / 4);
 }
 
 static int scan_for_master(SetupMenuSelect *p) {
@@ -140,8 +110,8 @@ static int scan_for_master(SetupMenuSelect *p) {
 
 static void options_menu_custom_id(SetupMenu *top)
 {
-    SetupMenu *cusid = new SetupMenu("Custom-ID", wifi_menu_create_wireless_custom_id);
-    cusid->setBuzzword(static_cast<t_tenchar_id*>(custom_wireless_id.getPtr())->id);
+    SetupMenuChar *cusid = new SetupMenuChar("Custom-ID", "0A#", 6, RST_NONE, update_id, custom_wireless_id.get().id);
+
     cusid->setHelp("Select custom ID (SSID) for wireless BT (or WIFI) interface, e.g. D-1234. Restart device to activate");
     top->addEntry(cusid);
 }

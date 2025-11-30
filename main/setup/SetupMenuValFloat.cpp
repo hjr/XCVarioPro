@@ -19,12 +19,11 @@ extern AdaptUGC *MYUCG;
 
 SetupMenuValFloat::SetupMenuValFloat( const char* title, const char *unit, int (*action)( SetupMenuValFloat *p ), 
 	bool end_menu, SetupNG<float> *anvs, e_restart_mode_t restart, bool sync, bool live_update ) :
-	MenuEntry(),
+	MenuEntry(title),
 	_action(action),
 	_nvs(anvs)
 {
 	// ESP_LOGI(FNAME,"SetupMenuValFloat( %s ) ", title.c_str() );
-	_title.assign(title);
 	if( unit != 0 && *unit != '\0' ) {
 		_unit = unit;
 	}

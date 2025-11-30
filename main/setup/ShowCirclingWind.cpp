@@ -29,7 +29,7 @@ extern AdaptUGC *MYUCG;
 
 
 ShowCirclingWind::ShowCirclingWind( const char* title ) :
-SetupMenuDisplay( title, nullptr )
+    SetupMenuDisplay( title, nullptr )
 {
 	ESP_LOGI(FNAME, "ShowCirclingWind(): title='%s'", title );
 }

@@ -31,6 +31,7 @@ SetupRoot::SetupRoot(IpsDisplay *display) :
     _ui_mon_wd(this)
 {
     _display = display;
+    MenuEntry::grabDisplaySize(); // set statics once
     ESP_LOGI(FNAME,"Init root menu");
     attach();
     if ( rot_default.get() == 0) {

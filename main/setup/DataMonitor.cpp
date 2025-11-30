@@ -14,7 +14,7 @@ extern AdaptUGC *MYUCG;
 DataMonitor *DM = nullptr;
 
 DataMonitor::DataMonitor() :
-	MenuEntry(),
+	MenuEntry(""),
 	LINE_WIDTH(MYUCG->getDisplayWidth()),
 	SCROLL_BOTTOM(MYUCG->getDisplayHeight())
 {

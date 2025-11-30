@@ -22,8 +22,9 @@ Last update: 2021-02-25
 
 #include <esp_system.h>
 
-SetupMenuDisplay::SetupMenuDisplay(const char *title, int (*action)(SetupMenuDisplay *p, int mode)) : MenuEntry() {
-    _title.assign(title);
+SetupMenuDisplay::SetupMenuDisplay(const char *title, int (*action)(SetupMenuDisplay *p, int mode)) :
+    MenuEntry(title)
+{
     _action = action;
 }
 
