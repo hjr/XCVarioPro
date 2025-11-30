@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "vector_3d.h"
+#include "math/vector_3d_fwd.h"
 
 #include <MPU.h>
 #include <string>
@@ -79,7 +79,7 @@ public:
 
     static void clipRectByLine(Point *rect, Line &l, Point *above, int *na, Point *below, int *nb);
     static void drawPolygon(Point *pts, int n);
-    static Point projectToDisplayPlane(const vector_ijk &obj, float focus);
+    static Point projectToDisplayPlane(const vector_f &obj, float focus);
     static Point clipToScreenCenter(Point p);
 
   private:

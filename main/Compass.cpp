@@ -457,7 +457,7 @@ float Compass::heading( bool *ok )
 
 	bool state = false;
 	if ( mysensor->isCalibrated() ) {
-		vector_ijk tmp;
+		vector_f tmp;
 		state = mysensor->readBiased( tmp );
 		if ( state ) {
 			// rotate -90Z and then 180X, to have the same orientation as the IMU reference system
@@ -490,8 +490,8 @@ float Compass::heading( bool *ok )
 	errors = 0;
 	age = 0;
 
-	vector_ijk mv( fx,fy,fz ); // uT magnetic vector, relative to glider
-	vector_ijk mev = IMU::getAHRSQuaternion().conjugate() * mv;  // rotate magnetic vector back in ENU ref sys
+	vector_f mv( fx,fy,fz ); // uT magnetic vector, relative to glider
+	vector_f mev = IMU::getAHRSQuaternion().conjugate() * mv;  // rotate magnetic vector back in ENU ref sys
 	// ESP_LOGI(FNAME, "gravity a %.2f, b %.2f, c %.2f MV: a %.2f, b %.2f, c %.2f ", gravity_vector.a, gravity_vector.b, gravity_vector.c, mv.a, mv.b, mv.c );
 	// ESP_LOGI(FNAME, "gravity a %.2f, b %.2f, c %.2f ME a %.2f, b %.2f, c %.2f MEV: a %.2f, b %.2f, c %.2f ", gravity_vector.a, gravity_vector.b, gravity_vector.c, mv.a, mv.b, mv.c, mev.a, mev.b, mev.c );
 	// ESP_LOGI(FNAME, "rot a %.2f, b %.2f, c %.2f, w %.2f - %.2f ", q.b, q.c, q.d, q.a, RAD_TO_DEG*q.getAngle() );

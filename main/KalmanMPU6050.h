@@ -16,8 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef _KalmanMPU6050_H_
-#define _KalmanMPU6050_H_
+#pragma once
 
 #include "vector_3d.h"
 #include "math/Quaternion.h"
@@ -77,7 +76,7 @@ public:
   static void Process();
 
   // Accelerometer reading in glider reference and in [g]
-  static inline vector_ijk getGliderAccel() { return accel; };
+  static inline vector_f getGliderAccel() { return accel; };
 
   /**
    * Gets the accelerometer X reading, as per last read() call.
@@ -107,7 +106,7 @@ public:
   static float getVerticalOmega();
 
   // Gyro reading in glider reference and in DPS
-  static inline vector_ijk getGliderGyro() { return gyro; };
+  static inline vector_f getGliderGyro() { return gyro; };
 
   /**
    * Gets the gyroscope X reading, as per last read() call.
@@ -168,20 +167,20 @@ public:
   static void defaultImuReference();
   static void applyImuReference(const float gAA, const Quaternion& basic);
   static inline Quaternion getAHRSQuaternion() { return att_quat; };
-  static inline vector_ijk getAHRSVector() { return att_vector; };
+  static inline vector_f getAHRSVector() { return att_vector; };
 
 private:
   static float getGyroYawDelta();
-  static void update_fused_vector(vector_ijk& fused, float gyro_trust, vector_ijk& petal_force, Quaternion& omega_step);
+  static void update_fused_vector(vector_f& fused, float gyro_trust, vector_f& petal_force, Quaternion& omega_step);
   static Kalman kalmanX; // Create the Kalman instances
   static Kalman kalmanY;
   static Kalman kalmanZ;
 
   static vector_i   raw_gyro;
-  static vector_ijk nogate_gyro;
-  static vector_ijk accel;
-  static vector_ijk gyro;
-  static vector_ijk petal;
+  static vector_f nogate_gyro;
+  static vector_f accel;
+  static vector_f gyro;
+  static vector_f petal;
   static float  circle_omega;
   static double kalXAngle, kalYAngle;
 
@@ -198,8 +197,8 @@ private:
 
   static Quaternion att_quat;
   static Quaternion omega_step;
-  static vector_ijk att_vector;
-  static EulerAngles euler_rad;
+  static vector_f att_vector;
+  static vector_f euler_rad;
 };
 
-#endif // _KalmanMPU6050_H_
+

@@ -17,7 +17,6 @@
 #include "Flarm.h"
 #include "math/Trigonometry.h"
 #include "math/Quaternion.h"
-#include "vector_3d.h"
 #include "AdaptUGC.h"
 #include "logdefnone.h"
 
@@ -72,8 +71,8 @@ void FlarmScreen::display(int mode)
 
     ESP_LOGI(FNAME,"Target in B%d°, dH%dm, dV%dm", Flarm::RelativeBearing, Flarm::RelativeDistance, Flarm::RelativeVertical );
     // calc from distance and bearing the vector to the target
-    Quaternion qtmp(deg2rad(static_cast<float>(-Flarm::RelativeBearing)), vector_ijk(0.f, 0.f, 1.f));
-    vector_ijk bearingVec = qtmp * vector_ijk(Flarm::RelativeDistance, 0.f, Flarm::RelativeVertical);
+    Quaternion qtmp(deg2rad(static_cast<float>(-Flarm::RelativeBearing)), vector_f(0.f, 0.f, 1.f));
+    vector_f bearingVec = qtmp * vector_f(Flarm::RelativeDistance, 0.f, Flarm::RelativeVertical);
     ESP_LOGI(FNAME,"BearingVec %1.1f,%1.1f,%1.1f", bearingVec.x, bearingVec.y, bearingVec.z );
 
     // determine side and altDiff for audio alarm
@@ -85,7 +84,7 @@ void FlarmScreen::display(int mode)
     if ( Flarm::RelativeBearing < 0 ) { side_bear = 0; }
         
     // rotate according to own attitude
-    vector_ijk buddyVec = attq * bearingVec;
+    vector_f buddyVec = attq * bearingVec;
     ESP_LOGI(FNAME,"BuddyVec %1.1f,%1.1f,%1.1f", buddyVec.x, buddyVec.y, buddyVec.z );
     Point p = IpsDisplay::projectToDisplayPlane(buddyVec, 100.f);
     ESP_LOGI(FNAME,"DisplPt %d,%d", p.x, p.y);

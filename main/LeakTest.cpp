@@ -7,6 +7,8 @@
 #include "sensor.h"
 #include "logdefnone.h"
 
+#include <cmath>
+
 #define LOOPS 150
 
 

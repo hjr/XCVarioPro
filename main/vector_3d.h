@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cstdint"
 #include <cmath>
 
 
@@ -39,7 +38,8 @@ public:
 	void setPitch(float pitch) { y=pitch; }
 	float Yaw()   const { return z; }
 	void setYaw(float yaw) { z=yaw; }
-	// tbd: private
+
+// todo private:
 	T x;
 	T y;
 	T z;
@@ -48,10 +48,5 @@ public:
 template <typename T>
 vector_3d<T>& operator+(const vector_3d<T> v1, const vector_3d<T> v2);
 
+#include "math/vector_3d_fwd.h"
 
-typedef vector_3d<float>  vector_ijk;
-typedef vector_3d<float>  EulerAngles;
-typedef vector_3d<float>  vector_f;
-typedef vector_3d<double> vector_d;
-typedef vector_3d<int>    vector_i;
-typedef vector_3d<int16_t> vector_i16;

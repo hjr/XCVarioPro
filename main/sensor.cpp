@@ -196,9 +196,9 @@ static void grabMPU()
 	if( IMU::MPU6050Read() == ESP_OK )
 	{
 		// Do the gyro auto bias
-		vector_ijk gyroDPS = IMU::getGliderGyro();
+		vector_f gyroDPS = IMU::getGliderGyro();
 		// ESP_LOGI(FNAME,"Gyro:\t%4f\t%4f\t%4f", gyroDPS.a, gyroDPS.b, gyroDPS.c);
-		// vector_ijk accl = IMU::getGliderAccel();
+		// vector_f accl = IMU::getGliderAccel();
 		// if (compass != nullptr) {
 		// 	ESP_LOGI(FNAME,"Accl:\t%4f\t%4f\t%4f\tL%.2f Gyro:\t%4f\t%4f\t%4f Mag:\t%4f\t%4f\t%4f", accl.a, accl.b, accl.c, accl.get_norm(),
 		// 		gyroDPS.a, gyroDPS.b, gyroDPS.c,

@@ -11,7 +11,6 @@
 
 #include "math/Trigonometry.h"
 #include "math/Floats.h"
-#include "vector_3d.h"
 
 #include "setup/SetupNG.h"
 #include "AdaptUGC.h"
@@ -19,7 +18,6 @@
 #include "logdef.h"
 
 
-#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>

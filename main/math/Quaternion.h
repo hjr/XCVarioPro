@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "vector_3d.h"
-#include <cmath>
+#include "math/vector_3d_fwd.h"
 
-//#define Quaternionen_Test 1
+
+// #define Quaternionen_Test 1
 
 float Compass_atan2( float y, float x );
 
@@ -20,34 +20,34 @@ float Compass_atan2( float y, float x );
 
 class Quaternion {
 public:
-    float a;
-    float b;
-    float c;
-    float d;
-    constexpr Quaternion() : a(1.), b(0), c(0), d(0) {};
-    Quaternion(float a, float b, float c, float d);
-    Quaternion(const float angle, const vector_ijk& axis);
+    float _w;
+    float _x;
+    float _y;
+    float _z;
+    constexpr Quaternion() : _w(1.), _x(0), _y(0), _z(0) {};
+    Quaternion(float w, float b, float c, float d);
+    Quaternion(const float angle, const vector_f& axis);
     Quaternion(Quaternion &&) = default; // Allow std::move
     Quaternion(const Quaternion &) = default;
     Quaternion& operator=(const Quaternion&) = default;
-    bool operator==(const Quaternion r) { return a==r.a && b==r.b && c==r.c && d==r.d; };
+    bool operator==(const Quaternion r) { return _w==r._w && _x==r._x && _y==r._y && _z==r._z; };
 
     // API
     float getAngle() const;
-    float getAngleAndAxis(vector_ijk& axis) const;
+    float getAngleAndAxis(vector_f& axis) const;
     friend Quaternion operator*(const Quaternion& left, const Quaternion& right);
     Quaternion get_normalized() const;
     Quaternion& normalize();
     Quaternion& conjugate();
     Quaternion get_conjugate() const;
-    vector_ijk operator*(const vector_ijk& p) const;
+    vector_f operator*(const vector_f& p) const;
     vector_d operator*(const vector_d& p) const;
     friend Quaternion slerp(Quaternion q1, Quaternion q2, double lambda);
-    static Quaternion AlignVectors(const vector_ijk &start, const vector_ijk &dest);
+    static Quaternion AlignVectors(const vector_f &start, const vector_f &dest);
     static Quaternion fromRotationMatrix(const vector_d &X, const vector_d &Y);
-    static Quaternion fromAccelerometer(const vector_ijk& accel);
-    static Quaternion fromGyro(const vector_ijk& w, float time);
-    EulerAngles toEulerRad() const;
+    static Quaternion fromAccelerometer(const vector_f& accel);
+    static Quaternion fromGyro(const vector_f& w, float time);
+    vector_f toEulerRad() const;
 
     // something like a unit test
     static void quaternionen_test();

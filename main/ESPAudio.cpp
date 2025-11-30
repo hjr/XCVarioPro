@@ -23,6 +23,7 @@
 #include <freertos/queue.h>
 #include <esp_system.h>
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>

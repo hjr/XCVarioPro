@@ -1,4 +1,5 @@
 #include "vector_3d.h"
+
 #include <cstdint>
 #include <cassert>
 

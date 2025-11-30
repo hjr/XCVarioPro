@@ -21,7 +21,7 @@
 #include "math/Trigonometry.h"
 #include "math/Floats.h"
 #include "math/Quaternion.h"
-#include "vector_3d.h"
+#include "math/vector_3d_fwd.h"
 #include "comm/DeviceMgr.h"
 #include "BLESender.h"
 #include "OneWireESP32.h"
@@ -158,7 +158,7 @@ Point Point::rotate(float alpha) const {
 // Hesse horizon line parameters in the gliders Y/Z plane
 Line::Line(Quaternion q, int16_t cx, int16_t cy) {
     // normal vector of the plane
-    vector_ijk n = q * vector_ijk(0, 0, 1);
+    vector_f n = q * vector_f(0, 0, 1);
     _nx = -n.y;
     _ny = -n.z;
     _d = -n.x * 100; // projection scale to visible range
@@ -260,7 +260,7 @@ void IpsDisplay::drawPolygon(Point *pts, int n)
     }
 }
 // Project from glider reference into avionik display plane (Y-Z plane)
-Point IpsDisplay::projectToDisplayPlane(const vector_ijk &obj, float focus)
+Point IpsDisplay::projectToDisplayPlane(const vector_f &obj, float focus)
 {
     // camera model: pinhole camera at origin, looking along X axis, display plane at focus distance
     focus *= fast_signf(obj.x);

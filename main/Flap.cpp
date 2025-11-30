@@ -50,7 +50,7 @@ Flap::Flap() {
         // migration from old settings with multiple IO's
         flap_sensor.set(FLAP_SENSOR_ENABLE);
     }
-    configureADC(flap_sensor.get());
+    configureADC();
     prepLevels();
 }
 Flap::~Flap() {

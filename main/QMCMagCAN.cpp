@@ -13,6 +13,7 @@
 
 #include "QMCMagCAN.h"
 
+#include "vector_3d.h"
 #include "logdefnone.h"
 
 #include <freertos/FreeRTOS.h>
@@ -67,7 +68,7 @@ bool QMCMagCAN::readRaw( vector_i16 &mag )
 	}
 }
 
-// bool QMCMagCAN::readBiased( vector_ijk &axes )
+// bool QMCMagCAN::readBiased( vector_f &axes )
 // {
 // 	if ( age < 5 ) {
 // 		axes = calib;

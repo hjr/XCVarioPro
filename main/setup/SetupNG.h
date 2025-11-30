@@ -179,7 +179,7 @@ public:
 				str = std::to_string(_value);
 			}
 			else if constexpr (std::is_same_v<T, Quaternion>) {
-				str = std::to_string(_value.a) + '/' + std::to_string(_value.b) + '/' + std::to_string(_value.c) + '/' + std::to_string(_value.d);
+				str = std::to_string(_value._w) + '/' + std::to_string(_value._x) + '/' + std::to_string(_value._y) + '/' + std::to_string(_value._z);
 			}
 			else if constexpr (std::is_same_v<T, bitfield_compass>) {
 				uint8_t as_byte = *reinterpret_cast<const uint8_t*>(&_value);
@@ -205,7 +205,7 @@ public:
 				sscanf(str, "%d", &_value);
 			}
 			else if constexpr (std::is_same_v<T, Quaternion>) {
-				sscanf( str,"%f/%f/%f/%f", &_value.a, &_value.b, &_value.c, &_value.d );
+				sscanf( str,"%f/%f/%f/%f", &_value._w, &_value._x, &_value._y, &_value._z );
 			}
 			else if constexpr (std::is_same_v<T, bitfield_compass>) {
 				unsigned temp;

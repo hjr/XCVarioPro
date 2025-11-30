@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vector_3d.h"
+#include "math/vector_3d_fwd.h"
 #include "S2F.h"
 
 #include <freertos/FreeRTOS.h>
@@ -93,7 +93,7 @@ extern ESPRotary *Rotary;
 
 extern SemaphoreHandle_t spiMutex;
 
-extern vector_ijk gravity_vector;
+extern vector_f gravity_vector;
 extern float batteryVoltage;
 
 #define NEED_VOLTAGE_ADJUST (abs(factory_volt_adjust.get() - 0.00815) < 0.00001)
