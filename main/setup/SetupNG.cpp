@@ -137,12 +137,6 @@ void flap_act() {
     }
 }
 
-static void flap_update_act() {
-	if( FLAP ) {
-		FLAP->prepLevels();
-	}
-}
-
 void send_config( httpd_req *req ){
 	SetupCommon::giveConfigChanges( req );
 };
@@ -272,13 +266,13 @@ SetupNG<int>  			display_type( "DISPLAY_TYPE",  UNIVERSAL );
 SetupNG<int>  			display_test( "DISPLAY_TEST", 0, false, SYNC_NONE, VOLATILE );
 SetupNG<int>  			display_orientation("DISPLAY_ORIENT" , DISPLAY_NORMAL, true, SYNC_NONE, PERSISTENT, chg_display_orientation );
 SetupNG<int>  			flapbox_enable( "FLAP_ENABLE", 0, true, SYNC_BIDIR, PERSISTENT, flap_act);
-SetupNG<float>  		wk_speed_0( "FLAP_MINUS_3", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_1( "FLAP_MINUS_2", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_2( "FLAP_MINUS_1", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_3( "FLAP_0", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_4( "FLAP_PLUS_1", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_5( "FLAP_PLUS_2", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
-SetupNG<float>  		wk_speed_6( "FLAP_PLUS_3", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_0( "WK_SPD_0", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_1( "WK_SPD_1", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_2( "WK_SPD_2", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_3( "WK_SPD_3", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_4( "WK_SPD_4", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_5( "WK_SPD_5", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
+SetupNG<float>  		wk_speed_6( "WK_SPD_6", 0, false, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_HSPEED, &polar_speed_limits);
 SetupNG<int>  			alt_unit( "ALT_UNIT", ALT_UNIT_METER );
 SetupNG<int>  			alt_quantization( "ALT_QUANT", Altimeter::ALT_QUANT_10 );
 SetupNG<int>  			ias_unit( "IAS_UNIT", SPEED_UNIT_KMH );
@@ -318,13 +312,13 @@ SetupNG<int>		    s2f_switch_type("S2FHWSW", S2F_HW_SWITCH );
 SetupNG<int>		    hardwareRevision("HWREV", HW_UNKNOWN );
 SetupNG<t_tenchar_id>	ahrs_licence("AHRS_LIC", t_tenchar_id(""), false );
 // SetupNG<int>		    dummy("DUMMY", 0, false, SYNC_NONE, VOLATILE );
-SetupNG<int>		    wk_sens_pos_0("WKSM3", 4000);
-SetupNG<int>		    wk_sens_pos_1("WKSM2", 3500);
-SetupNG<int>		    wk_sens_pos_2("WKSM1", 3000);
-SetupNG<int>		    wk_sens_pos_3("WKSP0", 2500);
-SetupNG<int>		    wk_sens_pos_4("WKSP1", 2000);
-SetupNG<int>		    wk_sens_pos_5("WKSP2", 1500);
-SetupNG<int>		    wk_sens_pos_6("WKSP3", 1000);
+SetupNG<int>		    wk_sens_pos_0("WK_SP_0", 4000);
+SetupNG<int>		    wk_sens_pos_1("WK_SP_1", 3500);
+SetupNG<int>		    wk_sens_pos_2("WK_SP_2", 3000);
+SetupNG<int>		    wk_sens_pos_3("WK_SP_3", 2500);
+SetupNG<int>		    wk_sens_pos_4("WK_SP_4", 2000);
+SetupNG<int>		    wk_sens_pos_5("WK_SP_5", 1500);
+SetupNG<int>		    wk_sens_pos_6("WK_SP_6", 1000);
 SetupNG<int>            stall_warning( "STALL_WARN", 0, true, SYNC_BIDIR, PERSISTENT );
 SetupNG<int>            flarm_warning( "FLARM_LEVEL", 1, true, SYNC_BIDIR, PERSISTENT );
 SetupNG<float>          flarm_alarm_time( "FLARM_ALM", 5, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(1, 15, 1));
@@ -362,13 +356,13 @@ SetupNG<int> 			wind_reference( "WIND_REF", PolarGauge::WR_HEADING );
 SetupNG<float> 			wind_max_deviation("WIND_MDEV", 30.0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.0, 180.0, 1.0));
 SetupNG<int> 			s2f_blockspeed( "S2G_BLOCKSPEED", 0, true, SYNC_BIDIR );  // considering netto vario and g load for S2F or not
 SetupNG<int> 			needle_color("NEEDLE_COLOR", VN_COLOR_ORANGE );
-SetupNG<int> 			wk_label_0( "WKLM3", 42, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  S
-SetupNG<int> 			wk_label_1( "WKLM2",  7, false, SYNC_BIDIR, PERSISTENT, flap_update_act); // -2
-SetupNG<int> 			wk_label_2( "WKLM1",  8, false, SYNC_BIDIR, PERSISTENT, flap_update_act); // -1
-SetupNG<int> 			wk_label_3( "WKL0",   9, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  0
-SetupNG<int> 			wk_label_4( "WKLP1", 10, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  
-SetupNG<int> 			wk_label_5( "WKLP2", 11, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  2
-SetupNG<int> 			wk_label_6( "WKLP3", 41, false, SYNC_BIDIR, PERSISTENT, flap_update_act); //  L
+SetupNG<int> 			wk_label_0( "WK_LBL_0", 42, false, SYNC_BIDIR ); //  S
+SetupNG<int> 			wk_label_1( "WK_LBL_1",  7, false, SYNC_BIDIR ); // -2
+SetupNG<int> 			wk_label_2( "WK_LBL_2",  8, false, SYNC_BIDIR ); // -1
+SetupNG<int> 			wk_label_3( "WK_LBL_3",   9, false, SYNC_BIDIR ); //  0
+SetupNG<int> 			wk_label_4( "WK_LBL_4", 10, false, SYNC_BIDIR ); //  
+SetupNG<int> 			wk_label_5( "WK_LBL_5", 11, false, SYNC_BIDIR ); //  2
+SetupNG<int> 			wk_label_6( "WK_LBL_6", 41, false, SYNC_BIDIR ); //  L
 SetupNG<float>       	flap_takeoff("FLAPTO", 1,  true, SYNC_BIDIR, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 6, 1));
 SetupNG<int> 			audio_mute_sink( "AUDISS", 0 );
 SetupNG<int> 			audio_mute_gen( "AUDISG", AUDIO_ON );

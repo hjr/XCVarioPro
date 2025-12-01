@@ -12,6 +12,7 @@
 #include "setup/SetupNG.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
+#include "setup/SetupMenuChar.h"
 #include "setup/SetupMenuValFloat.h"
 #include "AnalogInput.h"
 #include "AdaptUGC.h"
@@ -23,23 +24,12 @@
 
 extern AdaptUGC *MYUCG;
 
-static int new_level_label_idx;
-const limits_t polar_speed_limits = {0.0, 450.0, 1};
-static SetupNG<float> new_level_speed("FLAP_NEW_SPEED", 100.0f, false, SYNC_NONE, VOLATILE, nullptr, QUANT_HSPEED, &polar_speed_limits);
+static int new_level_label;
+static SetupNG<float> *new_level_speed = nullptr;
 static int8_t new_level_complete;
 
 static std::string flap_level_menu[Flap::MAX_NR_POS];
 static std::string flap_level_buzz[Flap::MAX_NR_POS];
-
-
-// predefined flap labels         // -9,..,-2,-1,+0,+1,+2,..,+9
-const std::string_view flap_labels[55] = { "-9", "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "+0",  // 9
-	"+1", "+2", "+3", "+4", "+5", "+6", "+7", "+8", "+9",     // 18
-	// 0,1,2,3,..,20
-	" 0", " 1", " 2", " 3", " 4", " 5", " 6", " 7", " 8", " 9", "10",  // 29
-	"11", "12", "13", "14", "15", "16", "17", "18", "19", "20",   // 39
-	// N,L,S,3a,3b,A,21,..,27
-	" N", " L", " S", "3a", "3b", " A", "21", "22", "23", "24", "25", "26", "27", "T", "" };  // L=41  S=42
 
 
 // Action Routines
@@ -78,12 +68,7 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
     return 0;
 }
 
-unsigned int Flap::getSensorRaw() const
-{
-    return sensorAdc ? sensorAdc->getRaw() : 0;
-}
-
-static int wk_calib_level(SetupMenuSelect *p, int wk, Average<12> &filter)
+static int wk_calib_level(SetupMenuSelect *p, int wk, Average<15> &filter)
 {
     MYUCG->setPrintPos(1, 60);
     MYUCG->printf("Set Flap %s ", FLAP->getFL(wk)->label);
@@ -93,7 +78,7 @@ static int wk_calib_level(SetupMenuSelect *p, int wk, Average<12> &filter)
     {
         i++;
         sensval = filter((int)(FLAP->getSensorRaw()));
-        if (!(i % 10))
+        if (!(i % 5))
         {
             MYUCG->setPrintPos(1, 140);
             MYUCG->printf("Sensor: %d      ", sensval);
@@ -118,7 +103,7 @@ static int flap_cal_act(SetupMenuSelect *p)
         ESP_LOGI(FNAME, "Abort calibration, no signal");
         return 0;
     }
-    Average<12> filter;
+    Average<15> filter;
     if (p->getSelect())
     {
         // do calibration
@@ -131,15 +116,14 @@ static int flap_cal_act(SetupMenuSelect *p)
         for (int wk = 0; wk < FLAP->getNrPositions(); wk++)
         {
             sensval = wk_calib_level(p, wk, filter);
-            FLAP->getSensNVS(wk)->set(sensval); // directly store in NVS
+            FLAP->setSensCal(wk, sensval);
         }
+        FLAP->modLevels();
         MYUCG->setPrintPos(1, 260);
         MYUCG->setFont(ucg_font_ncenR14_hr, true);
         MYUCG->printf("Saved");
-        FLAP->initFromNVS();
         delay(800);
         p->clear();
-        FLAP->prepLevels();
     }
     p->setSelect(0);
     return 0;
@@ -172,11 +156,11 @@ void flap_menu_create_flap_sensor(SetupMenu *wkm) // dynamic!
 
 //////////////////////////////
 // Add new level
-static int select_level_action(SetupMenuSelect *p)
+static int select_level_action(SetupMenuChar *p)
 {
-    ESP_LOGI(FNAME,"action %s", flap_labels[p->getValue()].data());
-    // memorize and lock the device selector
-    new_level_label_idx = p->getValue();
+    ESP_LOGI(FNAME,"action %s", p->value());
+    std::strncpy((char*)&new_level_label, p->value(), 4);
+    ((char*)&new_level_label)[3] = '\0';
     new_level_complete |= 0x1;
     if ( new_level_complete == 0x3 ) {
         p->getParent()->getEntry(2)->unlock();
@@ -196,7 +180,7 @@ static int create_level_action(SetupMenuSelect *p)
 {
     if ( p->getSelect() == 1 ) {
         // Confirmed
-        FlapLevel nl(new_level_speed.get(), flap_labels[new_level_label_idx].data(), 0);
+        FlapLevel nl(new_level_speed->get(), new_level_label, 0);
         FLAP->addLevel(nl);
     }
     p->getParent()->getParent()->setDirty();
@@ -212,12 +196,12 @@ static void flap_menu_add_level(SetupMenu *top) // dynamic!
         top->setDynContent();
 
         // the label
-        SetupMenuSelect *flab = new SetupMenuSelect( "Label", RST_NONE, select_level_action);
-        flab->addEntryList( flap_labels ); // initialize flap label entries
+        SetupMenuChar *flab = new SetupMenuChar( "Label", "Aa0+ ", 3, RST_NONE, select_level_action, "0");
         top->addEntry( flab );
 
         // the minimum speed
-        SetupMenuValFloat *minspeed = new SetupMenuValFloat("Minimum Speed", "kmh", select_speed_action, false, &new_level_speed);
+        SetupMenuValFloat *minspeed = new SetupMenuValFloat("Minimum Speed", "kmh", nullptr, false, new_level_speed);
+        minspeed->setExitAction(select_speed_action);
         top->addEntry( minspeed );
 
         // confirmation
@@ -235,15 +219,19 @@ static void flap_menu_add_level(SetupMenu *top) // dynamic!
 
 //////////////////////////////
 // Level details
-static int level_mod_action(SetupMenuSelect *p)
+static int level_label_action(SetupMenuChar *p)
 {
-    FLAP->modLevel();
+    ESP_LOGI(FNAME,"level_mod_action %s", p->value());
+    FLAP->setLabel(p->getParent()->getContId(), p->value());
+    FLAP->modLevels();
     p->getParent()->getParent()->setDirty();
     return 0;
 }
-static int level_modf_action(SetupMenuValFloat *p)
+static int level_speed_action(SetupMenuValFloat *p)
 {
-    FLAP->modLevel();
+    ESP_LOGI(FNAME,"level_speed_action %.1f", p->getFloat());
+    FLAP->setSpeed(p->getParent()->getContId(), p->getFloat() );
+    FLAP->modLevels();
     p->getParent()->getParent()->setDirty();
     return 0;
 }
@@ -268,12 +256,13 @@ static void one_flap_level(SetupMenu *top) // dynamic!
         top->setDynContent();
         
         // the label
-        SetupMenuSelect *flab = new SetupMenuSelect( "Label", RST_NONE, level_mod_action, FLAP->getLblNVS(lid) );
-        flab->addEntryList( flap_labels ); // initialize flap label entries
+        int tmp = FLAP->getFL(lid)->label_int;
+        SetupMenuChar *flab = new SetupMenuChar( "Label", "Aa0+ ", 3, RST_NONE, level_label_action, (char*)&tmp );
         top->addEntry( flab );
 
         // the minimum speed
-        SetupMenuValFloat *minspeed = new SetupMenuValFloat("Minimum Speed", "kmh", level_modf_action, false, FLAP->getSpeedNVS(lid)  );
+        SetupMenuValFloat *minspeed = new SetupMenuValFloat("Minimum Speed", "kmh", nullptr, false, FLAP->getSpeedNVS(lid)  );
+        minspeed->setExitAction(level_speed_action);
         top->addEntry( minspeed );
 
         // remove level
@@ -287,6 +276,7 @@ void flap_levels_menu_create(SetupMenu* top) // dynamic!
 {
     SetupMenuValFloat *flgnd = static_cast<SetupMenuValFloat*>(top->getEntry(0));
     if ( ! flgnd ) {
+        new_level_speed = new SetupNG<float>("foo", 100.0f, false, SYNC_NONE, VOLATILE, nullptr, QUANT_HSPEED, &polar_speed_limits);
         top->setDynContent();
         flgnd = new SetupMenuValFloat("Takeoff Flap",".", nullptr, false, &flap_takeoff  );
         flgnd->setHelp("Flap position to be set for takeoff");
@@ -332,5 +322,9 @@ void free_flap_menu()
         flap_level_menu[i].shrink_to_fit();
         flap_level_buzz[i].clear();
         flap_level_buzz[i].shrink_to_fit();
+    }
+    if ( new_level_speed ) {
+        delete new_level_speed;
+        new_level_speed = nullptr;
     }
 }

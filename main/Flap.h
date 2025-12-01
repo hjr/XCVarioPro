@@ -15,17 +15,30 @@
 // Flap level internal representation
 // ==================================
 // Levels enumerate from 0 (most negative flap) to n-1 (most positive flap) for n flap levels.
-// Each level defines a speed (in km/h), a label, and a sensor value (ADC reading).
-// The NVS stored speeds are adjusted according to the actual wingload on initialization.
-// The flap level l is recommended for speeds >= speed(l)!
-// For the sake of least possible NVS entries, there is no speed for level (n-1) defined (when n=7). Then
+// Each NVS stored level defines a speed, a label, and a sensor value (ADC reading).
+//
+//   0         1        2   ...   n-2          n-1    -> level index
+//   ^- max speed for L1   ...     ^- max speed for L(n-1)
+//             ^- min speed for L1 ...          ^- min speed for L(n-1)
+//   ^- sens_delta := L1calsens - L0calsens ... etc.
+//   |--           Sensor Value     ...       --|      -> steady increase/decrease of sensor reading
+// Level 0 | Level 1 |  ...  | Level n-2 | Level n-1 | -> recommended speed band
+//
+// Flap levels need to be prepared for the actual wingload on initialization and after changes. The resulting
+// prepared speeds are used for all calculations. -> prep_speed
+// The NVS stored speed belongs to the reference wing load of the selected glider polar.
+// 
+// The flap level x is recommended for speeds >= speed(x)!
+// For the sake of saving NVS entries (legacy), there is no speed for level (n-1) defined (when n=7). Then
 // the last level n-1 is recommended for all speeds < speed(n-2).
 //
-// NVS storage order is defined through the FLAP_STORE array.
+// The sensor values can be in ascending or descending order, depending on the flap sensor installation.
+// 
+// NVS storage items order is defined through the FLAP_STORE array.
 //
-// The sensor values can be in ascending or descending order, depending on the flap sensor wiring.
-//  
-
+// Flap level addition/removal: A modified level list gets sorted according to speeds and is saved back 
+// to NVS on exit of the flap setup menu
+//
 
 class AnalogInput;
 template <typename T>
@@ -36,10 +49,17 @@ struct FlapLevel
     float nvs_speed;
     float prep_speed;
     float speed_delta;
-    const char *label;
+    union {
+        char label[4];
+        int label_int;
+    };
     int sensval;
     int sens_delta;
-    FlapLevel(float s, const char *l, int sv) : nvs_speed(s), prep_speed(0.), speed_delta(0.), label(l), sensval(sv), sens_delta(0) {}
+    FlapLevel(float s, int label_int, int sv) : nvs_speed(s), prep_speed(0.), speed_delta(0.), label_int(label_int), sensval(sv), sens_delta(0) {}
+    // FlapLevel(float s, const char *lc, int sv) : nvs_speed(s), prep_speed(0.), speed_delta(0.), sensval(sv), sens_delta(0) {
+    //     std::strncpy(label, lc, 4);
+    //     label[3] = '\0';
+    // }
 };
 
 /*
@@ -60,37 +80,41 @@ public:
     static SetupNG<float> *getSpeedNVS(int idx);
     static SetupNG<int> *getLblNVS(int idx);
     static SetupNG<int> *getSensNVS(int idx);
-    void initFromNVS();
-    void saveToNVS();
+    const FlapLevel *getFL(int idx) const { return (idx < flevel.size()) ? &flevel[idx] : &dummy; }
+    void setSensCal(int idx, int val);
+    void setLabel(int idx, const char *lab);
+    void setSpeed(int idx, float spd);
     void prepLevels();
-    void modLevel();
+    void modLevels();
     void addLevel(FlapLevel &lev);
     void removeLevel(int idx);
 
+    // periodic feed
     void progress();
+
     // recommendations
     float getOptimum(float speed) const;
     float getSpeedBand(float wkf, float &maxv) const;
-    float getSpeed(float wkf);
+    float getSpeed(float wkf) const;
     float getFlapPosition() const;
-    bool haveSensor() const { return sensorAdc != nullptr; }
-    const FlapLevel *getFL(int idx) const { return (idx < flevel.size()) ? &flevel[idx] : &dummy; }
 
     // sensor access
-    unsigned int getSensorRaw() const;
+    bool haveSensor() const { return sensorAdc != nullptr; }
     void configureADC();
+    unsigned int getSensorRaw() const;
     int getNrPositions() const { return flevel.size(); }
     static constexpr const int MAX_NR_POS = 7;
 
 private:
     // helper
-    static int getWkI(float wkf) { return ( wkf < 0.01 ) ? 0 : (int)std::ceilf(wkf); }
+    bool initFromNVS();
+    void saveToNVS();
     float sensorToLeverPosition(int sensorreading) const;
     // attributes
     static Flap *_instance;
     AnalogInput *sensorAdc = nullptr;
     std::vector<FlapLevel> flevel;
-    bool _sens_ordered = true; // if true, sensval are in descending order from flap level 0 upwards
+    bool _sens_order = true; // if true, sensval are in descending order from flap level 0 upwards
     static FlapLevel dummy;
     int rawFiltered = 0;
     int tick = 0;

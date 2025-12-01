@@ -482,7 +482,7 @@ void IpsDisplay::initDisplay() {
     if ( !VCSTATgauge ) {
         VCSTATgauge = new CruiseStatus(INNER_RIGHT_ALIGN - 8, 18);
     }
-    if ( FLAP ) {
+    if ( FLAP && flapbox_enable.get() ) {
         if (!FLAPSgauge) {
             FLAPSgauge = new FlapsBox(FLAP, DISPLAY_W - 28, AMIDY, DISPLAY_H > DISPLAY_W);
         }

@@ -129,6 +129,7 @@ struct limits_t
     static constexpr limits_t _lim = { (min), (max), (step) }; \
     return &_lim; \
 }())
+extern const limits_t polar_speed_limits;
 
 template<typename T>
 class SetupNG: public SetupCommon

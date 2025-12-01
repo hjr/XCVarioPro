@@ -107,7 +107,11 @@ void glider_menu_create(SetupMenu *top) {
 	}
 
 	SetupMenu *tmp_menu = static_cast<SetupMenu*>(top->getEntry(6)); // flap levels
-	if( Polars::hasFlaps(MyGliderPolarIndex) ){
+	if( Polars::hasFlaps(MyGliderPolarIndex) ) {
+		// last chance to create the FLAP object
+		if( ! FLAP ) {
+			FLAP = Flap::theFlap();
+		}
 		tmp_menu->unlock();
 		tmp_menu->setBuzzword();
 	}else{

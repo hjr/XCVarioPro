@@ -1341,7 +1341,7 @@ void system_menu_create_hardware(SetupMenu *top) {
 		if ( flap_sensor.get() == FLAP_SENSOR_DISABLE ) {
 			wkm->setBuzzword(ENABLE_MODE[0].data());
 		}
-		else if ( flap_sensor.get() == FLAP_SENSOR_ENABLE ) {
+		else if ( flap_sensor.get() & 0x3 ) {
 			wkm->setBuzzword(ENABLE_MODE[1].data());
 		}
 		else if ( flap_sensor.get() == FLAP_SENSOR_CLIENT ) {
