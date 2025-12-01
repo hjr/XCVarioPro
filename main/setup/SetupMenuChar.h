@@ -31,7 +31,7 @@ private:
 class SetupMenuChar : public MenuEntry {
 public:
     SetupMenuChar() = delete;
-    SetupMenuChar(const char *title, const char *chset, int mlen, e_restart_mode_t restart = RST_NONE, int (*action)(SetupMenuChar *p) = nullptr, char *achar = 0);
+    SetupMenuChar(const char *title, const char *chset, int mlen, e_restart_mode_t restart = RST_NONE, int (*exit_action)(SetupMenuChar *p) = nullptr, const char *achar = 0);
     virtual ~SetupMenuChar() = default;
     void display(int mode = 0) override;
     void rot(int count);
@@ -48,6 +48,6 @@ private:
     bool _mode = false; // false: select char index, true: edit character
     int16_t _char_index = 0; // position of character to be altered
     std::string _value; // current value as string
-    int (*_action)(SetupMenuChar *p);
+    int (*_exit_action)(SetupMenuChar *p);
     bool _dirty = false;
 };

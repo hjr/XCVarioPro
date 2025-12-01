@@ -24,6 +24,7 @@ SetupMenuValFloat::SetupMenuValFloat( const char* title, const char *unit, int (
 	_nvs(anvs)
 {
 	// ESP_LOGI(FNAME,"SetupMenuValFloat( %s ) ", title.c_str() );
+	_title.assign(title);
 	if( unit != 0 && *unit != '\0' ) {
 		_unit = unit;
 	}
@@ -139,6 +140,10 @@ void SetupMenuValFloat::press()
 {
 	ESP_LOGI(FNAME,"SetupMenuValFloat value: %f", _value );
 	ESP_LOGI(FNAME,"Check if _value: %f != _value_safe: %f", _value, _value_safe );
+	if ( _exit_action ) {
+		_exit_action( this );
+	}
+
 	if( _value != _value_safe ){
 		_nvs->set( _value );
 		_nvs->commit();

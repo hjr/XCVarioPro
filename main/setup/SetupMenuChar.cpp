@@ -62,11 +62,11 @@ char CharFilter::predChar(char c)
 }
 
 
-SetupMenuChar::SetupMenuChar( const char* title, const char *chset, int mlen, e_restart_mode_t restart, int (*action)(SetupMenuChar *p), char *aval ) :
+SetupMenuChar::SetupMenuChar( const char* title, const char *chset, int mlen, e_restart_mode_t restart, int (*exit_action)(SetupMenuChar *p), const char *aval ) :
     MenuEntry(title),
     _chfilter(chset),
     _m_len(mlen),
-    _action(action)
+    _exit_action(exit_action)
 {
     ESP_LOGI(FNAME,"SetupMenuChar( %s )", title );
     if (aval) {
@@ -77,7 +77,7 @@ SetupMenuChar::SetupMenuChar( const char* title, const char *chset, int mlen, e_
 
 void SetupMenuChar::display(int mode)
 {
-    ESP_LOGI(FNAME,"display title:%s action: %x", _title.c_str(), (int)(_action));
+    ESP_LOGI(FNAME,"display title:%s action: %x", _title.c_str(), (int)(_exit_action));
     // inline only !!
     indentHighlight(_parent->getHighlight());
     focusPosLn(_value.c_str(), _char_index);
@@ -140,12 +140,12 @@ void SetupMenuChar::longPress(){
     ESP_LOGI(FNAME, "long press() ");
     _mode = false;
 
+    if (_exit_action) {
+        ESP_LOGI(FNAME, "calling exit action");
+        (*_exit_action)(this);
+    }
     if (helptext) {
         SavedDelay(_dirty);
-    }
-    if (_action) {
-        ESP_LOGI(FNAME, "calling action in press");
-        (*_action)(this);
     }
     if (_dirty && bits._restart) {
         _restart = true;

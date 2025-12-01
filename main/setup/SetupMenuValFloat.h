@@ -29,6 +29,7 @@ public:
 	void longPress();
 	void setStep( float val ) { _step = val; };
 	void setMax( float max ) { _max = max; };
+	void setExitAction( int (*ea)( SetupMenuValFloat *p ) ) { _exit_action = ea; };
 	float _value = .0;
 
 private:
@@ -38,5 +39,6 @@ private:
 	float _value_safe = 0;
 	const char *_unit = "";
 	int (*_action)( SetupMenuValFloat *p );
-	SetupNG<float> * _nvs;
+	int (*_exit_action)( SetupMenuValFloat *p ) = nullptr;
+	SetupNG<float> *_nvs;
 };

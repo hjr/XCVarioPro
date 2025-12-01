@@ -616,11 +616,13 @@ static int s2fModeChangeF(SetupMenuValFloat *p) {
 }
 
 void vario_menu_create_damping(SetupMenu *top) {
-	SetupMenuValFloat *vda = new SetupMenuValFloat("Damping", "sec", vario_setup, false, &vario_delay);
+	SetupMenuValFloat *vda = new SetupMenuValFloat("Damping", "sec", nullptr, false, &vario_delay);
+    vda->setExitAction(varioAvChange);
 	vda->setHelp("Response time, time constant of Vario low pass filter");
 	top->addEntry(vda);
 
-	SetupMenuValFloat *vdav = new SetupMenuValFloat("Averager", "sec", varioAvChange, false, &vario_av_delay);
+	SetupMenuValFloat *vdav = new SetupMenuValFloat("Averager", "sec", nullptr, false, &vario_av_delay);
+    vdav->setExitAction(varioAvChange);
 	vdav->setHelp("Response time, time constant of digital Average Vario Display");
 	top->addEntry(vdav);
 }
@@ -691,7 +693,8 @@ void vario_menu_create_s2f(SetupMenu *top) {
 	top->addEntry(s2f_gyro);
 	s2f_gyro->setHelp("Turnrate for the AutoTurnrate switch");
 
-	SetupMenuValFloat *s2flag = new SetupMenuValFloat("Switch Lag", "sec", s2fModeChangeF, false, &s2f_auto_lag);
+	SetupMenuValFloat *s2flag = new SetupMenuValFloat("Switch Lag", "sec", nullptr, false, &s2f_auto_lag);
+    s2flag->setExitAction(s2fModeChangeF);
 	s2flag->setHelp("Lag to delay the auto switch event (2-20sec)");
 	top->addEntry(s2flag);
 }
@@ -723,7 +726,8 @@ void wiper_menu_create(SetupMenu *top) {
 }
 
 void bugs_item_create(SetupMenu *top) {
-	SetupMenuValFloat *bgs = new SetupMenuValFloat("Bugs", "%", bug_adj, true, &bugs);
+	SetupMenuValFloat *bgs = new SetupMenuValFloat("Bugs", "%", nullptr, true, &bugs);
+    bgs->setExitAction(bug_adj);
 	bgs->setHelp("Percent degradation of gliding performance due to bugs contamination");
 	top->addEntry(bgs);
 }
@@ -731,8 +735,9 @@ void bugs_item_create(SetupMenu *top) {
 void vario_menu_create(SetupMenu *vae) {
 	ESP_LOGI(FNAME,"SetupMenu::vario_menu_create( %p )", vae );
 
-	SetupMenuValFloat *vga = new SetupMenuValFloat("Range", "", audio_setup_f, true, &scale_range);
-	vga->setHelp("Upper and lower value for Vario graphic display region");
+	SetupMenuValFloat *vga = new SetupMenuValFloat("Range", "", nullptr, true, &scale_range);
+    vga->setExitAction(audio_setup_f);
+	vga->setHelp("Upper and lower value for Vario scale range");
 	vga->setPrecision(0);
 	vae->addEntry(vga);
 
@@ -810,8 +815,9 @@ static void system_menu_create_airspeed(SetupMenu *top) {
 	// amode->addEntry("Slip Angle");
 	top->addEntry(amode);
 
-	SetupMenuValFloat *spc = new SetupMenuValFloat("AS Calibration", "%", speedcal_change, false, &speedcal);
-	spc->setHelp("Calibration of airspeed sensor (AS). Normally not needed, unless pressure the probe has a systematic error");
+	SetupMenuValFloat *spc = new SetupMenuValFloat("AS Calibration", "%", nullptr, false, &speedcal);
+    spc->setExitAction(speedcal_change);
+	spc->setHelp("Calibration of airspeed sensor (AS). Normally not needed, unless the pressure probe has a systematic error");
 	top->addEntry(spc);
 
 	SetupMenuSelect *auze = new SetupMenuSelect("Set AS Zero", RST_IMMEDIATE, nullptr, &autozero);
@@ -1210,7 +1216,8 @@ void system_menu_create_ahrs_calib(SetupMenu *top) {
 	ahrs_calib_collect->addEntry("Start");
 	ahrs_calib_collect->addEntry("Reset");
 
-	SetupMenuValFloat *ahrs_ground_aa = new SetupMenuValFloat("Ground angle of attack", "°", imu_gaa, false, &glider_ground_aa);
+	SetupMenuValFloat *ahrs_ground_aa = new SetupMenuValFloat("Ground angle of attack", "°", nullptr, false, &glider_ground_aa);
+    ahrs_ground_aa->setExitAction(imu_gaa);
 	ahrs_ground_aa->setHelp(
 			"Angle of attack with tail skid on the ground to adjust the AHRS reference. Change this any time to correct the AHRS horizon level.");
 	ahrs_ground_aa->setPrecision(0);

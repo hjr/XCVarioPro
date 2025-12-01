@@ -118,7 +118,8 @@ static void options_menu_custom_id(SetupMenu *top)
 
 static void connected_devices_menu_create_wifi(SetupMenu *top)
 {
-    SetupMenuValFloat *wifip = new SetupMenuValFloat("WIFI Power", "%", update_wifi_power, false, &wifi_max_power);
+    SetupMenuValFloat *wifip = new SetupMenuValFloat("WIFI Power", "%", nullptr, false, &wifi_max_power);
+    wifip->setExitAction(update_wifi_power);
     wifip->setPrecision(0);
     wifip->setHelp("Maximum Wifi Power to be used 10..100% or 2..20dBm");
     top->addEntry(wifip);
