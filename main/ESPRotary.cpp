@@ -266,13 +266,13 @@ void ESPRotary::sendEscape() const
 bool ESPRotary::readSwitch(int delay) const
 {
     // return true for any button event in the queue, except a release
+    // default: wait for just a very short time and shovel all not interresting events off the queue
     int event;
     bool ret = false;
-    if (xQueueReceive(uiEventQueue, &event, pdMS_TO_TICKS(delay)) == pdTRUE) {
+    while (xQueueReceive(uiEventQueue, &event, pdMS_TO_TICKS(delay)) == pdTRUE) {
         if (event == ButtonEvent(ButtonEvent::SHORT_PRESS).raw || event == ButtonEvent(ButtonEvent::LONG_PRESS).raw) {
             ret = true;
         }
-        xQueueReset(uiEventQueue); // clear the queue
     }
     return ret;
 }
