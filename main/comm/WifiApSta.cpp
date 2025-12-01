@@ -204,11 +204,16 @@ public:
 						if (sizeRead > 0) {
 							ESP_LOGI(FNAME, "FD socket recv: connection %d, port %d, read:%d bytes", config->sock_hndl, config->port, sizeRead );
 							tmp_alive = true;
-							std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
-							auto dl = wifi->_dlink.find(config->port);
-							bool valid = dl != wifi->_dlink.end();
-							if (valid) {
-								dl->second->process(r, sizeRead);
+							DataLink* dltarget = nullptr;
+							{
+								std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
+								auto dl = wifi->_dlink.find(config->port);
+								if ( dl != wifi->_dlink.end() ) {
+									dltarget = dl->second;
+								}
+							}
+							if (dltarget) {
+								dltarget->process(r, sizeRead);
 							}
 						}else if (sizeRead <= 0) {
 							// Server closed the connection, or error occurred
@@ -233,11 +238,16 @@ public:
 						if (sizeRead > 0) {
 							ESP_LOGI(FNAME, "FD socket recv: connection %d, port %d, read:%d bytes", client_rec.peer, config->port, sizeRead );
 							tmp_alive = true;
-							std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
-							auto dl = wifi->_dlink.find(config->port);
-							bool valid = dl != wifi->_dlink.end();
-							if (valid) {
-								dl->second->process(r, sizeRead);
+							DataLink* dltarget = nullptr;
+							{
+								std::lock_guard<SemaphoreMutex> lock(wifi->_dlink_mutex);
+								auto dl = wifi->_dlink.find(config->port);
+								if ( dl != wifi->_dlink.end() ) {
+									dltarget = dl->second;
+								}
+							}
+							if (dltarget) {
+								dltarget->process(r, sizeRead);
 							}
 							client_rec.retries = 0;
 						}

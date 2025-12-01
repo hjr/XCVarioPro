@@ -55,13 +55,18 @@ void uartTask(SerialLine *s) {
         // sleep until the UART gives us something to do
         BaseType_t ret = xQueueReceive((QueueHandle_t)s->_event_queue, &event, pdMS_TO_TICKS(10000));
         // fetch the data link
-        std::lock_guard<SemaphoreMutex> lock(s->_dlink_mutex);
-        auto dlit = s->_dlink.begin();
-        bool valid = dlit != s->_dlink.end();
+        DataLink* dltarget = nullptr;
+        {
+            std::lock_guard<SemaphoreMutex> lock(s->_dlink_mutex);
+            auto dlit = s->_dlink.begin();
+            if ( dlit != s->_dlink.end() ) {
+                dltarget = dlit->second;
+            }
+        }
         if (ret != pdTRUE) {
             // time-out, propagate as empty message
-            if (valid) {
-                dlit->second->process(nullptr, 0);
+            if (dltarget) {
+                dltarget->process(nullptr, 0);
             }
             continue;
         }
@@ -76,10 +81,10 @@ void uartTask(SerialLine *s) {
             // ESP_LOGI(FNAME, "Pattern detected on UART%d", un);
         case UART_DATA: {
             int count = uart_read_bytes(un, rx_buf, BUF_LEN, 0);
-            if (count > 0 && valid) {
+            if (count > 0 && dltarget) {
                 rx_buf[count] = '\0';
                 // ESP_LOGI(FNAME, "Data received from UART%d: %dc", un, count);
-                dlit->second->process(rx_buf, count); // SX interfaces do have only one data link
+                dltarget->process(rx_buf, count); // SX interfaces do have only one data link
             }
             break;
         }

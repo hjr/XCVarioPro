@@ -71,12 +71,16 @@ static void spp_event_handler(esp_spp_cb_event_t event, esp_spp_cb_param_t *para
 		if (count > 0)
 		{
 			rxBuf[count] = '\0';
-
-			std::lock_guard<SemaphoreMutex> lock(BTspp->_dlink_mutex);
-			auto dlit = BTspp->_dlink.begin();
-			bool valid = dlit != BTspp->_dlink.end();
-			if ( valid ) {
-				dlit->second->process(rxBuf, count);
+			DataLink* dltarget = nullptr;
+			{
+				std::lock_guard<SemaphoreMutex> lock(BTspp->_dlink_mutex);
+				auto dlit = BTspp->_dlink.begin();
+				if ( dlit != BTspp->_dlink.end() ) {
+					dltarget = dlit->second;
+				}
+			}
+			if ( dltarget ) {
+				dltarget->process(rxBuf, count);
 			}
 		}
 		// esp_spp_write(param->data_ind.handle, param->data_ind.len, param->data_ind.data);
