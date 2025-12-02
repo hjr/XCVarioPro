@@ -917,7 +917,7 @@ static void screens_menu_create_vario(SetupMenu *top) {
     // ncolor->addEntry("Red");
     // top->addEntry(ncolor);
     SetupMenuSelect *scrcaid = new SetupMenuSelect("Thermal-Assist", RST_NONE, nullptr, &vario_centeraid);
-    scrcaid->setHelp("Enable/disable display of the thermal assistent");
+    scrcaid->setHelp("Enable/disable display of the thermal assistant");
     scrcaid->mkEnable();
     top->addEntry(scrcaid);
 
@@ -937,9 +937,9 @@ static void screens_menu_create_vario(SetupMenu *top) {
     bgauge->mkEnable("Altimeter");
     top->addEntry(bgauge);
 
-    SetupMenuSelect *wke = new SetupMenuSelect("Flap Indicator", RST_NONE, nullptr, &flapbox_enable);
+    SetupMenuSelect *wke = new SetupMenuSelect("Flap-Assist", RST_NONE, nullptr, &flapbox_enable);
     wke->mkEnable();
-    wke->setHelp("Enable flap indicator to assist optimum flap setting depending on speed, G-load and ballast");
+    wke->setHelp("An indicator to assist optimum flap setting depending on speed, G-load and ballast");
     top->addEntry(wke);
 
     SetupMenuSelect *wref = new SetupMenuSelect("Wind Ref.", RST_NONE, nullptr, &wind_reference);
