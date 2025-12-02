@@ -159,6 +159,11 @@ void Flap::modLevels()
     saveToNVS();
     prepLevels();
 }
+void Flap::reLoadLevels()
+{
+    initFromNVS();
+    prepLevels();
+}
 void Flap::addLevel(FlapLevel &lev)
 {
     flevel.push_back(lev);

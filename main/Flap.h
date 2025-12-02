@@ -86,6 +86,7 @@ public:
     void setSpeed(int idx, float spd);
     void prepLevels();
     void modLevels();
+    void reLoadLevels();
     void addLevel(FlapLevel &lev);
     void removeLevel(int idx);
 
