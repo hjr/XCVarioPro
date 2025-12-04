@@ -10,9 +10,10 @@
 
 #include "protocol/nmea_util.h"
 #include "protocol/Clock.h"
+#include "protocol/nmea/CANPeerCaps.h"
 #include "comm/DeviceMgr.h"
 #include "comm/Messages.h"
-#include "setup/SetupCommon.h"
+#include "setup/SetupNG.h"
 
 #include "logdefnone.h"
 
@@ -31,11 +32,12 @@
 //      In case multiple peers respond with different port/id information, the information of the first valid response will be used.
 //      Second parameter is a string with the letters "XCVCLIENT" to identify the desired protocol to talk, and thus the kind of devcie
 //      requesting.
-//   $PJPREG, <token>, <protocol type>\r\n
+//      Third parameter is the capabilities string of the client, encoded the connected devices on client side.
+//   $PJPREG, <token>, <protocol type>, <client caps>\r\n
 //
 // The expected master message/response
 // - Registration query accepted: A master respons with the query token, a client id to listen, and a master id to respond messages to.
-//   $PJMACC, <token>, <drive id>, <master id>*<CRC>\r\n
+//   $PJMACC, <token>, <drive id>, <master id>, <master caps>*<CRC>\r\n
 //
 // - Re-registration broadcast: Triggers a new registration cycle from the client.
 //   $PJMLOR\r\n
@@ -75,7 +77,8 @@ bool CANClientQueryMsg::sendRegistrationQuery()
 
     msg->buffer = "$PJPREG, ";
     msg->buffer += Q_TOKEN;
-    msg->buffer += ", XCVCLIENT\r\n";
+    msg->buffer += ", XCVCLIENT";
+    msg->buffer += ", " + CANPeerCaps::encodeCaps(my_caps.get()) + "\r\n";
     return DEV::Send(msg);
 }
 
@@ -85,7 +88,7 @@ bool CANClientQueryMsg::sendRegistrationQuery()
 //
 dl_action_t CANClientQueryMsg::registration(NmeaPlugin *plg)
 {
-    // grab token from e.g. message "$PJMACC, 123, client_id, master_id"
+    // grab token from e.g. message "$PJMACC, 123, client_id, master_id, cap_string"
     ProtocolState *sm = plg->getNMEA().getSM();
     CANClientQueryMsg *me = reinterpret_cast<CANClientQueryMsg*>(plg);
     ESP_LOGI(FNAME, "Client received ACC");
@@ -111,14 +114,41 @@ dl_action_t CANClientQueryMsg::registration(NmeaPlugin *plg)
     if ( c_id > 0 && c_id < 0x7ff 
         && m_id > 0 && m_id < 0x7ff ) {
         // success
+        Clock::stop(me);
+        // create the XCVSync device
         ESP_LOGI(FNAME, "Client registered (ID=%d)", c_id);
         DEVMAN->addDevice(XCVARIOFIRST_DEV, XCVSYNC_P, c_id, m_id, CAN_BUS);
 
-        Clock::stop(me);
+        // look for optional master capabilities
+        int master_caps = 0;
+        if ( sm->_word_start.size() > 3 ) {
+            master_caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + sm->_word_start[3]);
+            ESP_LOGI(FNAME, "Mcaps received %d, %x", sm->_word_start.size(), master_caps);
+            peer_caps.set(master_caps);
+            CANPeerCaps::setupPeerProtos(c_id, m_id);
+        }
     }
     return NOACTION;
 }
 
+// dl_action_t CANClientQueryMsg::caps_response(NmeaPlugin *plg)
+// {
+//     // grab token from e.g. message "$PJPCAP, 123, cpas_string"
+//     ProtocolState *sm = plg->getNMEA().getSM();
+//     const std::vector<int> *word = &sm->_word_start;
+
+//     if ( word->size() < 2 ) {
+//         return NOACTION;
+//     }
+//     int caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + word->at(2));
+
+//     CANClientQueryMsg *me = reinterpret_cast<CANClientQueryMsg*>(plg);
+//     ESP_LOGI(FNAME, "Client received ACC");
+//     if ( sm->_frame.size() < 12 ) {
+//         return NOACTION;
+//     }
+//     return NOACTION;
+// }
 
 dl_action_t CANClientQueryMsg::restart_query(NmeaPlugin *plg)
 {

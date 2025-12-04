@@ -34,6 +34,7 @@ private:
 
     // Received messages
     static dl_action_t registration(NmeaPlugin *plg);
+    // static dl_action_t caps_response(NmeaPlugin *plg);
     static dl_action_t restart_query(NmeaPlugin *plg);
     static dl_action_t rejected(NmeaPlugin *plg);
     static const ParserEntry _pt[];

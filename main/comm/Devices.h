@@ -8,9 +8,10 @@
 
 #pragma once
 
+#include <cstdint>
 
 // List of supported devices
-typedef enum
+enum DeviceId : uint8_t
 {
     NO_DEVICE,
     ANEMOI_DEV,
@@ -34,11 +35,11 @@ typedef enum
     RADIO_PROXY,
     TEST_DEV,
     TEST_DEV2
-} DeviceId;
+};
 
 
 // Supported protocol id's
-typedef enum
+enum ProtocolType : uint8_t
 {
     NO_ONE = 0, // not a protocol
     ANEMOI_P,
@@ -61,9 +62,22 @@ typedef enum
     XCVSYNC_P,
     XCNAV_P,
     TEST_P
-} ProtocolType;
-// old ones .. P_EYE_PEYA, P_EYE_PEYI, P_AHRS_RPYL, P_AHRS_APENV1, P_GENERIC,
+};
+// old ones .. P_EYE_PEYA, P_EYE_PEYI
 
+
+// Capabilities resulting out of protocol negotiation
+enum XcvCaps : uint8_t
+{
+    GPS_CAP         = 1<<0, // "G"
+    FLARM_CAP       = 1<<1, // "F"
+    EXTWIND_CAP     = 1<<2, // "W"
+    RADIOCTRL_CAP   = 1<<3, // "R"
+    HEADING_CAP     = 1<<4, // "H"
+    FLAPSENS_CAP    = 1<<5, // "L"
+    GEARSENS_CAP    = 1<<6, // "E"
+    AHRS_CAP        = 1<<7 // "A"
+};
 
 constexpr int CAN_REG_PORT = 0x7f0;
 

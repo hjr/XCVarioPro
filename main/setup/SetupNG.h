@@ -542,6 +542,8 @@ extern SetupNG<mpud::raw_axes_t> gyro_bias;
 extern SetupNG<mpud::raw_axes_t> accl_bias;
 extern SetupNG<float>       mpu_temperature;
 extern SetupNG<int> 		xcv_role;
+extern SetupNG<int> 		my_caps;
+extern SetupNG<int> 		peer_caps;
 
 extern SetupNG<DeviceNVS>	anemoi_devsetup;
 extern SetupNG<DeviceNVS>	auto_connect;

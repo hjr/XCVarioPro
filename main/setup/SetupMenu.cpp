@@ -142,6 +142,8 @@ void SetupMenu::initGearWarning() {
 		gpio_set_direction(io, GPIO_MODE_INPUT);
 		gpio_set_pull_mode(io, GPIO_PULLUP_ONLY);
 		gpio_pullup_en(io);
+        // add gear warn to my caps
+        my_caps.set( my_caps.get() | XcvCaps::GEARSENS_CAP );
 	}
 	ESP_LOGI(FNAME,"initGearWarning: IO: %d", io );
 }
@@ -1338,14 +1340,14 @@ void system_menu_create_hardware(SetupMenu *top) {
 	SetupMenu *wkm = static_cast<SetupMenu*>(top->getEntry(2)); // Flap Sensor
 	if ( FLAP ) {
 		wkm->unlock();
-		if ( flap_sensor.get() == FLAP_SENSOR_DISABLE ) {
-			wkm->setBuzzword(ENABLE_MODE[0].data());
+		if ( flap_sensor.get() ) {
+			wkm->setBuzzword(ENABLE_MODE[1].data()); // enabled
 		}
-		else if ( flap_sensor.get() & 0x3 ) {
-			wkm->setBuzzword(ENABLE_MODE[1].data());
+		else if ( Flap::sensAvailable() ) {
+			wkm->setBuzzword(ENABLE_MODE[4].data()); // from peer
 		}
-		else if ( flap_sensor.get() == FLAP_SENSOR_CLIENT ) {
-			wkm->setBuzzword(ENABLE_MODE[4].data());
+		else {
+			wkm->setBuzzword(ENABLE_MODE[0].data()); // disabled
 		}
 	}
 	else {

@@ -19,6 +19,7 @@
 #include "protocol/ProtocolItf.h"
 #include "protocol/NMEA.h"
 #include "protocol/MagSensBin.h"
+#include "protocol/nmea/CANPeerCaps.h"
 #include "setup/DataMonitor.h"
 #include "setup/SetupNG.h"
 #include "Compass.h"
@@ -734,6 +735,8 @@ void DeviceManager::reserectFromNvs()
                     nr_set_up++;
                 }
             }
+            // update my caps
+            CANPeerCaps::updateMyCapabilities(did, true);
         }
     }
     ESP_LOGI(FNAME, "Reserected %d dev entries from NVS", nr_set_up);

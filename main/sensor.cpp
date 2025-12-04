@@ -791,6 +791,8 @@ void system_startup(void *args){
         MBOX->pushMessage(3, "Detecting XCV hardware");
     }
     Rotary->begin();
+
+    // Check if we shall enter OTA update mode
     if (software_update.get() || Rotary->readBootupStatus()) {
         software_update.set(0); // only one shot, then boot normal
 
@@ -809,6 +811,8 @@ void system_startup(void *args){
     if( hardwareRevision.get() >= XCVARIO_21 )
 	{
 		gflags.haveIMU = true;
+        // add AHRS to my caps
+        my_caps.set( my_caps.get() | XcvCaps::AHRS_CAP );
 		mpu_target_temp = mpu_temperature.get();
 		ESP_LOGI( FNAME,"MPU initialize");
 		MPU.initialize();  // this will initialize the chip and set default configurations

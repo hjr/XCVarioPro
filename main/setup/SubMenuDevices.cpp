@@ -18,6 +18,7 @@
 #include "comm/SerialLine.h"
 #include "comm/WifiApSta.h"
 #include "protocol/NMEA.h"
+#include "protocol/nmea/CANPeerCaps.h"
 #include "setup/DataMonitor.h"
 #include "sensor.h"
 #include "logdefnone.h"
@@ -302,6 +303,7 @@ static bool remove_dev(DeviceId did) // true if restart is needed
     }
     ESP_LOGI(FNAME, "remove %d", did);
     ret = DEVMAN->removeDevice(did, true);
+    CANPeerCaps::updateMyCapabilities(did, false);
     if ( did == NAVI_DEV ) {
         // remove a flarm host on the same itf
         Device *fhdev = DEVMAN->getDevice(FLARM_HOST_DEV);
@@ -403,12 +405,13 @@ static void create_dev(DeviceId did, InterfaceId iid)
     for (int i=0; i<da.prcols.getExtra(); ++i) {
         ProtocolType pid = da.prcols.proto(i);
         if ( new_device == NAVI_DEV ) {
-            // this does noly work for one protocol long protocol list (!)
+            // this does only work for one protocol list (!)
             pid = (ProtocolType)nmea_protocol.get(); // navi flavor, override protocol table
         }
         if ( pid != NO_ONE ) {
             ESP_LOGI(FNAME,"add protocol %d for device id %d", pid, new_device);
             dev = DEVMAN->addDevice(new_device, pid, da.port, da.port, new_interface, true);
+            CANPeerCaps::updateMyCapabilities(new_device, true);
         }
     }
 }

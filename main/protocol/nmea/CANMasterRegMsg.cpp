@@ -10,6 +10,7 @@
 
 #include "protocol/nmea_util.h"
 #include "protocol/Clock.h"
+#include "protocol/nmea/CANPeerCaps.h"
 #include "comm/DeviceMgr.h"
 #include "comm/Messages.h"
 #include "setup/SetupNG.h"
@@ -22,22 +23,23 @@
 //      id to address the master properly.
 //      The master listens for registration queries on the CAN id 0x7f0, and also replies on this id. The token
 //      is used to match query and response on client side.
-//   $PJPREG, <token>, <protcol type>\r\n
+//   $PJPREG, <token>, <protcol type>, <client caps>\r\n
 //
 //
 // The response to the registration query:
 // - Accepting the registration: The token must be the same as in the query. Second parameter is ascii/decimal encoded the 
 //      CAN bus id dedicated to the clint from now on. Third parameter is the masters id.
+//      Fourth parameter is the capabilities string of the master, encoded the connected devices on master side.
 //      In case this response got not received well from the client it will query again. This repetition can be determined as 
 //      of containing the same pair of token and protocol type. In case the token is different it might be another clients query.
-//      __Important__: This query is supposed to happen once for the upptime of the client! In case the master gets restarted and
+//      __Important__: This query is supposed to happen once for the uptime of the client! In case the master gets restarted and
 //      not so the client this query will not be happening another time. The master is expected to store the distributed id's
 //      permanently and has to be able to double check after a power-cycle event if clients are still present. OR, just sent the 
 //      broadcast to re-register.
-//      At this moment it does not matter if the power-cycle is an out of the ordinary event, or just ordinary next event the systems 
+//      At this moment it does not matter if the power-up is an out of the ordinary event, or just ordinary next event the systems 
 //      are comming up.
 //      A power-cycled client will restart the registration from scratch.
-//   $PJMACC, <token>, <drive id>, <master id>*<CRC>\r\n
+//   $PJMACC, <token>, <drive id>, <master id>, <master caps>*<CRC>\r\n
 //
 // - Not accepting the registration: Not knowing what the purpose of this would be, despite to stop the client from continue to
 //      trying. A typical expected communication pattern would be that the master is not connected or not there and the client 
@@ -72,7 +74,7 @@ void CANMasterRegMsg::sendLossOfResgitrations()
 dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
 {
     ESP_LOGI(FNAME, "JP registration query");
-    // e.g. read message "$PJPREG, 123, proto"
+    // e.g. read message "$PJPREG, 123, proto, client_caps"
     NmeaPrtcl &nmea = plg->getNMEA();
     ProtocolState *sm = nmea.getSM();
     if ( sm->_frame.size() < 12 ) {
@@ -94,6 +96,10 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
 
     // Todo option to use the token, when more devices of one kind need to be connected
 
+    // look for optional client capabilities
+    int client_caps = 0;
+    bool new_client = false;
+
     DeviceId ndev = NO_DEVICE;
     ProtocolType nproto = NO_ONE;
     int prio = 1;
@@ -107,6 +113,9 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
         ndev = XCVARIOSECOND_DEV;
         nproto = XCVSYNC_P;
         prio = 4;
+        if ( sm->_word_start.size() > 2 ) {
+            client_caps = CANPeerCaps::decodeCaps(sm->_frame.c_str() + sm->_word_start[2]);
+        }
     }
     if ( ndev != NO_DEVICE ) {
         int client_ch = DEVMAN->getSendPort(ndev, nproto);
@@ -116,18 +125,22 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
             client_ch = DeviceManager::reserveCANId(prio);
             ESP_LOGI(FNAME, "new port %d", client_ch);
         }
+        int master_ch = client_ch + 1;
 
         // Send a response in any case
         Message* msg = DEV::acqMessage(nmea.getDeviceId(), nmea.getSendPort());
         msg->buffer = "$PJMNAC, " + token + "\r\n"; // a NAC prepared
         if ( client_ch > 0 ) {
-
             ESP_LOGI(FNAME, "use port %d", client_ch);
-            int master_ch = client_ch + 1;
+            
             if ( DEVMAN->addDevice(ndev, nproto, master_ch, client_ch, CAN_BUS) ) {
                 // all good
                 msg->buffer.clear();
                 msg->buffer = "$PJMACC, " + token + ", " + std::to_string(client_ch) + ", " + std::to_string(master_ch);
+                if ( ndev == XCVARIOSECOND_DEV ) {
+                    msg->buffer += ", " + CANPeerCaps::encodeCaps(my_caps.get()); // add my caps
+                    new_client = true;
+                }
                 msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
             }
             else {
@@ -136,6 +149,13 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
             }
         }
         DEV::Send(msg);
+
+        if ( new_client ) {
+            // save and digest the client caps and add optional features
+            ESP_LOGI(FNAME, "Client caps: %s", client_caps);
+            peer_caps.set(client_caps);
+            CANPeerCaps::setupPeerProtos(master_ch, client_ch);
+        }
     }
 
     return NOACTION;
