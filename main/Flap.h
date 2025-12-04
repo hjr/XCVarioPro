@@ -100,7 +100,8 @@ public:
     float getFlapPosition() const;
 
     // sensor access
-    bool haveSensor() const { return sensorAdc != nullptr; }
+    static bool sensAvailable();
+    bool haveAdcSensor() const { return sensorAdc != nullptr; }
     void configureADC();
     unsigned int getSensorRaw() const;
     int getNrPositions() const { return flevel.size(); }

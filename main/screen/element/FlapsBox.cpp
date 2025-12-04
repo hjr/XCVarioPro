@@ -197,7 +197,8 @@ void FlapsBox::draw(float ias)
     }
 
     float wktarget;
-    if ( flap_sensor.get() != FLAP_SENSOR_DISABLE ) {
+    bool have_sens = Flap::sensAvailable();
+    if ( have_sens ) {
         wktarget = _flap->getFlapPosition();
     } else {
         wktarget = (int)std::ceilf(_flap->getOptimum(ias));
@@ -223,7 +224,7 @@ void FlapsBox::draw(float ias)
     // do sounds when stepping over the speed range (with sensor),
     // or when the recommended position changes (without sensor)
     int flap_idx = fast_iroundf(_flaps_position);
-    if ( flap_sensor.get() != FLAP_SENSOR_DISABLE ) {
+    if ( have_sens ) {
         _last_flap_idx = flap_idx; // keep in sync with actual position, option to not play any sound
         if ( minv > 0. && flap_idx < _flap->getNrPositions()-1 ) { // slipped below the lower speed limit
             flap_idx++;

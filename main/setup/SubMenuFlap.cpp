@@ -41,7 +41,7 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
     {
         p->clear();
         ESP_LOGI(FNAME, "select_flap_sens_pin, have flap");
-        if (FLAP->haveSensor())
+        if (FLAP->haveAdcSensor())
         {
             // ESP_LOGI(FNAME,"select_flap_sens_pin, have sensor");
             MYUCG->setPrintPos(5, 50);
@@ -98,7 +98,7 @@ static int flap_cal_act(SetupMenuSelect *p)
     {
         return 0;
     }
-    if (!FLAP->haveSensor())
+    if (!FLAP->haveAdcSensor())
     {
         p->clear();
         MYUCG->setPrintPos(1, 60);
@@ -139,8 +139,7 @@ void flap_menu_create_flap_sensor(SetupMenu *wkm) // dynamic!
         wkm->setDynContent();
         SetupMenuSelect *wkes = new SetupMenuSelect("Flap Sensor", RST_NONE, select_flap_sens_pin, &flap_sensor);
         wkes->mkEnable();
-        wkes->addEntry("From Master/Second", FLAP_SENSOR_CLIENT);
-        wkes->setHelp("Presence of a Flap sensor, maybe connected to the master unit");
+        wkes->setHelp("A to this unit connected Flap sensor");
         wkm->addEntry(wkes);
 
         SetupMenuSelect *wkcal = new SetupMenuSelect("Sensor Calibration", RST_NONE, flap_cal_act);

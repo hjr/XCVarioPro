@@ -128,12 +128,12 @@ void change_volume() {
 }
 
 void flap_act() {
-    if (flapbox_enable.get() || flap_sensor.get() != FLAP_SENSOR_DISABLE) {
+    if ( flapbox_enable.get() || Flap::sensAvailable() ) {
         FLAP = Flap::theFlap(); // check on FLAP pointer further on
     }
     else if ( FLAP ) {
         delete FLAP;
-		FLAP = nullptr;
+        FLAP = nullptr;
     }
 }
 

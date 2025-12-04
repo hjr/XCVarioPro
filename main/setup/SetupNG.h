@@ -47,7 +47,7 @@ typedef enum e_display_style  { DISPLAY_AIRLINER, DISPLAY_RETRO } display_style_
 typedef enum e_display_variant { DISPLAY_WHITE_ON_BLACK, DISPLAY_BLACK_ON_WHITE } display_variant_t;
 typedef enum e_s2f_type  { S2F_HW_SWITCH, S2F_HW_PUSH_BUTTON, S2F_HW_SWITCH_INVERTED, S2F_SWITCH_DISABLE } e_s2f_type;
 typedef enum e_wireless_type { WL_DISABLE, WL_BLUETOOTH, WL_WLAN_MASTER, WL_WLAN_CLIENT, WL_WLAN_STANDALONE, WL_BLUETOOTH_LE } e_wireless_t;
-typedef enum { NO_ROLE, MASTER_ROLE, SECOND_ROLE } e_xcvrole_t;
+enum e_xcvrole { NO_ROLE, MASTER_ROLE, SECOND_ROLE };
 enum e_audiomode_type { AM_VARIO, AM_S2F, AM_MANUALLY, AM_AUTOSPEED, AM_FLAP, AM_AHRS };
 enum e_audio_tone_mode { ATM_SINGLE_TONE, ATM_DUAL_TONE };
 enum e_audio_chopping_style { AUDIO_CHOP_SOFT, AUDIO_CHOP_HARD };
@@ -55,7 +55,7 @@ enum e_audio_range { AUDIO_RANGE_5_MS, AUDIO_RANGE_10_MS, AUDIO_RANGE_VARIABLE }
 enum e_audio_harmonics { AUD_HARM_OFF=0, AUD_HARM_LOW=7, AUD_HARM_MED=14, AUD_HARM_HIGH=21 };
 enum e_audio_mute_gen { AUDIO_ON, AUDIO_ALARMS_ONLY, AUDIO_OFF };
 typedef enum e_amp_shutdown { AMP_STAY_ON, AMP_SHUTDOWN, AMP_SHUTDOWN_5S } e_amp_shutdown_t;
-enum e_flap_sensor { FLAP_SENSOR_DISABLE, FLAP_SENSOR_ENABLE, FLPSENIO1_unused, FLPSENIO2_unused, FLAP_SENSOR_CLIENT }; // for backwards compatibility do not drop the unsused
+enum e_flap_sensor { FLAP_SENSOR_DISABLE, FLAP_SENSOR_ENABLE };
 typedef enum e_cruise_audio { AUDIO_S2F, AUDIO_VARIO } e_cruise_audio_2;
 typedef enum e_vario_mode { VARIO_BRUTTO, VARIO_NETTO, CRUISE_ONLY_NETTO } e_vario_mode_t;
 typedef enum e_airspeed_sensor_type { PS_ABPMRR, PS_TE4525, PS_MP3V5004, PS_MCPH21, PS_NONE } e_airspeed_sensor_type_t;

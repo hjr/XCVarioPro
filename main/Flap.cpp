@@ -179,7 +179,7 @@ void Flap::removeLevel(int idx)
 
 // 10 Hz update
 void Flap::progress() {
-    if (haveSensor()) {
+    if ( sensorAdc ) {
         int wkraw = getSensorRaw();
         if (wkraw > 4096)
             wkraw = 4096;
@@ -298,6 +298,12 @@ float Flap::getFlapPosition() const
 // sensor access
 //////////////////////////////////
 
+// sudo wrapper to the flap_sensor setup variable considering also the peer capabilities
+bool Flap::sensAvailable()
+{
+    return flap_sensor.get() || (peer_caps.get() & XcvCaps::FLAPSENS_CAP);
+}
+
 // create the optional flap sensor
 void Flap::configureADC() {
     ESP_LOGI(FNAME, "Flap::configureADC");
@@ -306,7 +312,8 @@ void Flap::configureADC() {
         sensorAdc = nullptr;
     }
 
-    if (flap_sensor.get() == FLAP_SENSOR_ENABLE) { // nonzero -> configured, only one port needed for XCV23+ HW
+    if ( flap_sensor.get() ) {
+        // nonzero -> configured, only one port needed for XCV23+ HW
         sensorAdc = new AnalogInput(-1, ADC_CHANNEL_6);
     }
     if (sensorAdc != 0) {
