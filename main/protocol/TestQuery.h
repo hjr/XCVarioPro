@@ -32,4 +32,5 @@ public:
 private:
     // Actions on commands
     void parseTest();
+    char _crc_buf[3]; // crc character buffer
 };

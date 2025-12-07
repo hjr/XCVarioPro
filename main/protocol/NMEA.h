@@ -165,6 +165,7 @@ private:
     MapValue _parser;   // found parser, incl. parameter for the parser
     inline void nmeaIncrCRC(int &crc, const char c) {crc ^= c;}
     AliveMonitor *_alive = nullptr; // alive monitor for the protocol
+    char _crc_buf[3]; // crc character buffer
 };
 
 extern NmeaPrtcl *ToyNmeaPrtcl;

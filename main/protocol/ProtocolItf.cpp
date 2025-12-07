@@ -1,5 +1,5 @@
 #include "ProtocolItf.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 ProtocolItf::~ProtocolItf()
 {

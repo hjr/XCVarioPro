@@ -90,9 +90,6 @@ protected:
 
     // Reference to data link layer
     DataLink &_dl;
-
-    // small crc character buffer
-    char _crc_buf[3];
 };
 
 // Protocol parser state
