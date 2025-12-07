@@ -170,10 +170,11 @@ float tesla_cal=0;
 
 bool CompassMenu::showSensorRawData(SetupMenuSelect *p)
 {
-	if( theCompass == 0 ){
-		ESP_LOGI( FNAME, "showSensorRawData(): no compass" );
+	if( theCompass == 0 ) {
 		return false;
 	}
+
+	theCompass->fetchRaw();
 	vector_i16 raw = theCompass->getRawAxes();
 	// ESP_LOGI( FNAME, "showSensorRawData() %d %d %d", raw.x, raw.y, raw.z );
 	MYUCG->setColor( COLOR_WHITE );
@@ -208,6 +209,11 @@ bool CompassMenu::showSensorRawData(SetupMenuSelect *p)
 
 int CompassMenu::sensorCalibrationAction( SetupMenuSelect *p )
 {
+	if( p->getSelect() == 0 ) {
+		// Cancel is requested
+		return 0;
+	}
+
 	ESP_LOGI( FNAME, "sensorCalibrationAction() selected: %d", p->getSelect());
 	bool only_show = (p->getSelect() == 2);  // Show
 	bool show_raw_data = (p->getSelect() == 3);  // Show X,Y,Z
@@ -220,12 +226,6 @@ int CompassMenu::sensorCalibrationAction( SetupMenuSelect *p )
 		return 0;
 	}
 
-	if( p->getSelect() == 0 )
-	{
-		// Cancel is requested
-		ESP_LOGI( FNAME, "Cancel Button pressed" );
-		return 0;
-	}
 	if( !theCompass ){
 		p->clear();
 		MYUCG->setFont( ucg_font_ncenR14_hr, true );

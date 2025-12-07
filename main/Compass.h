@@ -99,6 +99,7 @@ public:
 	float calY() { return ((float( (float)mysensor->curY() ) - bias.y) * scale.y); };
 	float calZ() { return ((float( (float)mysensor->curZ() ) - bias.z) * scale.z); };
 
+	void fetchRaw() { mysensor->readRaw( magRaw ); };
 	vector_i16 getRawAxes() { return magRaw; };
 	float filteredHeading( bool *okIn );
 	float filteredTrueHeading( bool *okIn, bool withDeviation=true );
