@@ -64,7 +64,7 @@ union ItfTarget {
 class InterfaceCtrl
 {
 public:
-    InterfaceCtrl(bool oto=false);
+    InterfaceCtrl(bool oto=false, bool dl_supp=true);
     virtual ~InterfaceCtrl();
 
     virtual InterfaceId getId() const { return NO_PHY; }
@@ -92,5 +92,6 @@ protected:
 
 private:
     void DeleteAllDataLinksLocked();
-    bool _one_to_one;
+    uint8_t _one_to_one :1;
+    uint8_t _dl_support :1;
 };

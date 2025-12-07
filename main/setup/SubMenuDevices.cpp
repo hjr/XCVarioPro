@@ -516,19 +516,21 @@ static void connected_devices_menu_device(SetupMenu *top) // dynamic!
         top->addEntry(itf);
 
         // all data links to monitor
-        std::string tmp;
-        int lport = dev->_link->getPort();
-        tmp = "Data Monitor";
-        if ( ! dev->_itf->isOneToOne() ) {
-            tmp += " port: " + std::to_string(lport);
-        }
-        SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)dev->_link->getTarget().raw);
-        top->addEntry(monitor);
-        for ( int sp : dev->_link->getAllSendPorts() ) {
-            if ( sp != lport ) {
-                tmp = "Data Monitor port: " + std::to_string(sp);
-                SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)ItfTarget(dev->_itf->getId(), sp).raw);
-                top->addEntry(monitor);
+        if ( dev->_link ) {
+            std::string tmp;
+            int lport = dev->_link->getPort();
+            tmp = "Data Monitor";
+            if ( ! dev->_itf->isOneToOne() ) {
+                tmp += " port: " + std::to_string(lport);
+            }
+            SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)dev->_link->getTarget().raw);
+            top->addEntry(monitor);
+            for ( int sp : dev->_link->getAllSendPorts() ) {
+                if ( sp != lport ) {
+                    tmp = "Data Monitor port: " + std::to_string(sp);
+                    SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)ItfTarget(dev->_itf->getId(), sp).raw);
+                    top->addEntry(monitor);
+                }
             }
         }
 
@@ -539,25 +541,27 @@ static void connected_devices_menu_device(SetupMenu *top) // dynamic!
     }
 
     // list protocols
-    NmeaPrtcl *nmea = dev->_link->getNmea();
     device_details.assign("Protocols on ");
     device_details += dev->_itf->getStringId();
     device_details += ": ";
-    if ( nmea ) {
-        const std::vector<NmeaPlugin *> plglist = nmea->getAllPlugs();
-        for (auto it : plglist) {
-            if ( it != *plglist.begin() ) {
-                device_details += ", ";
+    if ( dev->_link ) {
+        NmeaPrtcl *nmea = dev->_link->getNmea();
+        if ( nmea ) {
+            const std::vector<NmeaPlugin *> plglist = nmea->getAllPlugs();
+            for (auto it : plglist) {
+                if ( it != *plglist.begin() ) {
+                    device_details += ", ";
+                }
+                std::string_view tmp = DeviceManager::getPrtclName(it->getPtyp());
+                device_details += tmp.data();
             }
-            std::string_view tmp = DeviceManager::getPrtclName(it->getPtyp());
+        }
+        ProtocolItf *binary = dev->_link->getBinary();
+        if ( binary ) {
+            device_details += "; ";
+            std::string_view tmp = DeviceManager::getPrtclName(binary->getProtocolId());
             device_details += tmp.data();
         }
-    }
-    ProtocolItf *binary = dev->_link->getBinary();
-    if ( binary ) {
-        device_details += "; ";
-        std::string_view tmp = DeviceManager::getPrtclName(binary->getProtocolId());
-        device_details += tmp.data();
     }
     top->setHelp(device_details.c_str());
 }

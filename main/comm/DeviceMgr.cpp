@@ -429,7 +429,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         // Retrieve, or create a new data link
         DataLink *dl = itf->newDataLink(listen_port);
         dev->_link = dl;
-        dl->incrDeviceCount();
+        if ( dl ) dl->incrDeviceCount();
         dev->_itf = itf;
 
         // for some devices we need to create some gears to process the data stream
@@ -442,8 +442,12 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         // }
     }
 
-    EnumList pl = dev->_link->addProtocol(proto, did, send_port); // Add proto, if not yet there
-    dev->_protos.insert(pl.begin(), pl.end());
+    EnumList pl;
+    if ( dev->_link ) {
+        // adding ptozocols does need the data link layer
+        pl = dev->_link->addProtocol(proto, did, send_port); // Add proto, if not yet there
+        dev->_protos.insert(pl.begin(), pl.end());
+    }
 
     if ( is_new ) {
         std::lock_guard<SemaphoreMutex> lock(_devmap_mutex);
@@ -453,11 +457,11 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     }
     refreshRouteCache();
 
-    if ( nvsave && (is_new || !pl.empty()) ) {
+    if ( nvsave ) { // && (is_new || !pl.empty()) ) {
         const DeviceAttributes &da = getDevAttr(did, iid);
         if ( da.nvsetup && dev ) {
             // save it to nvs
-            da.nvsetup->set(dev->getNvsData());
+            da.nvsetup->set(dev->getNvsData(), false, false);
         }
     }
 
@@ -497,7 +501,7 @@ ProtocolItf *DeviceManager::getProtocol(DeviceId did, ProtocolType proto)
 NmeaPrtcl *DeviceManager::getNMEA(DeviceId did)
 {
     Device *d = getDevice(did);
-    if ( d ) {
+    if ( d && d->_link ) {
         return d->_link->getNmea();
     }
     return nullptr;
@@ -666,7 +670,7 @@ void DeviceManager::refreshRouteCache()
 {
     for ( auto dev : _device_map ) {
         // all devices
-        dev.second->_link->updateRoutes(dev.second->_id);
+        if ( dev.second->_link )dev.second->_link->updateRoutes(dev.second->_id);
     }
 }
 
@@ -690,11 +694,13 @@ void DeviceManager::reserectFromNvs()
         // check if store data has the valid tag
         // check on role compatibility
         // skip extra "details" entries in the dev asttributes table
+        ESP_LOGI(FNAME, "Attr Entry: did%d >%s< t%x", entry.first, entry.second.name.data(),
+                 entry.second.nvsetup ? (unsigned)entry.second.nvsetup->get().target.raw : 0 );
         if ( entry.second.nvsetup && *entry.second.name.data() != '\0' && entry.second.nvsetup->get().isValid()
             && ( !entry.second.getRoleDep() || entry.second.getRoleDep() == xcv_role.get()) ) {
             // setup device
             DeviceNVS *nvs = static_cast<DeviceNVS*>(entry.second.nvsetup->getPtr());
-            ESP_LOGI(FNAME, "Entry: t%x - s%x (%d/%d)", (unsigned)nvs->target.raw, (unsigned)nvs->setup.data, nvs->bin_sp, nvs->nmea_sp);
+            ESP_LOGI(FNAME, "NVSEntry: t%x - s%x (%d/%d)", (unsigned)nvs->target.raw, (unsigned)nvs->setup.data, nvs->bin_sp, nvs->nmea_sp);
             DeviceId did = nvs->target.getDeviceId();
             int listen_port = nvs->target.getItfTarget().port;
             InterfaceId iid = nvs->target.getItfTarget().iid;
@@ -786,7 +792,7 @@ void DeviceManager::dumpMap() const
     for ( auto &it : _device_map ) {
         Device* d = it.second;
         ESP_LOGI(FNAME, "%d: %p (did%d/%s(%d))", it.first, d, d->_id, d->_itf->getStringId(), d->_itf->getId());
-        d->_link->dumpProto();
+        if ( d->_link ) d->_link->dumpProto();
     }
 }
 
@@ -862,27 +868,32 @@ void DeviceManager::EnforceIntfConfig(InterfaceId iid, DeviceId did)
 Device::~Device()
 {
     ESP_LOGI(FNAME, "Dtor device %d.", _id);
-    // Detach data links from interface
-    if ( _link->decrDeviceCount() == 0 ) {
-        // last device on this link
-        ESP_LOGI(FNAME, "Last device on %s", _itf->getStringId());
-        _itf->DeleteDataLink(_link->getPort());
-    }
-    else {
-        ESP_LOGI(FNAME, "Still %d devices on %s, remove protos.", _link->getDeviceCount(), _itf->getStringId());
-        for (auto it : _protos) {
-            _link->removeProtocol(static_cast<ProtocolType>(it));
+    if ( _link )
+    {
+        // Detach data links from interface
+        if ( _link->decrDeviceCount() == 0 ) {
+            // last device on this link
+            ESP_LOGI(FNAME, "Last device on %s", _itf->getStringId());
+            _itf->DeleteDataLink(_link->getPort());
         }
-        // _link->removeId(_id); not needed
+        else {
+            ESP_LOGI(FNAME, "Still %d devices on %s, remove protos.", _link->getDeviceCount(), _itf->getStringId());
+            for (auto it : _protos) {
+                _link->removeProtocol(static_cast<ProtocolType>(it));
+            }
+            // _link->removeId(_id); not needed
+        }
     }
 }
 
 ProtocolItf *Device::getProtocol(ProtocolType p) const
 {
     // Find protocol
-    ProtocolItf *tmp = _link->getProtocol(p);
-    if ( tmp ) {
-        return tmp;
+    if ( _link ) {
+        ProtocolItf *tmp = _link->getProtocol(p);
+        if ( tmp ) {
+            return tmp;
+        }
     }
     return nullptr;
 }
@@ -890,8 +901,10 @@ ProtocolItf *Device::getProtocol(ProtocolType p) const
 DataLink *Device::getDLforProtocol(ProtocolType p) const
 {
     // Find protocol
-    if ( _link->getProtocol(p) ) {
-        return _link;
+    if ( _link ) {
+        if ( _link->getProtocol(p) ) {
+            return _link;
+        }
     }
     return nullptr;
 }
@@ -899,16 +912,17 @@ DataLink *Device::getDLforProtocol(ProtocolType p) const
 EnumList Device::getSendPortList() const
 {
     EnumList pl;
-    for ( int p : _link->getAllSendPorts()) {
-        pl.insert(p);
+    if ( _link ) {
+        for ( int p : _link->getAllSendPorts()) {
+            pl.insert(p);
+        }
     }
     return pl;
 }
 
 int Device::getListenPort() const
 {
-    // !!! Assuming we have just one data link per devices fixme
-    return _link->getPort();
+    return (_link) ? _link->getPort() : 0;
 }
 
 // get all setup lines to write into nvs for this device
@@ -916,6 +930,10 @@ DeviceNVS Device::getNvsData() const
 {
     ESP_LOGI(FNAME, "NvsData did%d", _id);
     DeviceNVS entry;
+    if ( ! _link ) {
+        entry.setup.flags=0; // fixme
+        return entry;
+    }
     entry.target = RoutingTarget(_id, _link->getTarget());
     ProtocolItf *bn = _link->getBinary(); // binary option
     if ( bn ) {
@@ -946,6 +964,7 @@ DeviceNVS Device::getNvsData() const
             }
         }
     }
+    ESP_LOGI(FNAME, "Nvs valid did%d t%x s%x bsp%d nsp%d", _id, (unsigned)entry.target.raw, (unsigned)entry.setup.data, entry.bin_sp, entry.nmea_sp);
     entry.setup.flags=1; // set valid
     return entry;
 }

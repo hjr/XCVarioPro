@@ -17,8 +17,9 @@
 // Ability to set interface details through a common cotrol interface
 // Add and remove data links to the interface
 
-InterfaceCtrl::InterfaceCtrl(bool oto) :
-    _one_to_one(oto)
+InterfaceCtrl::InterfaceCtrl(bool oto, bool dl_supp) :
+    _one_to_one(oto),
+    _dl_support(dl_supp)
 {
 }
 
@@ -30,6 +31,10 @@ InterfaceCtrl::~InterfaceCtrl()
 // get/create data link for this port
 DataLink* InterfaceCtrl::newDataLink(int port)
 {
+    if ( ! _dl_support ) {
+        ESP_LOGW(FNAME, "Interface %s does not support data links!", getStringId());
+        return nullptr;
+    }
     std::lock_guard<SemaphoreMutex> lock(_dlink_mutex);
     if ( _one_to_one ) {
         // Always reuse

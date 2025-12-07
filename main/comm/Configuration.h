@@ -133,7 +133,7 @@ union PackedInt5Array {
 union ProtocolList {
     struct{
         unsigned proto : 30;
-        unsigned flags : 2;
+        unsigned flags : 2; // currently used as valid flag of an nvs entry
     };
     uint32_t data = 0; // 32-bit storage
 
@@ -192,8 +192,8 @@ union ProtocolList {
 struct DeviceNVS
 {
     // all just for one data link that belongs to the device
-    RoutingTarget   target; // devid, interface and listen port
-    ProtocolList    setup;  // send port and all protocols
+    RoutingTarget   target; // redundent devid, interface and listen port
+    ProtocolList    setup;  // all protocols
     uint16_t        bin_sp; // binary send port
     uint16_t        nmea_sp; // nmea send port
     
