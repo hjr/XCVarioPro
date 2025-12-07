@@ -417,7 +417,6 @@ SetupNG<int> 			my_caps("MACAPS", 0, false, SYNC_FROM_MASTER, VOLATILE );
 SetupNG<int>			peer_caps("SECAPS", 0, false, SYNC_FROM_CLIENT, VOLATILE );
 // Those device entries are serving as factory reset minimum configuration
 SetupNG<DeviceNVS>		anemoi_devsetup("ANEMOI", DeviceNVS() );
-SetupNG<DeviceNVS>		auto_connect("AUTOCON", DeviceNVS() );
 SetupNG<DeviceNVS>		flarm_devsetup("FLARM", DeviceNVS() );
 SetupNG<DeviceNVS>		master_devsetup("MASTER", DeviceNVS() );
 SetupNG<DeviceNVS>		second_devsetup("SECOND", DeviceNVS() );

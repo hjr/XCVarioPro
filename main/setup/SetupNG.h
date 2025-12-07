@@ -545,7 +545,6 @@ extern SetupNG<int> 		my_caps;
 extern SetupNG<int> 		peer_caps;
 
 extern SetupNG<DeviceNVS>	anemoi_devsetup;
-extern SetupNG<DeviceNVS>	auto_connect;
 extern SetupNG<DeviceNVS>	flarm_devsetup;
 extern SetupNG<DeviceNVS>	master_devsetup;
 extern SetupNG<DeviceNVS>	second_devsetup;
