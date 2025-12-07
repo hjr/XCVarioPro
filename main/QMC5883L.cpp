@@ -242,9 +242,9 @@ bool QMC5883L::readRaw( vector_i16 &mag )
 	// Data can be read in every case
 	if( count == 6 )
 	{
-		axes.x = (int)( (int16_t)(( data[1] << 8 ) | data[0]) );
-		axes.y = (int)( (int16_t)(( data[3] << 8 ) | data[2]) );
-		axes.z = (int)( (int16_t)(( data[5] << 8 ) | data[4]) );
+		axes.x =  ((int16_t)( data[1] << 8 ) | data[0]);
+		axes.y = -((int16_t)( data[3] << 8 ) | data[2]);
+		axes.z =  ((int16_t)( data[5] << 8 ) | data[4]);
 
 		mag = axes;
 
