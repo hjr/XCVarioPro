@@ -82,7 +82,6 @@ Compass::Compass( const uint8_t addr, const uint8_t odr, const uint8_t range, co
 	m_headingValid = false;
 	_tick = 0;
 	gyro_age = 0;
-	_external_data = 0;
 	_heading_average = -1000;
 	calibrationRunning = false;
 	_heading = 0;
@@ -125,22 +124,17 @@ bool Compass::overflowFlag(){
 }
 
 void Compass::setGyroHeading( float hd ){
-	// ESP_LOGI( FNAME, "setGyroHeading(): %3.2f ext_d:%d", hd, _external_data );
-	if( !_external_data ){
-		m_gyro_fused_heading = hd;
-		gyro_age = 0;
-	}
+	// ESP_LOGI( FNAME, "setGyroHeading(): %3.2f", hd );
+	m_gyro_fused_heading = hd;
+	gyro_age = 0;
 }
 
 float Compass::getGyroHeading( bool *ok, bool addDecl ){
 	*ok = true;
 	if( gyro_age > 10 )
 		*ok = false;
-	if( _external_data ){  // Simulation data
-		*ok = true;
-		_external_data--;  // age external data
-	}
-	// ESP_LOGI( FNAME, "Heading: %3.2f age: %d ext: %d", m_gyro_fused_heading, gyro_age, _external_data );
+
+	// ESP_LOGI( FNAME, "Heading: %3.2f age: %d", m_gyro_fused_heading, gyro_age );
 	return m_gyro_fused_heading;
 }
 
@@ -160,19 +154,15 @@ bool Compass::tick()
 }
 
 void Compass:: progress(){
-	if( _external_data ){  // Simulation data
-		_external_data--;  // age external data
+	bool rok;
+	float hd = heading( &rok );
+	if( rok == false ){
+		m_headingValid = false;
+	}else{
+		m_magn_heading = hd;
+		m_headingValid = true;
 	}
-	if( !_external_data ){
-		bool rok;
-		float hd = heading( &rok );
-		if( rok == false ){
-			m_headingValid = false;
-		}else{
-			m_magn_heading = hd;
-			m_headingValid = true;
-		}
-	}
+
 	float diff = Vector::angleDiffDeg( m_gyro_fused_heading, _heading_average );
 	if( _heading_average == -1000 ) {
 		_heading_average = m_gyro_fused_heading;
@@ -218,16 +208,6 @@ float Compass::filteredTrueHeading( bool *okIn, bool withDeviation ){ // conside
 	// ESP_LOGI(FNAME,"filteredTrueHeading head=%.1f hddev=%.1f ok=%d", _heading_average, fth, *okIn   );
 	return fth;
 }
-
-// for simulation purposes
-void Compass::setHeading( float h ) {
-	m_gyro_fused_heading = h;
-	m_magn_heading = h;
-	_heading_average = h;
-	m_headingValid=true;
-	_external_data=100;
-	// ESP_LOGI( FNAME, "NEW external heading %.1f", h );
-};
 
 // calibration calculation in sync with data received in compass task
 void Compass::calcCalibration(){

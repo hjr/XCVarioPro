@@ -211,30 +211,10 @@ dl_action_t FlarmMsg::parsePFLAX(NmeaPlugin *plg)
 }
 
 
-// The flarm simulator on BT bridge (development only)
-dl_action_t FlarmMsg::parseExcl_xc(NmeaPlugin *plg)
-{
-    // need this to support Wind Simulator with Compass simulation
-    // fixme need to move into a sim protocol
-
-    ProtocolState *sm = plg->getNMEA().getSM();
-    const char *s = sm->_frame.c_str();
-    const std::vector<int> *word = &sm->_word_start;
-
-    // ESP_LOGI(FNAME,"Compass heading detected=%3.1f TAS: %3.1f NMEA:%s", heading, TAS, str );
-    if( theCompass ) {
-        theCompass->setHeading( atof(s + word->at(0)) );
-    }
-    tas = atof(s + word->at(1));
-
-    return NOACTION;
-}
-
 const ParserEntry FlarmMsg::_pt[] = {
     { Key("FLAA"), FlarmMsg::parsePFLAA },
     { Key("FLAE"), FlarmMsg::parsePFLAE },
     { Key("FLAU"), FlarmMsg::parsePFLAU },
     { Key("FLAX"), FlarmMsg::parsePFLAX },
-    { Key("xc"), FlarmMsg::parseExcl_xc },
     {}
 };

@@ -85,7 +85,6 @@ public:
 	// sensor related interface
 	bool haveSensor();
 	bool overflowFlag();
-	bool externalData() { return( _external_data > 0); }
 
 	// Heading related methods
 	float cur_heading( bool *ok );
@@ -106,7 +105,6 @@ public:
 	void setGyroHeading( float hd );
 	float getGyroHeading( bool *ok, bool addDeclination=true );
 	inline bool headingValid() { return m_headingValid;	}
-	void setHeading( float h );
 
 	// Calibration releated methods
 	// Calibrate compass by using the read x, y, z raw values.
@@ -141,7 +139,6 @@ private:
 	bool m_headingValid;
 
 	int _tick;
-	int _external_data;
 	float _heading_average;
 	int gyro_age;
 
@@ -151,7 +148,7 @@ private:
 	vector_f scale;
 	vector_i16 min;
 	vector_i16 max;
-	Average<10, int16_t> *avgX = 0;
+	Average<10, int16_t> *avgX = 0; // only for calibration
 	Average<10, int16_t> *avgY = 0;
 	Average<10, int16_t> *avgZ = 0;
 	bool calibrationRunning;

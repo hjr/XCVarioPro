@@ -23,7 +23,6 @@ private:
     static dl_action_t parsePFLAE(NmeaPlugin *plg);
     static dl_action_t parsePFLAU(NmeaPlugin *plg);
     static dl_action_t parsePFLAX(NmeaPlugin *plg);
-    static dl_action_t parseExcl_xc(NmeaPlugin *plg);
     
     static const ParserEntry _pt[];
 };
