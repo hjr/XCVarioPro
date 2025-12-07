@@ -47,7 +47,7 @@ public:
     chip is 0x0D.
 	 */
 	QMC5883L( const uint8_t addr, const uint8_t odr, const uint8_t range, const uint16_t osr, I2C_t *i2cBus );
-	~QMC5883L();
+	~QMC5883L() = default;
 
 	// Returns true, if the self test has been passed successfully, otherwise
 	bool haveSensor() override {  return initialized; }
@@ -55,6 +55,7 @@ public:
 	void age_incr() { age++; }
 	// Check for reply with I2C bus address
 	esp_err_t selfTest() override;
+	// Configure the device with the set parameters and set the mode to continuous.
 	esp_err_t initialize() override;
 
 	//  Write with data part
@@ -66,19 +67,13 @@ public:
 	int curZ() override { return axes.z; }
 
 private:
-	// Configure the device with the set parameters and set the mode to continuous.
-	esp_err_t initialize2( int a_odr=0, int a_osr=0 );
-
-	/** Check, if the bus pointer is valid. */
-	bool checkBus();
-
 	// Read temperature in degree Celsius.
 	short temperature( bool *ok );
 
 	// Low level device access methods
-	esp_err_t writeRegister( const uint8_t addr, const uint8_t reg, const uint8_t value );
+	esp_err_t writeRegister( const uint8_t reg, const uint8_t value ) const;
 	// Return the overflow status flag. It is set to true, if any data of three * axis magnetic sensor channels is out of range.
-	uint8_t readRegister( const uint8_t addr, const uint8_t reg, const uint8_t count, uint8_t *data );
+	uint8_t readRegister( const uint8_t reg, const uint8_t count, uint8_t *data );
 
 	bool initialized = false;
 	I2C_t* m_bus;

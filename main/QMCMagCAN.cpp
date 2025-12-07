@@ -47,6 +47,7 @@ void QMCMagCAN::fromExternal( const vector_i16 *magaxes )
 {
 	// fixme, use a queue
 	can = *magaxes;
+	ESP_LOGI( FNAME, "QMCMagCAN fromExternal X:%d Y:%d Z:%d", can.x, can.y, can.z );
 	// Reset age
 	age = 0;
 }

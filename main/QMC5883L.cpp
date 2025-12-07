@@ -84,29 +84,14 @@ QMC5883L::QMC5883L( const uint8_t addrIn, const uint8_t odrIn, const uint8_t ran
 	}
 }
 
-QMC5883L::~QMC5883L()
-{
-}
-
-bool QMC5883L::checkBus()
-{
-	if( m_bus == nullptr )	{
-		// ESP_LOGE( FNAME, "QMC5883L bus pointer is zero" );
-		return false;
-	}
-	return true;
-}
-
 /** Write with data part. */
-esp_err_t QMC5883L::writeRegister( const uint8_t addr,	const uint8_t reg,	const uint8_t value )
+esp_err_t QMC5883L::writeRegister( const uint8_t reg,	const uint8_t value ) const 
 {
-	if( checkBus() == false )
-		return ESP_FAIL;
 
 	esp_err_t err = m_bus->writeByte( addr, reg, value );
 
 	if( err != ESP_OK )	{
-		// ESP_LOGE( FNAME, "QMC5883L writeRegister( 0x%02X, 0x%02X, 0x%02X ) FAILED",	addr, reg, value );
+		// ESP_LOGE( FNAME, "QMC5883L writeRegister( 0x%02X, 0x%02X ) FAILED",	reg, value );
 		return ESP_FAIL;
 	}
 	return err;
@@ -116,10 +101,8 @@ esp_err_t QMC5883L::writeRegister( const uint8_t addr,	const uint8_t reg,	const 
  * Read bytes from the chip.
  * Return the number of read bytes or 0 in error case.
  */
-uint8_t QMC5883L::readRegister( const uint8_t addr,	const uint8_t reg,	const uint8_t count, uint8_t *data  )
+uint8_t QMC5883L::readRegister( const uint8_t reg,	const uint8_t count, uint8_t *data  )
 {
-	if( checkBus() == false )
-		return 0;
 	// read bytes from chip
 	for( int i=0; i<=100; i++ ){
 		esp_err_t err = m_bus->readBytes( addr, reg, count, data );
@@ -128,7 +111,7 @@ uint8_t QMC5883L::readRegister( const uint8_t addr,	const uint8_t reg,	const uin
 		}
 		else
 		{
-			// ESP_LOGW( FNAME,"readRegister( 0x%02X, 0x%02X, %d ) FAILED N:%d", addr, reg, count, i );
+			// ESP_LOGW( FNAME,"readRegister( 0x%02X, %d ) FAILED N:%d", reg, count, i );
 			if( i == 100 ){
 				ESP_LOGW( FNAME,"100 retries read mag sensor failed also, now try to reinitialize chip");
 				if( initialize() != ESP_OK )
@@ -151,11 +134,8 @@ uint8_t QMC5883L::readRegister( const uint8_t addr,	const uint8_t reg,	const uin
 esp_err_t QMC5883L::selfTest()
 {
 	ESP_LOGI( FNAME, "QMC5883L selftest");
-	// load last known calibration.
-	if( !checkBus() )	{
-		initialized = false;
-		return ESP_FAIL;
-	}
+	initialized = false;
+
 	uint8_t chipId = 0;
 	// Try to read Register 0xD, it delivers the chip id 0xff for a QMC5883L
 	initialized = false;
@@ -182,40 +162,27 @@ esp_err_t QMC5883L::selfTest()
 
 }
 
-esp_err_t QMC5883L::initialize() {
-	return initialize2( odr, osr );
-}
-
-
 /**
  * Configure the device with the set parameters and set the mode to continuous.
  * That means, the device starts working.
  */
-esp_err_t QMC5883L::initialize2( int a_odr, int a_osr )
+esp_err_t QMC5883L::initialize()
 {
 	esp_err_t e1, e2, e3, e4;
 	e1 = e2 = e3 = e4 = 0;
 
 	// Soft Reset
-	e1 = writeRegister( addr, REG_CONTROL2, SOFT_RST );
+	e1 = writeRegister( REG_CONTROL2, SOFT_RST );
 	delay(2);
 
 	// Enable ROL_PTN, Pointer roll over function.
-	e2 = writeRegister( addr, REG_CONTROL2, POL_PNT );
+	e2 = writeRegister( REG_CONTROL2, POL_PNT );
 	// Define SET/RESET period. Should be set to 1
-	e3 = writeRegister( addr, REG_RST_PERIOD, 1 );
+	e3 = writeRegister( REG_RST_PERIOD, 1 );
 	// Set mesaurement data and start it in dependency of mode bit.
-	int used_osr = a_osr;
-	if( used_osr == 0 )
-		used_osr = osr;
+	ESP_LOGI( FNAME, "initialize() dataRate: %d Oversampling: %d", odr, osr );
 
-	int used_odr = a_odr;
-	if( used_odr == 0 )
-		used_odr = odr;
-
-	// ESP_LOGI( FNAME, "initialize() dataRate: %d Oversampling: %d", used_odr, used_osr );
-
-	e4 = writeRegister( addr, REG_CONTROL1,	(used_osr << 6) | (range <<4) | (used_odr <<2) | MODE_CONTINUOUS );
+	e4 =  writeRegister( REG_CONTROL1,	(osr << 6) | (range <<4) | (odr <<2) | MODE_CONTINUOUS );
 	if( e1 == ESP_OK || e2 == ESP_OK || e3 == ESP_OK || e4 == ESP_OK ) {
 		// ESP_LOGI( FNAME, "initialize() OK");
 		return ESP_OK;
@@ -271,7 +238,7 @@ bool QMC5883L::readRaw( vector_i16 &mag )
 	overflowWarning = false;
 
 	// Precondition already checked in loop before, point only reached if there is RDY or DOR
-	int count = readRegister( addr, REG_X_LSB, 6, data );
+	int count = readRegister( REG_X_LSB, 6, (uint8_t*)data );
 	// Data can be read in every case
 	if( count == 6 )
 	{
@@ -281,7 +248,7 @@ bool QMC5883L::readRaw( vector_i16 &mag )
 
 		mag = axes;
 
-		// ESP_LOGI( FNAME, "Mag Average: X:%d Y:%d Z:%d  Raw: X:%d Y:%d Z:%d", axes.x, axes.y, axes.z, x, y, z );
+		ESP_LOGI( FNAME, "Mag raw: X:%d Y:%d Z:%d", axes.x, axes.y, axes.z );
 
 		age = 0;
 		initialized = true;
@@ -303,7 +270,7 @@ int16_t QMC5883L::temperature( bool *ok )
 	assert( (ok != nullptr) && "Passing of NULL pointer is forbidden" );
 
 	uint8_t data[2];
-	if( readRegister( addr, REG_TEMP_LSB, 2, data ) == 0 ){
+	if( readRegister( REG_TEMP_LSB, 2, data ) == 0 ){
 		if( ok != nullptr )
 			*ok = false;
 		// Nothing has been read
