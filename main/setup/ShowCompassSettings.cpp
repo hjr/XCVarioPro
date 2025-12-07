@@ -73,11 +73,6 @@ int show_compass_setting(SetupMenuDisplay *p, int mode) {
         y += 25;
 
         MYUCG->setPrintPos(0, y);
-        sprintf(buffer, "I2C Clock: %d KHz", static_cast<int>(compass_i2c_cl.get()));
-        MYUCG->print(buffer);
-        y += 25;
-
-        MYUCG->setPrintPos(0, y);
         sprintf(buffer, "NMEA mag heading: %s", (compass_nmea_hdm.get() == 0) ? "No" : "Yes");
         MYUCG->print(buffer);
         y += 25;

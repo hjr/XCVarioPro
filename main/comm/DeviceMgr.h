@@ -49,7 +49,7 @@ struct Device
     // Attributes
     const DeviceId      _id;
     DataLink           *_link = nullptr; // can have only one link layer, but it might be shared with other devs
-    EnumList            _protos = {}; // list of protocols belonging to this device, needed to remove a devices properly
+    EnumList            _protos = {}; // list of protocols belonging to this device, needed to remove a device properly
     InterfaceCtrl      *_itf = nullptr;
 };
 
@@ -63,7 +63,7 @@ struct Device
 // Or for the boot-up configuration of interfaces, data link layer, and protocol association.
 
 // As a result it establishes the device list mapping device id's to an interface. Accessing the
-// hash map will act as routing table for each message sent to a connected device.
+// cached map will act as routing table for each message sent to a connected device.
 
 class DeviceManager
 {

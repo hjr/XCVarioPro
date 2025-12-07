@@ -349,7 +349,6 @@ SetupNG<int>            compass_declination_valid( "CP_DECL_VALID", 0 );
 SetupNG<float>          compass_damping( "CPS_DAMP", 1.0, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.1, 10.0, 0.1));
 SetupNG<int>            compass_nmea_hdm( "CP_NMEA_HDM", 0 );
 SetupNG<int>            compass_nmea_hdt( "CP_NMEA_HDT", 0 );
-SetupNG<float>          compass_i2c_cl("CP_I2C_CL", 100, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(10.0, 400.0, 10));
 SetupNG<float>          wind_as_filter( "WINDASF", 0.02, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 0.05, 0.001));
 SetupNG<float>          wind_gps_lowpass( "WINDGPSLP", 1.00, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0.1, 10.0, 0.1));
 SetupNG<float>          wind_dev_filter( "WINDDEVF", 0.010, true, SYNC_NONE, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 0.05, 0.001));

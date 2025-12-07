@@ -13,7 +13,6 @@
 #include "comm/CanBus.h"
 #include "comm/WifiApSta.h"
 #include "comm/BTspp.h"
-#include "comm/I2CWrapper.h"
 #include "BLESender.h"
 #include "SerialLine.h"
 #include "protocol/ProtocolItf.h"
@@ -98,34 +97,32 @@ static const RoutingTarget* findRoute(const RoutingTarget& source) {
 //
 constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::ANEMOI_DEV, {"Anemoi", {{S1_RS232, S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_REAL, &anemoi_devsetup}},
-    {DeviceId::ANEMOI_DEV, {"", {{S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_REAL, &anemoi_devsetup}},
-    {DeviceId::CANREGISTRAR_DEV, {"Auto-connect", {{CAN_BUS}}, {{REGISTRATION_P}, 1}, CAN_REG_PORT, IS_REAL, &auto_connect}},
+    {DeviceId::ANEMOI_DEV, {"", {{S2_RS232}}, {{ANEMOI_P}, 1}, 0, IS_REAL, nullptr}},
+    {DeviceId::CANREGISTRAR_DEV, {"Auto-connect", {{CAN_BUS}}, {{REGISTRATION_P}, 1}, CAN_REG_PORT, IS_REAL, nullptr}},
     {DeviceId::FLARM_DEV,  {"Flarm", {{S1_RS232, S2_RS232}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, IS_REAL, &flarm_devsetup}},
-    // {DeviceId::FLARM_DEV,  {"", {{XCVPROXY}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, 0, &flarm_devsetup}},
-    {DeviceId::JUMBO_DEV,  {"jumbo putzi", {{CAN_BUS}}, {{JUMBOCMD_P}, 1} , 0, 0, nullptr}}, // auto dev
-    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, BT_SPP, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|SECOND_ONLY, &master_devsetup}},
-    // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
+    // {DeviceId::FLARM_DEV,  {"", {{XCVPROXY}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
+    {DeviceId::JUMBO_DEV,  {"jumbo putzi", {{CAN_BUS}}, {{JUMBOCMD_P}, 1} , 0, 0, nullptr}}, // auto reg
+    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|SECOND_ONLY, &master_devsetup}}, // CAN_BUS auto reg
+    // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
     {DeviceId::XCVARIOFIRST_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
-    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, BT_SPP, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}},
+    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, BT_SPP, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
     // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, &second_devsetup}}, fixme, missing the BTspp client implementation
     {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &second_devsetup}},
-    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{I2C, CAN_BUS}}, {{MAGSENSBIN_P}, 1}, 0, IS_REAL, &magleg_devsetup}},
-    {DeviceId::MAGLEG_DEV, {"", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, &magleg_devsetup}},
-    {DeviceId::MAGLEG_DEV, {"", {{I2C}}, {{MAGSENSBIN_P}, 0}, 0, IS_REAL, &magleg_devsetup}},
-    {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto start
+    {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, 0, IS_REAL, &magleg_devsetup}},
+    {DeviceId::MAGLEG_DEV, {"", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, nullptr}},
+    {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto reg
     {DeviceId::NAVI_DEV,   {"Navi", {{WIFI_APSTA, S1_RS232, S2_RS232, BT_SPP, BT_LE, CAN_BUS}},
                                     {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     8880, IS_REAL, &navi_devsetup}},
     {DeviceId::NAVI_DEV,   {"", {{S2_RS232}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    0, IS_REAL, &navi_devsetup}},
+                                    0, IS_REAL, nullptr}},
     {DeviceId::NAVI_DEV,   {"", {{BT_SPP}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
-                                    0, IS_REAL, &navi_devsetup}},
+                                    0, IS_REAL, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host_setup}},
-    // {DeviceId::FLARM_HOST_DEV, {"", {{CAN_BUS}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, &flarm_host_setup}},
-    {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, &flarm_host_setup}},
-    {DeviceId::FLARM_HOST_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, &flarm_host_setup}},
+    {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
+    {DeviceId::FLARM_HOST_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST2_DEV, {"Flarm Download", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host2_setup}},
-    {DeviceId::FLARM_HOST2_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, &flarm_host2_setup}},
+    {DeviceId::FLARM_HOST2_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::RADIO_REMOTE_DEV, {"Radio remote", {{WIFI_APSTA}}, {{KRT2_REMOTE_P}, 1}, 8882, 0, &radio_host_setup}},
     {DeviceId::RADIO_KRT2_DEV, {"KRT 2", {{S2_RS232, CAN_BUS}}, {{KRT2_REMOTE_P}, 1}, 0, IS_REAL, &krt_devsetup}},
     {DeviceId::RADIO_ATR833_DEV, {"ATR833", {{S2_RS232, CAN_BUS}}, {{ATR833_REMOTE_P}, 1}, 0, IS_REAL, &atr_devsetup}}
@@ -167,7 +164,6 @@ std::vector<DeviceId> DeviceManager::allKnownDevs()
 
 constexpr std::pair<InterfaceId, std::string_view> INTFCS[] = {
     {CAN_BUS, "CAN bus"},
-    {I2C, "I2C bus"},
     {S1_RS232, "S1 serial"},
     {S2_RS232, "S2 serial"},
     {WIFI_APSTA, "Wifi"},
@@ -354,6 +350,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     if ( ! SendTask ) {
         xTaskCreate(transmit_task, "genTx", 3000, ItfSendQueue, 21, &SendTask);
     }
+    ESP_LOGI(FNAME, "Add device %d via %d (lp %d, sp %d) proto %d", did, iid, listen_port, send_port, proto);
     InterfaceCtrl *itf = &dummy_itf;
     if ( iid == CAN_BUS ) {
         // CAN is special and not on all HW versions.
@@ -385,13 +382,13 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         }
     }
     else if ( iid == S1_RS232) {
-        if ( S1 ) {
+        if ( S1 ) { // S1 is instantiated allways (!)
             S1->ConfigureIntf(-1); // load nvs setup
             itf = S1;
         }
     }
     else if ( iid == S2_RS232) {
-        if ( S2 ) {
+        if ( S2 ) { // S2 is instantiated allways (!)
             S2->ConfigureIntf(-1);
             itf = S2;
         }
@@ -411,14 +408,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         // blesender.begin();
         // itf = BT_..;
     }
-    else if ( iid == I2C ) {
-        if ( ! I2Cext && (! S2 || ! S2->getTestOk()) ) {
-            // double check S2 not active - they share the gpio's
-            itf = new I2CWrapper();
-            itf->ConfigureIntf(0); // default setup
-            ESP_LOGI(FNAME, "I2C conf");
         }
-        itf = I2Cext;
     }
     // else // NO_PHY is just the hint to take the same interface
 
@@ -570,9 +560,6 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
                 ESP_LOGI(FNAME, "stopping S2");
                 S2->stop();
             }
-            else if ( itf == I2Cext ) {
-                ESP_LOGI(FNAME, "stopping I2C");
-                delete I2Cext;
             }
         }
 
@@ -617,13 +604,6 @@ bool DeviceManager::isAvail(InterfaceId iid) const
 {
     // CAN depends on HW revision only
     if ( iid == CAN_BUS && hardwareRevision.get() < XCVARIO_22 ) {
-        return false;
-    }
-    // S2 depends on WH revision and shares pins with I2C
-    else if ( iid == S2_RS232 && (isIntf(I2C) || hardwareRevision.get() < XCVARIO_21) ) {
-        return false;
-    }
-    else if ( iid == I2C && isIntf(S2_RS232) ) {
         return false;
     }
     // BT and WIFI are mutually exclusive
@@ -867,9 +847,6 @@ void DeviceManager::EnforceIntfConfig(InterfaceId iid, DeviceId did)
         if ( CAN ) {
             CAN->ConfigureIntf(1);
         }
-    }
-    else if ( iid == I2C ) {
-        // I2C interface
     }
     else {
         ESP_LOGW(FNAME, "no interface config needed %d", iid);

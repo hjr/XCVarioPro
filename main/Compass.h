@@ -20,7 +20,6 @@ Last update: 2021-03-07
 #pragma once
 
 #include "comm/InterfaceCtrl.h"
-#include "comm/I2CWrapper.h"
 #include "protocol/ClockIntf.h"
 #include "Deviation.h"
 #include "MagnetSensor.h"
@@ -70,7 +69,7 @@ class Compass: public Deviation, public Clock_I
 private:
     // Creates instance for I2C connection with passing the desired parameters.
     // No action is done at the bus. The default address of the chip is 0x0D.
-	Compass( const uint8_t addr, const uint8_t odr=0,	const uint8_t range=0, const uint16_t osr=0, i2cbus::I2C *i2cBus=0 );
+	Compass( MagnetSensor *sens );
 
 public:
 	static Compass* createCompass(InterfaceId iid);
@@ -117,7 +116,7 @@ public:
 	// Returns total number of read errors
 	int getReadError(){ return totalReadErrors; };
 	void calcCalibration();
-	CompassSink_I* getSink() const { return _MagsensSink; }
+	CompassSink_I* getSink() const { return mysensor; }
 
 private:
 	// Calculates tilt compensated heading in degrees of 0...359. The ok flag is set to true if fine, else false
@@ -168,8 +167,6 @@ private:
 	float fz;
 	float _heading;
 	vector_i16 magRaw;
-
-	CompassSink_I *_MagsensSink = nullptr;
 };
 
 extern Compass *theCompass;

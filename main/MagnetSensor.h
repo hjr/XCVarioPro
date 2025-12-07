@@ -25,7 +25,7 @@ public:
 };
 
 // Class Template
-class MagnetSensor
+class MagnetSensor : public CompassSink_I
 {
 public:
 	virtual ~MagnetSensor() = default;

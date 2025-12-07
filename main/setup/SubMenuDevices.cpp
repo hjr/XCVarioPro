@@ -53,7 +53,7 @@ static void connected_devices_menu_create_bluetooth(SetupMenu *top);
 static void connected_devices_menu_create_interfaceS1(SetupMenu *top);
 static void connected_devices_menu_create_interfaceS2(SetupMenu *top);
 static void connected_devices_menu_create_interfaceCAN(SetupMenu *top);
-static void connected_devices_menu_create_interfaceI2C(SetupMenu *top);
+static void connected_devices_menu_create_interfaceOW(SetupMenu *top);
 
 static SetupMenuCreator_t get_itf_menu_creator(InterfaceId iid)
 {
@@ -72,8 +72,8 @@ static SetupMenuCreator_t get_itf_menu_creator(InterfaceId iid)
     else if ( iid == CAN_BUS ) {
         return connected_devices_menu_create_interfaceCAN;
     }
-    else if ( iid == I2C ) {
-        return connected_devices_menu_create_interfaceI2C;
+    else if ( iid == OW_BUS ) {
+        return connected_devices_menu_create_interfaceOW;
     }
     return nullptr;
 }
@@ -282,11 +282,9 @@ void connected_devices_menu_create_interfaceCAN(SetupMenu *top)
     canmode->addEntry("1000 kbit (default)");
 }
 
-void connected_devices_menu_create_interfaceI2C(SetupMenu *top)
+void connected_devices_menu_create_interfaceOW(SetupMenu *top)
 {
-	SetupMenuValFloat *compi2c = new SetupMenuValFloat("I2C Clock", "KHz", nullptr, false, &compass_i2c_cl, RST_ON_EXIT);
-	top->addEntry(compi2c);
-	compi2c->setHelp("Setup compass I2C Bus clock in KHz (reboots)");
+
 }
 
 

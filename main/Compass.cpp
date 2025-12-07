@@ -19,10 +19,8 @@ Author: Axel Pauli, deviation and refactoring by Eckhard Völlm Dec 2021
 #include "Compass.h"
 #include "KalmanMPU6050.h"
 #include "QMCMagCAN.h"
-#include "QMC5883L.h"
 #include "math/Quaternion.h"
 #include "vector.h"
-#include "comm/I2CWrapper.h"
 #include "protocol/Clock.h"
 #include "setup/SetupNG.h"
 #include "ESPRotary.h"
@@ -44,37 +42,19 @@ Compass *Compass::createCompass(InterfaceId iid)
 		theCompass = nullptr;
 		delete tmp;
 	}
-	if (iid == CAN_BUS) {
-		ESP_LOGI( FNAME, "Magnetic sensor type CAN");
-		theCompass = new Compass( 0 );  // I2C addr 0 -> instantiate without I2C bus and local sensor
-	}
-	else if (iid == I2C) {
-		ESP_LOGI( FNAME, "Magnetic sensor type I2C");
-		I2C_t *i2cBus = nullptr;
-		if ( I2Cext ) {
-			// Wrapper should exist
-			i2cBus = I2Cext->getI2C();
-		}
-		theCompass = new Compass( 0x0D, ODR_50Hz, RANGE_2GAUSS, OSR_512, i2cBus );
-	}
-    return theCompass;
+	ESP_LOGI( FNAME, "create the Magnetic sensor");
+	theCompass = new Compass( 0 );  // I2C addr 0 -> instantiate without I2C bus and local sensor
+	return theCompass;
 }
 
 
 //   Creates instance for I2C connection with passing the desired parameters.
 //   No action is done at the bus. The default address of the chip is 0x0D.
-Compass::Compass( const uint8_t addr, const uint8_t odr, const uint8_t range, const uint16_t osr , I2C_t *i2cBus ) :
+Compass::Compass( MagnetSensor *sens ) :
 	Deviation(),
-	Clock_I(5) // 50ms duty cycle
+	Clock_I(5), // 50ms duty cycle
+	mysensor(sens)
 {
-	if( i2cBus == 0 ){
-		QMCMagCAN *tmp = new QMCMagCAN();
-		mysensor = tmp;
-		_MagsensSink = tmp;
-	}
-	else{
-		mysensor = new QMC5883L( addr, odr, range, osr, i2cBus );  // tbd. base class and QMC5883CAN class
-	}
 	m_magn_heading = 0;
 	m_gyro_fused_heading = 0;
 	m_headingValid = false;

@@ -478,7 +478,6 @@ extern SetupNG<int>         compass_declination_valid;
 extern SetupNG<float>		compass_damping;
 extern SetupNG<int>         compass_nmea_hdm;
 extern SetupNG<int>         compass_nmea_hdt;
-extern SetupNG<float>		compass_i2c_cl;
 extern SetupNG<float>       wind_as_filter;
 extern SetupNG<float>       wind_gps_lowpass;
 extern SetupNG<float>       wind_dev_filter;
