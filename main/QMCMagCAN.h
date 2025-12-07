@@ -54,8 +54,6 @@ public:
 
 	// Read in raw format into variables, return true if success
 	bool readRaw( vector_i16 &mag ) override;
-	// In micro Tesla unit, bias and scale corrected, return true if success
-	// bool readBiased( vector_f &mag );
 
 	// If device is connected via CAN, just get X,Y,Z data from there
     void fromExternal(const vector_i16 *magaxes) override;

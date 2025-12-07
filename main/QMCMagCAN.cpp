@@ -67,17 +67,3 @@ bool QMCMagCAN::readRaw( vector_i16 &mag )
 		return false;
 	}
 }
-
-// bool QMCMagCAN::readBiased( vector_f &axes )
-// {
-// 	if ( age < 5 ) {
-// 		axes = calib;
-// 		// if ( age == 0 ) {
-// 		// 	ESP_LOGI( FNAME, "Mag calibrated: X:%.5f Y:%.5f Z:%.5f", axes.a, axes.b, axes.c);
-// 		// }
-// 		return true;
-// 	}
-// 	else {
-// 		return false;
-// 	}
-// }

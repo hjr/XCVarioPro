@@ -67,12 +67,10 @@ Compass::Compass( const uint8_t addr, const uint8_t odr, const uint8_t range, co
 	Deviation(),
 	Clock_I(5) // 50ms duty cycle
 {
-	ESP_LOGI(FNAME,"Compass() I2C addr=%02x", addr );
 	if( i2cBus == 0 ){
 		QMCMagCAN *tmp = new QMCMagCAN();
 		mysensor = tmp;
 		_MagsensSink = tmp;
-		// _MagsensSink = mysensor;
 	}
 	else{
 		mysensor = new QMC5883L( addr, odr, range, osr, i2cBus );  // tbd. base class and QMC5883CAN class
@@ -415,38 +413,23 @@ float Compass::heading( bool *ok )
 {
 	*ok = false;
 
-	if( calibrationRunning == true )
-	{
-		// ESP_LOGI(FNAME,"Calibration running, return 0");
-		return 0.0;
-	}
 	// Check if calibration data are available
-	if( compass_calibrated.get() == 0 )
+	if( ! compass_calibrated.get() )
 	{
 		// No calibration data available, return error
-		// ESP_LOGI(FNAME,"Not calibrated" );
+		ESP_LOGW(FNAME,"Not calibrated" );
 		return 0.0;
-	}
-	// ESP_LOGI(FNAME,"QMC5883L::heading() errors:%d", errors );
-	if( errors > 100 && errors % 100 )  // Holddown processing and throwing errors once sensor is gone
-	{
-		errors++;
-		// ESP_LOGI(FNAME,"Errors overrun, return 0");
-		return 0.0;
-	}
-
-	bool state = false;
-	if ( mysensor->isCalibrated() ) {
-		vector_f tmp;
-		state = mysensor->readBiased( tmp );
-		if ( state ) {
-			// rotate -90Z and then 180X, to have the same orientation as the IMU reference system
-			fx = -tmp.y;
-			fy = -tmp.x;
-			fz = -tmp.z;
-		}
 	}
 	else {
+		// ESP_LOGI(FNAME,"QMC5883L::heading() errors:%d", errors );
+		if( errors > 100 && errors % 100 )  // Holddown processing and throwing errors once sensor is gone
+		{
+			errors++;
+			// ESP_LOGI(FNAME,"Errors overrun, return 0");
+			return 0.0;
+		}
+
+		bool state = false;
 		state = mysensor->readRaw( magRaw );
 		// ESP_LOGI(FNAME,"state %d  x:%d y:%d z:%d", state, magRaw.x, magRaw.y, magRaw.z );
 		if( !state )
@@ -476,9 +459,9 @@ float Compass::heading( bool *ok )
 	// ESP_LOGI(FNAME, "gravity a %.2f, b %.2f, c %.2f ME a %.2f, b %.2f, c %.2f MEV: a %.2f, b %.2f, c %.2f ", gravity_vector.a, gravity_vector.b, gravity_vector.c, mv.a, mv.b, mv.c, mev.a, mev.b, mev.c );
 	// ESP_LOGI(FNAME, "rot a %.2f, b %.2f, c %.2f, w %.2f - %.2f ", q.b, q.c, q.d, q.a, RAD_TO_DEG*q.getAngle() );
 	_heading = Compass_atan2( mev.y, mev.x );
-	// ESP_LOGI(FNAME,"mag (%.2f,%.2f,%.2f) heading %.2f", mev.a, mev.b, mev.c, _heading);
-
 	_heading = Vector::normalizeDeg( _heading );  // normalize the +-180 degree model to 0..360°
+	ESP_LOGI(FNAME,"mag (%.2f,%.2f,%.2f) heading %.2f", mev.x, mev.y, mev.z, _heading);
+	// ESP_LOGI(FNAME,"normalized heading %.2f", _heading);
 
 	// ESP_LOGI(FNAME,"Magn-Eul:(Y:%.1f P:%.1f R:%.1f) Magn-Vec:(%.4f %.4f %.4f) G-Vec:(%.4f/%.4f/%.4f) G-Eul:(P:%.1f R:%.1f)", _heading, ce.pitch, ce.roll , mv.a, mv.b, mv.c, gravity_vector.a,gravity_vector.b,gravity_vector.c, IMU::getPitch(), IMU::getRoll() );
 #if 0
