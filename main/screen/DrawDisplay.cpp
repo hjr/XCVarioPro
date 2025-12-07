@@ -24,7 +24,6 @@
 #include "setup/SetupNG.h"
 #include "setup/CruiseMode.h"
 #include "ESPRotary.h"
-#include "OneWireESP32.h"
 #include "KalmanMPU6050.h"
 #include "ESPAudio.h"
 #include "Flarm.h"
@@ -40,7 +39,6 @@ QueueHandle_t uiEventQueue = nullptr;
 void UiEventLoop(void *arg)
 {
     ESPRotary &knob = *static_cast<ESPRotary *>(arg);
-    float temp = DEVICE_DISCONNECTED_C;
     int16_t stall_warning_active = 0;
     int16_t gload_warning_active = 0;
     bool gear_warning_active = false;
@@ -89,7 +87,7 @@ void UiEventLoop(void *arg)
                         switch (MenuRoot->getActiveScreen()) {
                             case SCREEN_VARIO:
                                 Display->drawDisplay(te_vario.get(), aTE, polar_sink, 
-                                            altitude.get(), temp, batteryVoltage, s2f_delta, as2f);
+                                            altitude.get(), batteryVoltage, s2f_delta, as2f);
                                 break;
                             case SCREEN_GMETER:
                                 Display->drawLoadDisplay( IMU::getGliderAccelZ() );
@@ -146,11 +144,6 @@ void UiEventLoop(void *arg)
 
         if ( ! BootUpScreen::isActive() )
         {
-            temp = OAT.get();
-            if (gflags.validTemperature == false) {
-                temp = DEVICE_DISCONNECTED_C;
-            }
-
             // Stall Warning fixme no need for this to be here, could be in sensor loop, no display context needed
             if (stall_warning.get() && screen_gmeter.get() != SCREEN_PRIMARY && airborne.get()) {
                 // In aerobatics stall warning is contra productive, we concentrate on G-Load Display if permanent enabled

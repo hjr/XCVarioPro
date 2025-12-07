@@ -18,7 +18,6 @@
 #include "wind/CircleWind.h"
 #include "ESPAudio.h"
 #include "Flap.h"
-#include "OneWireESP32.h"
 #include "comm/DeviceMgr.h"
 #include "comm/CanBus.h"
 #include "comm/Configuration.h"
@@ -194,7 +193,7 @@ SetupNG<float>			gross_weight( "GROSS_WGT", 350, true, SYNC_NONE, VOLATILE ); //
 SetupNG<float>  		bugs( "BUGS", 0.0, true, SYNC_BIDIR, VOLATILE, modifyPolar, QUANT_NONE, LIMITS(0.0, 50, 1));
 
 SetupNG<int>  			cruise_mode( "CRUISE", 0, false, SYNC_BIDIR, VOLATILE, change_cruise ); // use the CruiseMode wrapper to access and modify
-SetupNG<float>  		OAT( "OAT", DEVICE_DISCONNECTED_C, true, SYNC_FROM_MASTER, VOLATILE );   // outside temperature
+SetupNG<float>  		OAT( "OAT", -1000., true, SYNC_BIDIR, VOLATILE );   // outside temperature
 SetupNG<float>  		swind_dir( "SWDD", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
 SetupNG<float>  		swind_speed( "SWDS", 0.0, true, SYNC_FROM_MASTER, VOLATILE, resetSWindAge );
 SetupNG<float>  		swind_sideslip_lim( "SWSL", 2.0, true, SYNC_FROM_MASTER, PERSISTENT, nullptr, QUANT_NONE, LIMITS(0, 45.0, 0.1));

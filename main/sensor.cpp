@@ -56,7 +56,6 @@
 #include "comm/DeviceMgr.h"
 // #include "protocol/TestQuery.h"
 #include "AdaptUGC.h"
-#include "OneWireESP32.h"
 #include "logdef.h"
 #include "comm/Messages.h"
 
@@ -79,6 +78,10 @@
 #include <cstdio>
 #include <cstring>
 
+#include <onewire_bus.h>
+#include <onewire_crc.h>
+#define EXAMPLE_ONEWIRE_BUS_GPIO    GPIO_NUM_23
+#define EXAMPLE_ONEWIRE_MAX_DS18B20 2
 
 /*
 BMP:
@@ -94,9 +97,6 @@ BMP:
 #define SPL06_007_BARO 0x77
 #define SPL06_007_TE   0x76
 
-OneWire32  ds18b20( GPIO_NUM_23 );  // GPIO_NUM_23 standard, alternative  GPIO_NUM_17
-uint8_t t_devices = 0;
-uint64_t t_addr[1];
 
 AirspeedSensor *asSensor=0;
 
@@ -135,7 +135,6 @@ std::string logged_tests;
 // global variables
 float baroP=0; // barometric pressure
 static float teP=0;   // TE pressure
-static float temperature=15.0;
 static float xcvTemp=15.0;
 static unsigned long _millis = 0;
 unsigned long _gps_millis = 0;
@@ -450,9 +449,7 @@ void readSensors(void *pvParameters){
 			airspeed_max.set( ias.get() );
 		}
 		// ESP_LOGI("FNAME","P: %f  IAS:%f IASF: %d", dynamicP, iasraw, ias );
-		if( !theCompass || !(theCompass->externalData()) ){
-			tas += (tasraw-tas)*0.25;       // low pass filter
-		}
+		tas += (tasraw-tas)*0.25;       // low pass filter
 		// ESP_LOGI(FNAME,"IAS=%f, T=%f, TAS=%f baroP=%f", ias, T, tas, baroP );
 
 		// Slip angle estimation
@@ -606,77 +603,169 @@ void readSensors(void *pvParameters){
 
 static int ttick = 0;
 static float temp_prev = -3000;
+float ds18b20_read_temp(onewire_bus_handle_t bus)
+{
+    uint8_t scratch[9];
 
+    // 1. Reset & presence detect
+    if (onewire_bus_reset(bus) != ESP_OK)
+        return NAN;  // sensor missing
+
+    // 2. Start conversion
+    uint8_t cmd_conv[] = {0xCC, 0x44};
+    onewire_bus_write_bytes(bus, cmd_conv, sizeof(cmd_conv));
+    vTaskDelay(pdMS_TO_TICKS(750));  // max 12-bit timing
+
+    // 3. Reset again & presence detect
+    if (onewire_bus_reset(bus) != ESP_OK)
+        return NAN;
+
+    // 4. Read scratchpad
+    uint8_t cmd_read[] = {0xCC, 0xBE};
+    onewire_bus_write_bytes(bus, cmd_read, sizeof(cmd_read));
+    onewire_bus_read_bytes(bus, scratch, sizeof(scratch));
+
+    // 5. Validate CRC
+    if (scratch[8] != onewire_crc8(0, scratch, 8))
+        return NAN;
+
+    // 6. Decode temp
+    int16_t raw = (scratch[1] << 8) | scratch[0];
+    return raw / 16.0f;
+}
 
 void readTemp(void *pvParameters)
 {
-	esp_task_wdt_add(NULL);
-	while (1) {
-		TickType_t xLastWakeTime = xTaskGetTickCount();
-		batteryVoltage = BatVoltage->get();
-		// ESP_LOGI(FNAME,"Battery=%f V", battery );
-		if( !SetupCommon::isClient() ) {  // client Vario will get Temperature info from main Vario
-			if( !t_devices ){
-				t_devices = ds18b20.search(t_addr, 1);
-				// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
-			}
-			if( t_devices && !gflags.inSetup ){
-				// ESP_LOGI(FNAME,"Temp devices %d", t_devices);
-				float temp;
-				uint8_t err = ds18b20.getTemp(t_addr[0], temp );
-				ds18b20.request();
-				if( !err ){
-					// ESP_LOGI(FNAME,"Raw Temp %f", temperature);
-					if( gflags.validTemperature == false ) {
-						ESP_LOGI(FNAME,"Temperatur Sensor connected");
-						gflags.validTemperature = true;
-					}
-					// ESP_LOGI(FNAME,"temperature=%2.1f", temperature );
-					temperature +=  (temp - temperature) * 0.3; // A bit low pass as strategy against toggling
-					if( abs(temperature - temp_prev) > 0.1 ){
-						float tr = std::round(temperature*10)/10;
-						OAT.set( tr );
-						ESP_LOGI(FNAME,"NEW temperature=%2.1f, prev T=%2.1f", tr, temp_prev );
-						temp_prev = temperature;
-					}
-				}else{
-					if( gflags.validTemperature == true ) {
-						ESP_LOGI(FNAME,"Temperatur Sensor disconnected");
-						gflags.validTemperature = false;
-					}
-				}
-			}
-			// ESP_LOGV(FNAME,"T=%f", temperature );
-			if( theCompass )
-				theCompass->ageIncr();
-		}else{
-			if( (OAT.get() > -55.0) && (OAT.get() < 85.0) )
-				gflags.validTemperature = true;
-		}
-		esp_task_wdt_reset();
+    // install new 1-wire bus
+    onewire_bus_handle_t bus;
+    onewire_bus_config_t bus_config = {
+        .bus_gpio_num = EXAMPLE_ONEWIRE_BUS_GPIO,
+        .flags = {
+            .en_pull_up = true, // enable the internal pull-up resistor in case the external device didn't have one
+        }
+    };
+    onewire_bus_rmt_config_t rmt_config = {
+        .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
+    };
+    ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
+    ESP_LOGI(FNAME, "1-Wire bus installed on GPIO%d", EXAMPLE_ONEWIRE_BUS_GPIO);
 
-		if( (ttick++ % 50) == 0) {
-			ESP_LOGI(FNAME,"Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT) );
-			if( uxTaskGetStackHighWaterMark( tpid ) < 256 ) {
-				ESP_LOGW(FNAME,"Warning temperature task stack low: %d bytes", uxTaskGetStackHighWaterMark( tpid ) );
-			}
-			if( heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000 ) {
-				ESP_LOGW(FNAME,"Warning heap_caps_get_free_size getting low: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-			}
-			extern MessagePool MP;
-			ESP_LOGI(FNAME,"MPool in-use:%d, acq-fails: %d", MP.nrUsed(), MP.nrAcqFails() );
+    // int ds18b20_device_num = 0;
+    // ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
+    // onewire_device_iter_handle_t iter = NULL;
+    // onewire_device_t next_onewire_device;
+    // esp_err_t search_result = ESP_OK;
 
-			// static char buf[2048];
-    		// vTaskGetRunTimeStats(buf);
-    		// std::printf("Task runtime stats:\n%s\n", buf);
-		}
-		if( (ttick%5) == 0 ){
-			SetupCommon::commitDirty();
-			// DeviceManager* dm = DeviceManager::Instance();
-			// static_cast<TestQuery*>(dm->getProtocol( TEST_DEV2, TEST_P ))->sendTestQuery();  // all 5 seconds on burst
-		}
-		vTaskDelayUntil(&xLastWakeTime, 1000/portTICK_PERIOD_MS);
-	}
+    // // create 1-wire device iterator, which is used for device search
+    // ESP_ERROR_CHECK(onewire_new_device_iter(bus, &iter));
+    // ESP_LOGI(FNAME, "Device iterator created, start searching...");
+    // do {
+    //     search_result = onewire_device_iter_get_next(iter, &next_onewire_device);
+    //     if (search_result == ESP_OK) { // found a new device, let's check if we can upgrade it to a DS18B20
+    //         ds18b20_config_t ds_cfg = {};
+    //         if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &ds18b20s[ds18b20_device_num]) == ESP_OK) {
+    //             ESP_LOGI(FNAME, "Found a DS18B20[%d], address: %016llX", ds18b20_device_num, next_onewire_device.address);
+    //             ds18b20_device_num++;
+    //             if (ds18b20_device_num >= EXAMPLE_ONEWIRE_MAX_DS18B20) {
+    //                 ESP_LOGI(FNAME, "Max DS18B20 number reached, stop searching...");
+    //                 break;
+    //             }
+    //         } else {
+    //             ESP_LOGI(FNAME, "Found an unknown device, address: %016llX", next_onewire_device.address);
+    //         }
+    //     }
+    // } while (search_result != ESP_ERR_NOT_FOUND);
+    // ESP_ERROR_CHECK(onewire_del_device_iter(iter));
+    // ESP_LOGI(FNAME, "Searching done, %d DS18B20 device(s) found", ds18b20_device_num);
+
+    // // set resolution for all DS18B20s
+    // for (int i = 0; i < ds18b20_device_num; i++) {
+    //     // set resolution
+    //     ESP_ERROR_CHECK(ds18b20_set_resolution(ds18b20s[i], DS18B20_RESOLUTION_12B));
+    // }
+
+    // get temperature from sensors one by one
+    // float temperature;
+    // while (1) {
+    //     vTaskDelay(pdMS_TO_TICKS(500));
+
+    //     // for (int i = 0; i < ds18b20_device_num; i ++) {
+    //     //     ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(ds18b20s[i]));
+    //     //     ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
+    //     //     ESP_LOGI(FNAME, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
+    //     // }
+    //     temperature = ds18b20_read_temp(bus);
+    //     ESP_LOGI(FNAME, "temperature read from DS18B20: %.2fC", temperature);
+    // }
+
+    float temperature = 0.;
+    esp_task_wdt_add(NULL);
+    while (1) {
+        TickType_t xLastWakeTime = xTaskGetTickCount();
+        batteryVoltage = BatVoltage->get();
+        // ESP_LOGI(FNAME,"Battery=%f V", battery );
+        // if( !SetupCommon::isClient() ) {  // client Vario will get Temperature info from main Vario
+        // if( !t_devices ) {
+        // 	t_devices = ds18b20.search(t_addr, 1);
+        // 	// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
+        // }
+        // if( t_devices && !gflags.inSetup ){
+        // ESP_LOGI(FNAME,"Temp devices %d", t_devices);
+        float temp = ds18b20_read_temp(bus);
+        // uint8_t err = ds18b20.getTemp(t_addr[0], temp );
+        // ds18b20.request();
+        if (!std::isnan(temp)) {
+            // ESP_LOGI(FNAME,"Raw Temp %f", temperature);
+            if (gflags.validTemperature == false) {
+                ESP_LOGI(FNAME, "Temperatur Sensor connected");
+                gflags.validTemperature = true;
+            }
+            // ESP_LOGI(FNAME,"temperature=%2.1f", temperature );
+            temperature += (temp - temperature) * 0.3; // A bit low pass as strategy against toggling
+            if (abs(temperature - temp_prev) > 0.1) {
+                float tr = std::round(temperature * 10) / 10;
+                OAT.set(tr);
+                ESP_LOGI(FNAME, "NEW temperature=%2.1f, prev T=%2.1f", tr, temp_prev);
+                temp_prev = temperature;
+            }
+        } else {
+            if (gflags.validTemperature == true) {
+                ESP_LOGI(FNAME, "Temperatur Sensor disconnected");
+                gflags.validTemperature = false;
+            }
+        }
+        // }
+        // ESP_LOGV(FNAME,"T=%f", temperature );
+        if ((OAT.get() > -55.0) && (OAT.get() < 85.0)) {
+            gflags.validTemperature = true;
+        }
+        if (theCompass) {
+            theCompass->ageIncr();
+        }
+        esp_task_wdt_reset();
+
+        if ((ttick++ % 50) == 0) {
+            ESP_LOGI(FNAME, "Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+            if (uxTaskGetStackHighWaterMark(tpid) < 256) {
+                ESP_LOGW(FNAME, "Warning temperature task stack low: %d bytes", uxTaskGetStackHighWaterMark(tpid));
+            }
+            if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000) {
+                ESP_LOGW(FNAME, "Warning heap_caps_get_free_size getting low: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+            }
+            extern MessagePool MP;
+            ESP_LOGI(FNAME, "MPool in-use:%d, acq-fails: %d", MP.nrUsed(), MP.nrAcqFails());
+
+            // static char buf[2048];
+            // vTaskGetRunTimeStats(buf);
+            // std::printf("Task runtime stats:\n%s\n", buf);
+        }
+        if ((ttick % 5) == 0) {
+            SetupCommon::commitDirty();
+            // DeviceManager* dm = DeviceManager::Instance();
+            // static_cast<TestQuery*>(dm->getProtocol( TEST_DEV2, TEST_P ))->sendTestQuery();  // all 5 seconds on burst
+        }
+        vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_PERIOD_MS);
+    }
 }
 
 static esp_err_t _coredump_to_server_begin_cb(void * priv)
@@ -1084,40 +1173,40 @@ void system_startup(void *args){
 		asSensor = 0;
 	}
 
-	ESP_LOGI(FNAME,"Now start T sensor test");
-	// Temp Sensor test
-	if( !SetupCommon::isClient()  ) {
-		ESP_LOGI(FNAME,"Now start T sensor test");
-		temperature = DEVICE_DISCONNECTED_C;
-		if( ds18b20.reset() )
-		{
-			t_devices = ds18b20.search(t_addr, 1);
-			// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
-		}
-		if( t_devices ){
-			ESP_LOGI(FNAME,"Temp devices %d", t_devices);
-			uint8_t err = ds18b20.getTemp(t_addr[0], temperature );
-			if( err ){
-				temperature = DEVICE_DISCONNECTED_C;
-			}
-		}
-		ESP_LOGI(FNAME,"End T sensor test");
-		logged_tests += "Ext. Temp. Sensor: ";
-		if( temperature == DEVICE_DISCONNECTED_C ) {
-			ESP_LOGE(FNAME,"Error: Self test Temperatur Sensor failed; returned T=%2.2f", temperature );
-			MBOX->pushMessage(1, "Temp Sensor: NOT FOUND");
-			gflags.validTemperature = false;
-			logged_tests += "NOT FOUND\n";
-		}else
-		{
-			ESP_LOGI(FNAME,"Self test Temperatur Sensor PASSED; returned T=%2.2f", temperature );
-			gflags.validTemperature = true;
-			logged_tests += passed_text;
+	// ESP_LOGI(FNAME,"Now start T sensor test");
+	// // Temp Sensor test
+	// if( !SetupCommon::isClient()  ) {
+		// ESP_LOGI(FNAME,"Now start T sensor test");
+		// temperature = DEVICE_DISCONNECTED_C;
+		// if( ds18b20.reset() )
+		// {
+		// 	t_devices = ds18b20.search(t_addr, 1);
+		// 	// ESP_LOGI(FNAME,"Temperatur Sensors found N=%d Addr: %llx", t_devices, t_addr[0] );
+		// }
+		// if( t_devices ){
+		// 	ESP_LOGI(FNAME,"Temp devices %d", t_devices);
+		// 	uint8_t err = ds18b20.getTemp(t_addr[0], temperature );
+		// 	if( err ){
+		// 		temperature = DEVICE_DISCONNECTED_C;
+		// 	}
+		// }
+		// ESP_LOGI(FNAME,"End T sensor test");
+		// logged_tests += "Ext. Temp. Sensor: ";
+		// if( temperature == DEVICE_DISCONNECTED_C ) {
+		// 	ESP_LOGE(FNAME,"Error: Self test Temperatur Sensor failed; returned T=%2.2f", temperature );
+		// 	MBOX->pushMessage(1, "Temp Sensor: NOT FOUND");
+		// 	gflags.validTemperature = false;
+		// 	logged_tests += "NOT FOUND\n";
+		// }else
+		// {
+		// 	ESP_LOGI(FNAME,"Self test Temperatur Sensor PASSED; returned T=%2.2f", temperature );
+		// 	gflags.validTemperature = true;
+		// 	logged_tests += passed_text;
 
-		}
-	}
+		// }
+	// }
+
 	ESP_LOGI(FNAME,"Absolute pressure sensors init, detect type of sensor type..");
-
 	float ba_t, ba_p, te_t, te_p;
 	SPL06_007 *splBA = new SPL06_007( SPL06_007_BARO );
 	SPL06_007 *splTE = new SPL06_007( SPL06_007_TE );

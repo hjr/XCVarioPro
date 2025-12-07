@@ -33,6 +33,7 @@ enum DeviceId : uint8_t
     XCVARIOSECOND_DEV,
     FLARM_PROXY,
     RADIO_PROXY,
+    TEMPSENS_DEV,
     TEST_DEV,
     TEST_DEV2
 };

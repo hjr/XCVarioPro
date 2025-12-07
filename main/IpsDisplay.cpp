@@ -24,7 +24,6 @@
 #include "math/vector_3d_fwd.h"
 #include "comm/DeviceMgr.h"
 #include "BLESender.h"
-#include "OneWireESP32.h"
 #include "sensor.h"
 #include "Units.h"
 #include "Flap.h"
@@ -717,7 +716,7 @@ void IpsDisplay::drawConnection( int16_t x, int16_t y )
 void IpsDisplay::drawTemperature( int x, int y, float t ) {
 	ucg->setFont(ucg_font_fub14_hn, false);
 	char s[32];
-	if( t != DEVICE_DISCONNECTED_C ) {
+	if( t > -1000. && gflags.validTemperature == true) {
 		float temp_unit = Units::TemperatureUnit( t );
 		sprintf(s, "%.1f ", std::roundf(temp_unit*10.f)/10.f );
 	}
@@ -886,7 +885,7 @@ float getHeading() { // fixme move to compass
 
 // fixme arg not needed on stack
 void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, float altitude_m,
-		float temp, float volt, float s2fd_ms, float s2f_ms){
+		float volt, float s2fd_ms, float s2f_ms){
 	// ESP_LOGI(FNAME,"drawDisplay polar_sink: %f AVario: %f m/s", polar_sink_ms, ate_ms );
 	if( !(screens_init & INIT_DISPLAY_RETRO) ){
 		initDisplay();
@@ -992,6 +991,7 @@ void IpsDisplay::drawDisplay(float te_ms, float ate_ms, float polar_sink_ms, flo
 
     // Temperature Value
 	temp_status_t mputemp = MPU.getSiliconTempStatus();
+    float temp = OAT.get();
 	if( (((int)(temp*10) != tempalt) || (mputemp != siliconTempStatusOld)) && !(tick%12)) {
 		drawTemperature( 4, 30, temp );
 		tempalt=(int)(temp*10);
