@@ -229,6 +229,9 @@ float Flap::getOptimum(float spd) const {
         wki++;
     }
     if (wki >= flevel.size()) {
+        if ( flevel.size() == 0 ) {
+            return 0.f;
+        }
         wki = flevel.size() - 1;
     }
     else if (wki > 0) {
