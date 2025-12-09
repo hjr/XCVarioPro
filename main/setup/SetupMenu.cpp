@@ -443,24 +443,39 @@ void SetupMenu::display(int mode)
 	ESP_LOGI(FNAME,"Title: %s child size:%d", _title.c_str(), _childs.size());
 	MYUCG->setFont(ucg_font_ncenR14_hr);
 	MYUCG->setFontPosBottom();
-	menuPrintLn("<<", 0);
+	menuPrintLn("  <", 0);
 	menuPrintLn(_title.c_str(), 0, 30);
 	doHighlight(highlight);
 	for (int i = 0; i < _childs.size(); i++) {
 		MenuEntry *child = _childs[i];
 		// cope with potential external change to the e.g. nvs representation of values
 		if ( dirty ) { child->refresh(); }
+		
+		// Menu entry
 		MYUCG->setColor(COLOR_WHITE);
-		if (!child->isLeaf() || child->value()) {
-			MYUCG->setColor(COLOR_HEADER_LIGHT);
+		if ( ! child->isLeaf()  || child->value() ) {
+			MYUCG->setColor(COLOR_BBLUE);
 		}
 		menuPrintLn(child->getTitle(), i+1);
+
+		// Optional value or detail
 		// ESP_LOGI(FNAME,"Child Title: %s - %p", child->getTitle(), child->value() );
-		if (child->value() && *child->value() != '\0') {
-			int fl = MYUCG->getStrWidth(child->getTitle());
-			menuPrintLn(": ", i+1, 1+fl);
-			MYUCG->setColor(COLOR_WHITE);
-			menuPrintLn(child->value(), i+1, 1 + fl + MYUCG->getStrWidth(": "));
+		if (child->value() && *child->value() != '\0')
+		{
+			// Detail seperator
+			const char *sep = "> ";
+			int entry_len = MYUCG->getStrWidth(child->getTitle());
+			if ( child->isLeaf() ) {
+				sep = ": ";
+			}
+			menuPrintLn(sep, i+1, 1+entry_len);
+
+			if (child->isLeaf() ) {
+				MYUCG->setColor(COLOR_WHITE);
+			} else {
+				MYUCG->setColor(COLOR_HEADER_LIGHT);
+			}
+			menuPrintLn(child->value(), i+1, 1 + entry_len + MYUCG->getStrWidth(sep));
 			ESP_LOGI(FNAME,"Child V: %s",child->value() );
 		}
 		// ESP_LOGI(FNAME,"Child: %s y=%d",child->getTitle() ,y );

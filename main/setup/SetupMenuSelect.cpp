@@ -53,7 +53,7 @@ void SetupMenuSelect::display(int mode)
 	else
 	{
 		ESP_LOGI(FNAME,"Title: %s ", _title.c_str() );
-		menuPrintLn("<<", 0);
+		menuPrintLn("  <", 0);
 		menuPrintLn(_title.c_str(), 0, 30);
 		if( _select > _values.size() )
 			_select = _values.size()-1;
