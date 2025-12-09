@@ -850,7 +850,7 @@ static void options_menu_create_altimeter(SetupMenu *top) {
 	tral->setHelp("Transition altitude (or transition height, when using QFE) is the altitude/height above which standard pressure (QNE) is set (1013.2 mb/hPa)", 100);
 	top->addEntry(tral);
 
-	SetupMenuSelect *als = new SetupMenuSelect("Atl. Source", RST_NONE, nullptr, &alt_select);
+	SetupMenuSelect *als = new SetupMenuSelect("Alt. Source", RST_NONE, nullptr, &alt_select);
 	top->addEntry(als);
 	als->setHelp("Select source for barometric altitude, either TE sensor or Baro sensor (recommended) or an external source e.g. FLARM (if avail)");
 	als->addEntry("TE Sensor");
