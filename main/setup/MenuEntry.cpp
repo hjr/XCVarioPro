@@ -49,8 +49,18 @@ const MenuEntry* MenuEntry::findMenu(const char *title) const
 
 // ln is the line enumeration, starting with 0
 void MenuEntry::menuPrintLn(const char* str, int ln, int x) const {
-	if (x > 0) { MYUCG->setPrintPos(x,(ln+1)*25); }
-	MYUCG->print(str);
+    MYUCG->setPrintPos(x,(ln+1)*25);
+    MYUCG->print(str);
+}
+
+void MenuEntry::menuPrintChar(char chr, int ln, int x) const {
+    if ( chr == ' ' ) {
+        MYUCG->drawDisc(x+2, (ln+1)*25 - 7, 2, UCG_DRAW_ALL);
+    }
+    else {
+        MYUCG->setPrintPos(x,(ln+1)*25);
+        MYUCG->print(chr);
+    }
 }
 
 void MenuEntry::reBoot(){
@@ -63,10 +73,10 @@ void MenuEntry::reBoot(){
 	esp_restart();
 }
 
-void MenuEntry::uprint( int x, int y, const char* str ) {
-	MYUCG->setPrintPos(x,y);
-	MYUCG->print( str );
-}
+// void MenuEntry::uprint( int x, int y, const char* str ) {
+// 	MYUCG->setPrintPos(x,y);
+// 	MYUCG->print( str );
+// }
 
 void MenuEntry::SavedDelay(bool showit)
 {
@@ -155,10 +165,14 @@ void MenuEntry::indentPrintLn(const char *str) const
 	menuPrintLn(str, cur_row, cur_indent+7);
 }
 
-void MenuEntry::focusPosLn(const char *str, int16_t pos) const
+void MenuEntry::focusPosLn(const char *str, int16_t pos, bool mode) const
 {
     indentPrintLn(str);
-    MYUCG->setColor(COLOR_RED);
+    if ( mode ) {
+        MYUCG->setColor(COLOR_RED);
+    } else {
+        MYUCG->setColor(COLOR_YELLOW);
+    }
     int16_t w = 0;
     if ( pos > 0) {
         char pbuf[100];
@@ -166,10 +180,7 @@ void MenuEntry::focusPosLn(const char *str, int16_t pos) const
         pbuf[pos] = '\0';
         w = MYUCG->getStrWidth(pbuf);
     }
-    char buf[2];
-    buf[0] = str[pos];
-    buf[1] = '\0';
-    menuPrintLn(buf, cur_row, cur_indent+7 + w);
+    menuPrintChar(str[pos], cur_row, cur_indent+7 + w);
 }
 
 // simple heuristic based on "n" sized chars,

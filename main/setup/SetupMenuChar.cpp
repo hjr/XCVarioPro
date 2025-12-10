@@ -84,7 +84,7 @@ void SetupMenuChar::display(int mode)
     ESP_LOGI(FNAME,"display title:%s action: %x", _title.c_str(), (int)(_exit_action));
     // inline only !!
     indentHighlight(_parent->getHighlight());
-    focusPosLn(_value.c_str(), _char_index);
+    focusPosLn(_value.c_str(), _char_index, _mode);
 }
 
 void SetupMenuChar::rot(int count)
@@ -120,7 +120,7 @@ void SetupMenuChar::rot(int count)
         }
         ESP_LOGI(FNAME, "rot() change char from %c to %c at index %d", co, cn, _char_index);
         _value[_char_index] = cn;
-        focusPosLn(_value.c_str(), _char_index);
+        focusPosLn(_value.c_str(), _char_index, true);
     }
 }
 
@@ -138,6 +138,7 @@ void SetupMenuChar::press()
         _mode = true;
         ESP_LOGI(FNAME,"press() enter edit mode at index %d", _char_index );
     }
+    focusPosLn(_value.c_str(), _char_index, _mode);
 }
 
 void SetupMenuChar::longPress(){

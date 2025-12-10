@@ -73,7 +73,7 @@ public:
     void unHighlight(int sel) const;
     void indentHighlight(int sel);
 	void indentPrintLn(const char *str) const;
-	void focusPosLn(const char *str, int16_t pos) const;
+	void focusPosLn(const char *str, int16_t pos, bool mode=false) const;
 	bool canInline() const;
 	int nrOfHelpLines() const;
 	bool showhelp(bool inln=false);
@@ -81,7 +81,8 @@ public:
 	void clearHelpLines() const;
 	const MenuEntry* findMenu(const char *title) const;
 	void menuPrintLn(const char* str, int sel, int x=1) const;
-	void uprint( int x, int y, const char* str );
+	void menuPrintChar(char chr, int ln, int x) const;
+	// void uprint( int x, int y, const char* str );
 	void SavedDelay(bool showit=true);
 	void scheduleReboot() { _restart = true; }
 	void reBoot();
