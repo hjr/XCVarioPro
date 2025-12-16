@@ -23,20 +23,11 @@ The original ambition of providing a high-quality variometer sensor that turns a
   - no requirement for a TE probe
 * Instant wind calculation
 
-## Some Demo Clips
-(The material needs a decent update though)
+## Images and video material
 
-* [Quick Demo on YouTube](https://www.youtube.com/watch?v=Piu5SiNPaRg)
-* [Vario Sensitivity Test](https://www.youtube.com/watch?v=RqFLOQ9wvgY)
-* [Basic Function Demo](https://www.youtube.com/watch?v=zGldyS57ZgQ)
-* [Full Sunlight test](https://www.youtube.com/watch?v=TFL9i2DBNpA)
-* [Audio Demo in Flight](https://www.youtube.com/watch?v=6Vc6OHcO_T4)  ("Single Tone" Modus)
-* [Basic Vario Setup MC, QNH, Ballast](https://www.youtube.com/watch?v=DvqhuaVlfEI)
-* [Airfield Elevation and Vario Setup](https://www.youtube.com/watch?v=x3UIpL9qGec)
-* [Bluetooth, Audio and Polar Setup](https://www.youtube.com/watch?v=9HcsfyLX-wE)
-* [Flap (WK) Indicator Setup](https://www.youtube.com/watch?v=tP2a2aDoOsg)
-* [Vario System Setup](https://www.youtube.com/watch?v=BCR16WUTwJY)
-* [Setup XCSoar to connect with Vario](https://www.youtube.com/watch?v=LDgnvLoTekU&t=95s)
+[More recent materials on the XCVario face-book page](https://www.facebook.com/p/XCvario-100090831756791/)
+
+[A lot of history to the project on YouTube](https://www.youtube.com/results?search_query=xcvario)
 
 ## Supported sensors
 * TE variometer (TE)
