@@ -60,7 +60,7 @@ static SetupMenuCreator_t get_itf_menu_creator(InterfaceId iid)
     if ( iid == WIFI_APSTA ) {
         return connected_devices_menu_create_wifi;
     }
-    else if ( iid == BT_SPP ) {
+    else if ( iid == BT_SPP || iid == BT_LE ) {
         return connected_devices_menu_create_bluetooth;
     }
     else if ( iid == S1_RS232 ) {

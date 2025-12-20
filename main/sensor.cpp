@@ -124,7 +124,6 @@ I2C_t& i2c = i2c1;
 MPU_t MPU;         // create an object
 
 // Magnetic sensor / compass
-BLESender blesender;
 SerialLine *S1 = NULL;
 SerialLine *S2 = NULL;
 Clock *MY_CLOCK = nullptr;
@@ -1013,13 +1012,9 @@ void system_startup(void *args){
 
     ESP_LOGI(FNAME,"Wirelss-ID: %s", SetupCommon::getID());
 	std::string wireless_id;
-	if( DEVMAN->isIntf(BT_SPP) ) {
+	if( DEVMAN->isIntf(BT_SPP) || DEVMAN->isIntf(BT_LE)) {
 		ESP_LOGI(FNAME,"Use BT");
 		wireless_id.assign("BT Id: ");
-	}
-	else if( DEVMAN->isIntf(BT_LE) ) {
-		ESP_LOGI(FNAME,"Use BLE");
-		// blesender.begin(); fixme
 	}
 	else  if( DEVMAN->isIntf(WIFI_APSTA) ) {
 		ESP_LOGI(FNAME,"Use WiFi");
@@ -1361,17 +1356,6 @@ void system_startup(void *args){
 	else{
 		ESP_LOGI(FNAME,"Battery voltage metering test PASSED, act value=%f", bat );
 		logged_tests += passed_text;
-	}
-
-	if ( BTspp) {
-			logged_tests += "Bluetooth test: ";
-		if ( BTspp->selfTest() ) {
-			logged_tests += passed_text;
-		}
-		else {
-			MBOX->pushMessage(1, "Bluetooth: FAILED");
-			logged_tests += failed_text;
-		}
 	}
 
 	// magnetic sensor / compass selftest

@@ -45,30 +45,33 @@ static TaskHandle_t SendTask = nullptr;
 //
 // A routing table that contains the static connected devices relation.
 //
-// entries with zero termination, entirely as ro flash data
-static constexpr RoutingTarget flarm_routes_synch[] = {
+// Target lists
+// target entries with zero termination, as ro flash data
+static const RoutingTarget flarm_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {XCVARIOSECOND_DEV, CAN_BUS, 0},
     {XCVARIOFIRST_DEV, CAN_BUS, 0}, {XCVARIOSECOND_DEV, WIFI_APSTA, 8884}, {XCVARIOFIRST_DEV, WIFI_APSTA, 8884},
     {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {} };
-static constexpr RoutingTarget flarm_routes[] = {
-    {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {} };
-static constexpr RoutingTarget radio_routes[] = {
+static const RoutingTarget flarm_proxy_routes[] = {
+    {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
+    {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
+static const RoutingTarget radio_routes[] = {
     {RADIO_KRT2_DEV, S2_RS232, 0}, {RADIO_ATR833_DEV, S2_RS232, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0}, {} };
-static constexpr RoutingTarget navi_routes[] = {
+static const RoutingTarget navi_routes[] = {
     {FLARM_DEV, S1_RS232, 0}, {FLARM_DEV, CAN_BUS, 0}, {RADIO_KRT2_DEV, S2_RS232, 0}, {} };
-static constexpr RoutingTarget fhost_routes[] = {
+static const RoutingTarget fhost_routes[] = {
     {FLARM_DEV, S1_RS232, 0}, {FLARM_DEV, CAN_BUS, 0}, {} };
-static constexpr RoutingTarget proxy_routes[] = {
+static const RoutingTarget xcv_proxy_routes[] = {
     {NAVI_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {} };
-static constexpr std::pair<RoutingTarget, const RoutingTarget*> Routes[] = {
-    { RoutingTarget(FLARM_DEV, S1_RS232, 0), flarm_routes_synch },
-    { RoutingTarget(FLARM_DEV, CAN_BUS, 0), flarm_routes },
+// Mapping table with (one hop): From-Target <> To-Target-List
+static const std::pair<RoutingTarget, const RoutingTarget*> Routes[] = {
+    { RoutingTarget(FLARM_DEV, S1_RS232, 0), flarm_routes },
+    { RoutingTarget(FLARM_DEV, CAN_BUS, 0), flarm_proxy_routes },
     { RoutingTarget(RADIO_REMOTE_DEV, NO_PHY, 0), radio_routes },
     { RoutingTarget(NAVI_DEV, NO_PHY, 0), navi_routes },
     { RoutingTarget(FLARM_HOST_DEV, NO_PHY, 0), fhost_routes },
     { RoutingTarget(FLARM_HOST2_DEV, NO_PHY, 0), fhost_routes },
-    { RoutingTarget(XCVARIOFIRST_DEV, NO_PHY, 0), proxy_routes },
-    { RoutingTarget(XCVARIOSECOND_DEV, NO_PHY, 0), proxy_routes }
+    { RoutingTarget(XCVARIOFIRST_DEV, NO_PHY, 0), xcv_proxy_routes },
+    { RoutingTarget(XCVARIOSECOND_DEV, NO_PHY, 0), xcv_proxy_routes }
 };
 // Search the flash data table
 static const RoutingTarget* findRoute(const RoutingTarget& source) {
@@ -107,7 +110,7 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
     {DeviceId::XCVARIOFIRST_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
     {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_REAL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
-    // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}}, fixme, missing the BTspp client implementation
+    // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}}, fixme, missing the BLUEspp client implementation
     {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
     {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, &magleg_devsetup}},
     {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto reg
@@ -118,11 +121,15 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
                                     0, IS_REAL, nullptr}},
     {DeviceId::NAVI_DEV,   {"", {{BT_SPP}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     0, IS_REAL, nullptr}},
-    {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host_setup}},
+    {DeviceId::NAVI_DEV,   {"", {{BT_LE}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
+                                    0, IS_REAL, nullptr}},
+    {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP, BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host_setup}},
     {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
+    {DeviceId::FLARM_HOST_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST2_DEV, {"Flarm Download", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host2_setup}},
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
+    {DeviceId::FLARM_HOST2_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::RADIO_REMOTE_DEV, {"Radio remote", {{WIFI_APSTA}}, {{KRT2_REMOTE_P}, 1}, 8882, 0, &radio_host_setup}},
     {DeviceId::RADIO_KRT2_DEV, {"KRT 2", {{S2_RS232, CAN_BUS}}, {{KRT2_REMOTE_P}, 1}, 0, IS_REAL, &krt_devsetup}},
     {DeviceId::RADIO_ATR833_DEV, {"ATR833", {{S2_RS232, CAN_BUS}}, {{ATR833_REMOTE_P}, 1}, 0, IS_REAL, &atr_devsetup}}
@@ -395,19 +402,24 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
         }
     }
     else if ( iid == BT_SPP) {
-        if ( ! BTspp ) {
-            BTspp = new BTSender();
+        if ( ! BLUEspp ) {
+            ESP_LOGI(FNAME, "Create BT SPP interface");
+            BLUEspp = new BTspp();
         }
-        if ( BTspp && ! BTspp->isRunning() ) {
-            BTspp->ConfigureIntf(0);
-            BTspp->start();
+        if ( BLUEspp && ! BLUEspp->isRunning() ) {
+            BLUEspp->start();
         }
-        itf = BTspp;
+        itf = BLUEspp;
     }
     else if ( iid == BT_LE) {
-        // if ( ) .. fixme
-        // blesender.begin();
-        // itf = BT_..;
+        if ( ! BLUEnus ) {
+            ESP_LOGI(FNAME, "Create BT LE interface");
+            BLUEnus = new BLESender();
+        }
+        if ( BLUEnus && ! BLUEnus->isRunning() ) {
+            BLUEnus->start();
+        }
+        itf = BLUEnus;
     }
     else if ( iid == OW_BUS ) {
         if ( ! OneWIRE ) {
@@ -465,7 +477,7 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     refreshRouteCache();
 
     if ( nvsave ) { // && (is_new || !pl.empty()) ) {
-        const DeviceAttributes &da = getDevAttr(did, iid);
+        const DeviceAttributes &da = getDevAttr(did);
         if ( da.nvsetup && dev ) {
             // save it to nvs
             da.nvsetup->set(dev->getNvsData(), false, false);
@@ -558,9 +570,14 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
             //     delete tmp;
                 ret = true; // restart needed
             }
-            else if ( itf == BTspp ) {
+            else if ( itf == BLUEspp ) {
                 ESP_LOGI(FNAME, "stopping BTspp");
-                BTspp->stop();
+                BLUEspp->stop();
+                ret = true; // restart needed
+            }
+            else if ( itf == BLUEnus ) {
+                ESP_LOGI(FNAME, "stopping BTle");
+                BLUEnus->stop();
                 ret = true; // restart needed
             }
             else if ( itf == S1 ) {
@@ -574,6 +591,7 @@ bool DeviceManager::removeDevice(DeviceId did, bool nvsave)
             else if ( itf == OneWIRE ) {
                 ESP_LOGI(FNAME, "stopping OneWire");
                 delete OneWIRE;
+                OneWIRE = nullptr;
             }
         }
 
@@ -704,7 +722,7 @@ void DeviceManager::reserectFromNvs()
         // check if store data has the valid tag
         // check on role compatibility
         // skip extra "details" entries in the dev asttributes table
-        ESP_LOGI(FNAME, "Attr Entry: did%d >%s< t%x", entry.first, entry.second.name.data(),
+        ESP_LOGI(FNAME, "Read attr Entry: did%d >%s< t%x", entry.first, entry.second.name.data(),
                  entry.second.nvsetup ? (unsigned)entry.second.nvsetup->get().target.raw : 0 );
         if ( entry.second.nvsetup && *entry.second.name.data() != '\0' && entry.second.nvsetup->get().isValid()
             && ( !entry.second.getRoleDep() || entry.second.getRoleDep() == xcv_role.get()) ) {

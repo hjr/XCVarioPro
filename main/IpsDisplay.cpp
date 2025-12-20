@@ -617,10 +617,10 @@ void IpsDisplay::redrawValues()
 
 void IpsDisplay::drawBT() {
 	bool bta=true;
-	if( DEVMAN->isIntf(BT_SPP) && BTspp )
-		bta = BTspp->isConnected();
-	else if( DEVMAN->isIntf(BT_LE) )
-		bta=BLESender::queueFull() ? false : true;
+	if( DEVMAN->isIntf(BT_SPP) && BLUEspp )
+		bta = BLUEspp->isConnected();
+	else if( DEVMAN->isIntf(BT_LE) && BLUEnus )
+		bta = BLUEnus->isConnected();
 	if( bta != flags.wireless_alive || flarm_alive.get() > ALIVE_NONE ) {
 		int16_t btx=DISPLAY_W-18;
 		int16_t bty=(BTH/2) + 6;
