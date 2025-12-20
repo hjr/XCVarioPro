@@ -34,7 +34,7 @@ static std::string device_details;
 //
 // Navi flavors
 //
-static constexpr std::array<ProtocolType, 4> all_flavors = { XCVARIO_P, OPENVARIO_P, BORGELT_P, CAMBRIDGE_P };
+static constexpr std::array<ProtocolType, 5> all_flavors = { XCVARIO_P, OPENVARIO_P, BORGELT_P, CAMBRIDGE_P, SEEYOU_P };
 static int getFlvEnumFromProto(ProtocolType ptyp)
 {
     for (int i=0; i<all_flavors.size(); i++) {

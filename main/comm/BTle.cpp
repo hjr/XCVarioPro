@@ -32,7 +32,6 @@
 BLESender *BLUEnus = nullptr;
 static esp_gatt_if_t my_gatts_if = ESP_GATT_IF_NONE;
 static uint8_t nus_rx_buf[256];
-static uint8_t nus_tx_buf[256];
 
 static const uint8_t nus_service_uuid128[ESP_UUID_LEN_128] = {
     0x9E,0xCA,0xDC,0x24,0x0E,0xE5,0xA9,0xE0,
@@ -139,13 +138,10 @@ public:
                         }
                     }
 
-                    ESP_LOGI(FNAME, "Written value: %.*s", param->write.len, param->write.value);
                     std::string rx((char *)param->write.value, param->write.len);
-                    if (rx.length())
+                    if (rx.size()>0)
                     {
-                        // dlb->process( rx.c_str(), rx.length(), 7 );
-                        ESP_LOGI(FNAME, ">BT LE RX: %d bytes", rx.length());
-                        ESP_LOG_BUFFER_HEXDUMP(FNAME, rx.c_str(), rx.length(), ESP_LOG_INFO);
+                        ESP_LOGI(FNAME, ">BTLE RX %d bytes: %s", rx.length(), rx.c_str());
                     }
                 }
             }
@@ -217,8 +213,6 @@ public:
                                    &nus_attr, NULL);
 
             char_uuid.uuid.uuid128[12] = 0x03; // TX Characteristic UUID
-            nus_attr.attr_max_len = sizeof(nus_tx_buf);
-            nus_attr.attr_value   = nus_tx_buf;
             esp_ble_gatts_add_char(BLUEnus->service_handle, &char_uuid,
                                    0,
                                    ESP_GATT_CHAR_PROP_BIT_NOTIFY,

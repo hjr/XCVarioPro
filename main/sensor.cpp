@@ -243,32 +243,37 @@ static void grabMPU()
 
 static void toyFeed()
 {
-	if ( ToyNmeaPrtcl ) {
-		if( ahrs_rpyl_dataset.get() ){
-			ToyNmeaPrtcl->sendXcvRPYL(IMU::getRoll(), IMU::getPitch(), IMU::getYaw(), IMU::getGliderAccelZ());
-			ToyNmeaPrtcl->sendXcvAPENV1( ias.get(), altitude.get(), te_vario.get() );
-		}
-		switch( nmea_protocol.get() ) {
-		case BORGELT_P:
-			ToyNmeaPrtcl->sendBorgelt(te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), gflags.validTemperature );
-			ToyNmeaPrtcl->sendXcvGeneric(te_vario.get(), altSTD, tas);
-			break;
-		case OPENVARIO_P:
-			ToyNmeaPrtcl->sendOpenVario(baroP, dynamicP, te_vario.get(), OAT.get(), gflags.validTemperature );
-			break;
-		case CAMBRIDGE_P:
-			ToyNmeaPrtcl->sendCambridge(te_vario.get(), tas, MC.get(), bugs.get(), altitude.get());
-			break;
-		case XCVARIO_P:
-			ToyNmeaPrtcl->sendStdXCVario(baroP, dynamicP, te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), altitude.get(), gflags.validTemperature,
-				IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), IMU::getGliderGyroX(), IMU::getGliderGyroY(), IMU::getGliderGyroZ() );
-			break;
-		default:
-			ESP_LOGE(FNAME,"Protocol %d not supported error", nmea_protocol.get() );
-		}
-	}
+    if (ToyNmeaPrtcl)
+    {
+        if (ahrs_rpyl_dataset.get())
+        {
+            ToyNmeaPrtcl->sendXcvRPYL(IMU::getRoll(), IMU::getPitch(), IMU::getYaw(), IMU::getGliderAccelZ());
+            ToyNmeaPrtcl->sendXcvAPENV1(ias.get(), altitude.get(), te_vario.get());
+        }
+        switch (nmea_protocol.get())
+        {
+        case BORGELT_P:
+            ToyNmeaPrtcl->sendBorgelt(te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), gflags.validTemperature);
+            ToyNmeaPrtcl->sendXcvGeneric(te_vario.get(), altSTD, tas);
+            break;
+        case OPENVARIO_P:
+            ToyNmeaPrtcl->sendOpenVario(baroP, dynamicP, te_vario.get(), OAT.get(), gflags.validTemperature);
+            break;
+        case CAMBRIDGE_P:
+            ToyNmeaPrtcl->sendCambridge(te_vario.get(), tas, MC.get(), bugs.get(), altitude.get());
+            break;
+        case XCVARIO_P:
+            ToyNmeaPrtcl->sendStdXCVario(baroP, dynamicP, te_vario.get(), OAT.get(), ias.get(), tas, MC.get(), bugs.get(), ballast.get(), VCMode.getCMode(), altitude.get(), gflags.validTemperature,
+                                         IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), IMU::getGliderGyroX(), IMU::getGliderGyroY(), IMU::getGliderGyroZ());
+            break;
+        case SEEYOU_P:
+            ToyNmeaPrtcl->sendSeeYou(IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), te_vario.get(), ias.get(), altitude.get(), VCMode.getCMode());
+            break;
+        default:
+            ESP_LOGE(FNAME, "Protocol %d not supported error", nmea_protocol.get());
+        }
+    }
 }
-
 
 void clientLoop(void *pvParameters)
 {
@@ -743,22 +748,30 @@ void readTemp(void *pvParameters)
         }
         esp_task_wdt_reset();
 
-        if ((ttick++ % 50) == 0) {
+        if ((ttick++ % 50) == 0)
+        {
             ESP_LOGI(FNAME, "Free Heap: %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-            if (uxTaskGetStackHighWaterMark(tpid) < 256) {
+            if (uxTaskGetStackHighWaterMark(tpid) < 256)
+            {
                 ESP_LOGW(FNAME, "Warning temperature task stack low: %d bytes", uxTaskGetStackHighWaterMark(tpid));
             }
-            if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000) {
+            if (heap_caps_get_free_size(MALLOC_CAP_8BIT) < 20000)
+            {
                 ESP_LOGW(FNAME, "Warning heap_caps_get_free_size getting low: %d", heap_caps_get_free_size(MALLOC_CAP_8BIT));
             }
             extern MessagePool MP;
             ESP_LOGI(FNAME, "MPool in-use:%d, acq-fails: %d", MP.nrUsed(), MP.nrAcqFails());
 
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+            ESP_LOGI(FNAME, "TofDay %d.%03ds", (int)(tv.tv_sec % (60 * 60 * 24)), (int)(tv.tv_usec / 1000));
+
             // static char buf[2048];
             // vTaskGetRunTimeStats(buf);
             // std::printf("Task runtime stats:\n%s\n", buf);
         }
-        if ((ttick % 5) == 0) {
+        if ((ttick % 5) == 0)
+        {
             SetupCommon::commitDirty();
             // DeviceManager* dm = DeviceManager::Instance();
             // static_cast<TestQuery*>(dm->getProtocol( TEST_DEV2, TEST_P ))->sendTestQuery();  // all 5 seconds on burst

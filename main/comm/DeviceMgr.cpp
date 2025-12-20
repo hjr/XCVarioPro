@@ -115,13 +115,13 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_REAL, &magleg_devsetup}},
     {DeviceId::MAGSENS_DEV, {"MagSens rev1", {{CAN_BUS}}, {{MAGSENS_P}, 1}, 0, IS_REAL, nullptr}}, // auto reg
     {DeviceId::NAVI_DEV,   {"Navi", {{WIFI_APSTA, S1_RS232, S2_RS232, BT_SPP, BT_LE, CAN_BUS}},
-                                    {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
+                                    {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, SEEYOU_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     8880, IS_REAL, &navi_devsetup}},
     {DeviceId::NAVI_DEV,   {"", {{S2_RS232}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     0, IS_REAL, nullptr}},
     {DeviceId::NAVI_DEV,   {"", {{BT_SPP}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     0, IS_REAL, nullptr}},
-    {DeviceId::NAVI_DEV,   {"", {{BT_LE}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
+    {DeviceId::NAVI_DEV,   {"", {{BT_LE}}, {{XCVARIO_P, CAMBRIDGE_P, OPENVARIO_P, BORGELT_P, SEEYOU_P, KRT2_REMOTE_P, ATR833_REMOTE_P}, 1},
                                     0, IS_REAL, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"Flarm Consumer", {{WIFI_APSTA, S2_RS232, BT_SPP, BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, 0, &flarm_host_setup}},
     {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
@@ -201,7 +201,7 @@ std::vector<InterfaceId> DeviceManager::allKnownIntfs()
 constexpr std::pair<ProtocolType, std::string_view> PRTCLS[] = {
     {REGISTRATION_P, "Auto Registration"},
     {XCVSYNC_P, "XCV Sync"},
-    {JUMBOCMD_P, "Jumbo"},
+    {JUMBOCMD_P, "jumbo"},
     {ANEMOI_P, "Anemoi"},
     {FLARM_P, "Flarm"},
     {FLARMHOST_P, "Flarm Consumer"},
@@ -214,6 +214,7 @@ constexpr std::pair<ProtocolType, std::string_view> PRTCLS[] = {
     {OPENVARIO_P, "Open-Vario"},
     {BORGELT_P, "Borgelt"},
     {CAMBRIDGE_P, "Cambridge"},
+    {SEEYOU_P, "SeeYou"},
     {KRT2_REMOTE_P, "KRT2"},
     {ATR833_REMOTE_P, "ATR833"},
     {XCVQUERY_P, "XCV Query"},
@@ -476,8 +477,8 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
     }
     refreshRouteCache();
 
-    if ( nvsave ) { // && (is_new || !pl.empty()) ) {
-        const DeviceAttributes &da = getDevAttr(did);
+    if ( nvsave ) {
+        const DeviceAttributes &da = getDevAttr(did); // grab first hit with nvs entry
         if ( da.nvsetup && dev ) {
             // save it to nvs
             da.nvsetup->set(dev->getNvsData(), false, false);

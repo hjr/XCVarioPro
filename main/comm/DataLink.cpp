@@ -20,6 +20,7 @@
 #include "protocol/nmea/OpenVarioMsg.h"
 #include "protocol/nmea/BorgeltMsg.h"
 #include "protocol/nmea/CambridgeMsg.h"
+#include "protocol/nmea/SeeYouMsg.h"
 #include "protocol/nmea/MagSensMsg.h"
 #include "protocol/nmea/XCVSyncMsg.h"
 #include "protocol/Anemoi.h"
@@ -203,6 +204,15 @@ EnumList DataLink::addProtocol(ProtocolType ptyp, DeviceId did, int sendport)
         ESP_LOGI(FNAME, "New KRT2 Remote");
         tmp = new KRT2Remote(sendport, _sm, *this);
         break;
+    case SEEYOU_P:
+    {
+        ESP_LOGI(FNAME, "New SeeYou");
+        enforceNmea(did, sendport, ptyp);
+        _nmea->addPlugin(new SeeYouMsg(*_nmea));
+        ToyNmeaPrtcl = _nmea;
+        tmp = _nmea;
+        break;
+    }
     case TEST_P:
         ESP_LOGI(FNAME, "New Test Proto");
         // tmp = new TestQuery(did, sendport, _sm, *this); todo, test proto does not fit into scheme any more
