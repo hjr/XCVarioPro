@@ -11,22 +11,87 @@
 #include "comm/DataLink.h"
 #include "comm/Messages.h"
 #include "Units.h"
-
 #include "logdef.h"
 
 #include <cmath>
+#include <string_view>
 
 // The Naviter/SeeYou protocol parser.
 //
 // Supported messages:
+// PLXV0,<Attribute>,R/W,<Value>*CS\r\n
 
+static void send_attr(NmeaPrtcl &nmea, int attridx, float val);
+
+const std::string_view ATTR_ITEM[] = { "MC", "BAL", "BUGS", "QNH", "ELEVATION" };
+SetupNG<float>* const NVS_ITEM[] = { &MC, &ballast_kg, &bugs, &QNH, &airfield_elevation};
+
+dl_action_t SeeYouMsg::gen_query(NmeaPlugin *plg)
+{
+    ESP_LOGI(FNAME, "SeeYou gen_query");
+    // e.g. read message "$PLXV0,MC,W,1.2*CS"
+    NmeaPrtcl &nmea = plg->getNMEA();
+    ProtocolState *sm = nmea.getSM();
+    const std::vector<int> *word = &sm->_word_start;
+
+    if ( word->size() < 3 ) {
+        return NOACTION;
+    }
+
+    int pos = sm->_word_start[0];
+    std::string token = NMEA::extractWord(sm->_frame, pos);
+    ESP_LOGI(FNAME, "SeeYou %d param %d, %s", word->size(), pos, token.c_str());
+    int idx = 0;
+    for (const std::string_view& s : ATTR_ITEM) {
+        if ( token.compare(s) == 0 ) {
+            break;
+        }
+        idx++;
+    }
+    if ( idx >= sizeof(ATTR_ITEM) / sizeof(ATTR_ITEM[0]) ) {
+        return NOACTION;
+    }
+    // todo CONNECTION, NMEARATE
+
+    pos = sm->_word_start[1];
+    bool write = NMEA::extractWord(sm->_frame, pos).c_str()[0] == 'W';
+    if ( write ) {
+        token = NMEA::extractWord(sm->_frame, sm->_word_start[2]);
+        NVS_ITEM[idx]->setCheckRange(std::stof(token));
+        ESP_LOGI(FNAME, "SeeYou set value %.1f", NVS_ITEM[idx]->get());
+    }
+    else {
+        send_attr(nmea, idx, NVS_ITEM[idx]->get());
+    }
+
+    return NOACTION;
+}
 
 const ParserEntry SeeYouMsg::_pt[] = {
+    { Key("LXV0"), SeeYouMsg::gen_query },
     {}
 };
 
+// helper function to send attribute setting
+void send_attr(NmeaPrtcl &nmea, int attridx, float val)
+
+{
+    // e.g. send message "$PLXV0,MC,W,1.2*CS\r\n"
+    Message* msg = nmea.newMessage();
+
+    msg->buffer = "$PLXV0,";
+    msg->buffer += ATTR_ITEM[attridx];
+    msg->buffer += ",W,";
+    char tmp[20];
+    std::sprintf(tmp, "%.1f", val);
+    msg->buffer += tmp;
+    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
+    ESP_LOGD(FNAME, "SeeYou set attr %s", msg->buffer.c_str());
+    DEV::Send(msg);
+}
+
 /*
-    Sentence has following format:
+    Fast sentence has following format:
     $PLXVF, <TIME>, <IMUaccelX>, <IMUaccelY>, <IMUaccelZ>, <VARIO>, <IAS>, <ALT>, <S2FMode>*CS\r\n
     TIME = time since epoch in seconds and millis  (float)
     IMUaccel* = G aspect (float)
@@ -36,7 +101,7 @@ const ParserEntry SeeYouMsg::_pt[] = {
     S2FMODE = 0:1; 0 == vario mode (int)
     CS = standard NMEA checksum
 */
-void NmeaPrtcl::sendSeeYou(float accx, float accy, float accz, float vario, float ias, float alt, bool cruise)
+void NmeaPrtcl::sendSeeYouF(float accx, float accy, float accz, float vario, float ias, float alt, bool cruise)
 {
     if ( _dl.isBinActive() ) {
         return; // no NMEA output in binary mode
@@ -64,8 +129,39 @@ void NmeaPrtcl::sendSeeYou(float accx, float accy, float accz, float vario, floa
     std::sprintf(tmp, ",%1d", !cruise);
 
     msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
-    ESP_LOGD(FNAME, "Borgelt %s", msg->buffer.c_str());
+    ESP_LOGD(FNAME, "SeeYouF %s", msg->buffer.c_str());
     DEV::Send(msg);
 }
 
 
+/*
+    Slow sentence has following format:
+    $PLXVS, <OAT>, <S2FMode>, <VOLTAGE>, <PALT>*CS\r\n
+    OAT = temperature in °C (float)
+    S2FMODE = 0:1; 0 == vario mode (int)
+    VOLTAGE = battery volts (float)
+    ALT = m (float)
+    CS = standard NMEA checksum
+*/
+void NmeaPrtcl::sendSeeYouS(float oat, bool cruise, float volt, float alt)
+{
+    if ( _dl.isBinActive() ) {
+        return;
+    }
+    Message* msg = newMessage();
+
+    msg->buffer = "$PLXVS,";
+    char tmp[50];
+    std::sprintf(tmp, "%.1f", oat);
+    msg->buffer += tmp;
+    std::sprintf(tmp, ",%1d", !cruise);
+    msg->buffer += tmp;
+    std::sprintf(tmp, ",%.1f", volt);
+    msg->buffer += tmp;
+    std::sprintf(tmp, ",%.1f", alt);
+    msg->buffer += tmp;
+
+    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
+    ESP_LOGD(FNAME, "SeeYouS %s", msg->buffer.c_str());
+    DEV::Send(msg);
+}

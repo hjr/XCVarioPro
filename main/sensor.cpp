@@ -240,8 +240,9 @@ static void grabMPU()
 
 }
 
-static void toyFeed()
+static void toyFeed() // Called at 2Hz from clientLoop or sensorloop
 {
+	static int count = 0;
     if (ToyNmeaPrtcl)
     {
         if (ahrs_rpyl_dataset.get())
@@ -266,11 +267,13 @@ static void toyFeed()
                                          IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), IMU::getGliderGyroX(), IMU::getGliderGyroY(), IMU::getGliderGyroZ());
             break;
         case SEEYOU_P:
-            ToyNmeaPrtcl->sendSeeYou(IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), te_vario.get(), ias.get(), altitude.get(), VCMode.getCMode());
+            ToyNmeaPrtcl->sendSeeYouF(IMU::getGliderAccelX(), IMU::getGliderAccelY(), IMU::getGliderAccelZ(), te_vario.get(), ias.get(), altitude.get(), VCMode.getCMode());
+            if ( count%5 == 0 ) ToyNmeaPrtcl->sendSeeYouS(OAT.get(), VCMode.getCMode(), battery_voltage.get(), altitude.get());
             break;
         default:
             ESP_LOGE(FNAME, "Protocol %d not supported error", nmea_protocol.get());
         }
+		count++;
     }
 }
 

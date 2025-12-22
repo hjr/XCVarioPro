@@ -128,7 +128,8 @@ public:
     void sendOpenVario(float baro, float dp, float te, float temp, bool validTemp);
     void sendBorgelt(float te, float temp, float ias, float tas, float mc, int bugs, float aballast, bool cruise, bool validTemp);
     void sendCambridge(float te, float tas, float mc, int bugs, float alt);
-    void sendSeeYou(float accx, float accy, float accz, float vario, float ias, float alt, bool cruise);
+    void sendSeeYouF(float accx, float accy, float accz, float vario, float ias, float alt, bool cruise);
+    void sendSeeYouS(float oat, bool cruise, float volt, float alt);
     void sendXCVCrewWeight(float w);
     void sendXCVEmptyWeight(float w);
     void sendXCVWaterWeight(float v);
