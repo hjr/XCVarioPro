@@ -8,14 +8,12 @@
 
 #include "JumboCmdMsg.h"
 #include "setup/SetupAction.h"
-
 #include "protocol/nmea_util.h"
-
 #include "comm/DeviceMgr.h"
 #include "comm/Messages.h"
+#include "logdef.h"
 
-#include <logdef.h>
-
+#include <string_view>
 #include <cstring>
 
 
@@ -81,24 +79,23 @@ dl_action_t JumboCmdMsg::connected(NmeaPlugin *plg)
     return NOACTION;
 }
 
-typedef std::vector<const char*> TokenTable;
-static TokenTable CONF_ITEM = { "WSPAN", "WSP_1", "LCORR", "RCORR", "WDFLT", "KICIT", "SEQNC", "REMDR", "WCONF"};
+static const std::string_view CONF_ITEM[] = { "WSPAN", "WSP_1", "LCORR", "RCORR", "WDFLT", "KICIT", "SEQNC", "REMDR", "WCONF"};
 
 dl_action_t JumboCmdMsg::config(NmeaPlugin *plg)
 {
     // grab token from e.g. message "$PJPRC WSPAN, "
     ProtocolState *sm = plg->getNMEA().getSM();
-    std::string itoken = sm->_frame.substr(7);
+    std::string token = sm->_frame.substr(7);
     int idx = 0;
-    TokenTable::iterator it = CONF_ITEM.begin();
-    for ( ; it != CONF_ITEM.end(); it++, idx++ ) {
-        if ( itoken.compare(*it) == 0 ) {
+    for (const std::string_view& s : CONF_ITEM) {
+        if ( token.compare(s) == 0 ) {
             break;
         }
+        idx++;
     }
 
     ESP_LOGI(FNAME, "JP config");
-    if ( it == CONF_ITEM.end() ) {
+    if ( idx >= sizeof(CONF_ITEM) / sizeof(CONF_ITEM[0]) ) {
         return NOACTION; // unknown token
     }
     int value = atoi(sm->_frame.substr(13).c_str());
