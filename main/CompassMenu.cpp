@@ -34,7 +34,7 @@ extern AdaptUGC *MYUCG;
 SetupMenuSelect* CompassMenu::menuPtr = nullptr;
 
 // Initialise static members
-SetupNG<float>* CompassMenu::deviations[8] = {
+SetupNG<float>* const CompassMenu::deviations[8] = {
 		&compass_dev_0,
 		&compass_dev_45,
 		&compass_dev_90,

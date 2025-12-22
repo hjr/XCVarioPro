@@ -51,7 +51,7 @@ class CompassMenu
 
   static bool showSensorRawData(SetupMenuSelect *p);
 
-  static SetupNG<float> *deviations[8];
+  static SetupNG<float>* const deviations[8];
 
   // Backup for calibration data
   private:
