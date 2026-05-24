@@ -149,7 +149,7 @@ static int scan_for_master(SetupMenuSelect *p) {
 
 static void options_menu_custom_id(SetupMenu *top)
 {
-    SetupMenuChar *cusid = new SetupMenuChar("Custom-ID", "0A#", 6, RST_NONE, update_id, custom_wireless_id.get().id);
+    SetupMenuChar *cusid = new SetupMenuChar("My Id -", "0A#", 6, RST_NONE, update_id, custom_wireless_id.get().id);
     cusid->setHelp("Select custom ID (SSID) for wireless BT (or WIFI) interface, e.g. D-1234. Restart device to activate");
     top->addEntry(cusid);
 }
@@ -162,12 +162,12 @@ static void connected_devices_menu_create_wifi(SetupMenu *top)
     top->addEntry(wifip);
 
     if ( xcv_role.get() == SECOND_ROLE ) {
-        SetupMenuValFloat *masterid = new SetupMenuValFloat("Master Id XCVario-", "", nullptr, &master_xcvario);
+        SetupMenuValFloat *masterid = new SetupMenuValFloat("Master Id -", "", nullptr, &master_xcvario);
         masterid->setHelp("Connect only to this master XCVario ID");
         masterid->lock();
         top->addEntry(masterid);
     
-        SetupMenuSelect *wifimal = new SetupMenuSelect("Scan for Master", RST_NONE, scan_for_master);
+        SetupMenuSelect *wifimal = new SetupMenuSelect("Search Master", RST_NONE, scan_for_master);
         wifimal->setHelp("Scan for a master XCVario, and lock to it (cancel with button)");
         wifimal->addEntry("Cancel");
         wifimal->addEntry("Scan&Set");

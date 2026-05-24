@@ -6,33 +6,64 @@
 #include <esp_event.h>
 #include <lwip/sockets.h>
 
-#include <list>
 
-extern bool netif_initialized;
+#define NUM_TCP_PORTS 5
+#define MAX_CLIENTS   4
+
+// extern bool netif_initialized;
 extern const char* AP_PASSPHARSE;
 extern const char* SSID_PREFIX;
 extern const char* OTA_SSID;
 
 class WifiApSta;
+extern WifiApSta *WIFI; // global wifi access
 
-#define NUM_TCP_PORTS 5
-
-typedef struct client_record {
-	int peer;
-	int retries;
-	struct sockaddr_in clientAddress;
-}peer_record_t;
-
-struct sock_server_t {
-	sock_server_t(int p) : port(p) {};
-	int create_ap_socket();
-	int connect_sta_socket();
-	// This should store the handle to send data of the port
-	const int port;
-	bool is_ap = true;
+struct peer_record {
 	int sock_hndl = -1;
-	std::list<peer_record_t> peers;
-	bool alive = false;
+	int retries = 0;
+	struct sockaddr_in clientAddress;
+};
+
+enum SocketState : uint8_t {
+    DOWN,
+    WAIT_IP,    // only for station mode
+    HAVE_IP,
+    CONNECTED,
+    LISTENING   // only for AP mode
+};
+
+struct sock_ctrl_t {
+    sock_ctrl_t(int p);
+    int create_ap_socket();
+    int connect_sta_socket(esp_ip4_addr* ip_info);
+    int nextFreePeer();
+    void removePeer(int idx);
+    void removeAllPeers();
+    void addPeer(int peer_sock, struct sockaddr_in clientAddress);
+    // handle to send data of the port
+    const int port;
+    int sock_hndl = -1;
+    peer_record peers[MAX_CLIENTS];
+    uint8_t _nr_peers = 0;
+    uint8_t is_ap : 1 = true;
+    uint8_t sta_auth_ok : 1 = true;  // set to false on a authentication failure
+    uint8_t alive : 1 = false;
+    uint8_t state : 5 = SocketState::DOWN;
+};
+
+struct NetState {
+    enum StaState : uint8_t {WIFI_OFF, WIFI_STARTED, WIFI_CONNECTED, WIFI_GOT_IP, WIFI_STA_UP };
+    StaState wifi  : 4;
+    int8_t  nrsock : 4; // nr of open sockets
+    SemaphoreMutex _m;
+    constexpr NetState() : wifi(WIFI_OFF), nrsock(0) {}
+    bool isSockOpen() const { return nrsock > 0; }
+    bool isStaUp() const { return wifi == WIFI_STA_UP; }
+    // bool isStaGotIP() const { return wifi == WIFI_GOT_IP; }
+    void reset();
+    void operator++(int);
+    void operator--(int);
+    void setStaState(StaState s);
 };
 
 class WifiApSta final : public InterfaceCtrl
@@ -59,9 +90,9 @@ public:
 	bool scanMaster(int master_xcv_num);
 
 private:
-	sock_server_t *_socks[NUM_TCP_PORTS];
+    NetState state = {};
+	sock_ctrl_t *_socks[NUM_TCP_PORTS];
 	TaskHandle_t socket_server_task_pid = nullptr;
-	bool _terminte_sock_server = false;
 	esp_netif_t *_ap_netif = nullptr;
 	esp_netif_t *_sta_netif = nullptr;
 	esp_event_handler_instance_t _wifi_evnt_handler = nullptr;
@@ -69,7 +100,6 @@ private:
 
 	// internal functionality
 	bool initialize_wifi(bool ap_mode, int maxcon, const char* ssid);
-	void client_connect();
+	void client_reconnect();
 };
 
-extern WifiApSta *WIFI;
