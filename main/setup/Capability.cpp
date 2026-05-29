@@ -6,9 +6,9 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-#include "CANPeerCaps.h"
+#include "Capability.h"
 
-#include "InterfaceCtrl.h"
+#include "comm/InterfaceCtrl.h"
 #include "comm/Devices.h"
 #include "comm/DeviceMgr.h"
 #include "setup/SetupNG.h"

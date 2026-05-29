@@ -10,7 +10,7 @@
 
 #include "protocol/nmea_util.h"
 #include "driver/time/Clock.h"
-#include "protocol/CANPeerCaps.h"
+#include "setup/Capability.h"
 #include "comm/DeviceMgr.h"
 #include "comm/Messages.h"
 #include "setup/SetupNG.h"

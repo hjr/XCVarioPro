@@ -27,7 +27,7 @@
 #include "protocol/MagSensBin.h"
 #include "protocol/NMEA.h"
 #include "protocol/nmea/XCVSyncMsg.h"
-#include "protocol/CANPeerCaps.h"
+#include "setup/Capability.h"
 #include "screen/ScreenRoot.h"
 #include "screen/BootUpScreen.h"
 #include "screen/MessageBox.h"
