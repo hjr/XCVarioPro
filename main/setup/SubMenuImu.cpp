@@ -382,7 +382,7 @@ static int imu_status_action(SetupMenuDisplay *p, int mode) {
     while (true) {
         int idx = 0;
         p->menuPrintLn("Accelerometer [g]:", idx++);
-        if (Rotary->readSwitch(200)) {
+        if (Rotary->readSwitch(200)) { // fixme this supresses eg a Flarm alarm
             // exit by press;
             break;
         }
@@ -425,7 +425,11 @@ static int imu_status_action(SetupMenuDisplay *p, int mode) {
         vector_f att = accSensor->getAttVector();
         snprintf(buf, sizeof(buf), "  AttVec (%.2f/%.2f/%.2f)  ", att.x, att.y, att.z);
         p->menuPrintLn(buf, idx++);
-        snprintf(buf, sizeof(buf), "  Omega %.2f/%.2f  ", accSensor->getCircleOmegaENUDeg(), rad2deg(gpsSensor->getOmega()));
+        float ang = 0.f;
+        if ( gpsSensor ) {
+            ang = rad2deg(gpsSensor->getOmega());
+        }
+        snprintf(buf, sizeof(buf), "  Omega %.2f/%.2f  ", accSensor->getCircleOmegaENUDeg(), ang);
         p->menuPrintLn(buf, idx++);
     }
     p->exit();

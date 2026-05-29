@@ -76,7 +76,14 @@ void GyroMPU6050::postProcess() {
     _processed.x = abs(_processed.x) < gate ? 0.0 : _processed.x;
     _processed.y = abs(_processed.y) < gate ? 0.0 : _processed.y;
     _processed.z = abs(_processed.z) < gate ? 0.0 : _processed.z;
-    float omegalp = _gps_omega_lpf.filter(gpsSensor->getOmega());
+    float omegalp;
+    if ( gpsSensor ) {
+        // preferable use the GPS based omega
+        omegalp = _gps_omega_lpf.filter(gpsSensor->getOmega());
+    } else {
+        // fall back to the gate exceeding gyro norm
+        omegalp = _gps_omega_lpf.filter(_processed.get_norm());
+    }
     bool rest = detectRest() && accSensor->isResting() && abs(omegalp) < Units::deg_to_rad(1.5f);
 
     // feed the bias filter
