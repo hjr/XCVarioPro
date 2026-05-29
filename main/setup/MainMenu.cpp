@@ -381,17 +381,22 @@ static void vario_menu_create_s2f(SetupMenu *top) {
 }
 
 static void vario_menu_create_tek(SetupMenu *top) {
-	SetupMenuSelect *enac = new SetupMenuSelect("TEK", RST_NONE, nullptr, &te_comp_enable);
-	enac->setHelp("Probe and electronic TE compensation options");
-	enac->addEntry("Probe");
-	enac->addEntry("ePOT");
-	enac->addEntry("ePRESSURE");
-	enac->addEntry("eMIX", VarioFilter::TE_TEK_MIX);
-	top->addEntry(enac);
+    if ( SetupCommon::isClient() ) {
+        // hint that this will affect the master
+        SetupMenuSelect* text = new SetupMenuSelect("applies all to Master");
+        text->lock();
+        top->addEntry(text);
+    }
 
-	SetupMenuValFloat *elca = new SetupMenuValFloat("eAdjustment", "%", nullptr, &te_comp_adjust, RST_NONE, false);
-	elca->setHelp("Electronic tube factor as deviation from ideal -1 in %");
-	top->addEntry(elca);
+    SetupMenuSelect* enac = new SetupMenuSelect("Method", RST_NONE, nullptr, &te_comp_enable);
+    enac->setHelp("Probe or electronic TE compensation");
+    enac->addEntry("Probe");
+    enac->addEntry("eComp");
+    top->addEntry(enac);
+
+    SetupMenuValFloat* elca = new SetupMenuValFloat("eAdjustment", "%", nullptr, &te_comp_adjust, RST_NONE, false);
+    elca->setHelp("Electronic correction factor off from lossless \"100%\"");
+    top->addEntry(elca);
 }
 
 static void bugs_item_create(SetupMenu *top) {
@@ -425,31 +430,27 @@ static void vario_menu_create(SetupMenu *vae) {
 	vae->addEntry(vlogscale);
 
 	SetupMenuSelect *vamod = new SetupMenuSelect("Mode", RST_NONE, nullptr, &vario_mode);
-	vamod->setHelp(
-			"Controls if vario considers polar sink (=netto), or not (=gross), or if Netto vario applies only in Cruise Mode");
+	vamod->setHelp("Vario indicator considers polar sink (=netto), or not (=gross), or net only in Cruise Mode");
 	vamod->addEntry("Gross");
 	vamod->addEntry("Netto");
 	vamod->addEntry("Cruise-Netto");
 	vae->addEntry(vamod);
 
 	SetupMenuSelect *nemod = new SetupMenuSelect("Netto Mode", RST_NONE, nullptr, &netto_mode);
-	nemod->setHelp(
-			"In 'Relative' mode (also called 'Super-Netto') circling sink is considered,  to show climb rate as if you were circling there");
+	nemod->setHelp("Super-Netto considers circling sink, showing vario rate as if you were circling there");
 	nemod->addEntry("Normal");
-	nemod->addEntry("Relative");
+	nemod->addEntry("Super-Netto");
 	vae->addEntry(nemod);
 
 	SetupMenu *vdamp = new SetupMenu("Vario Damping", vario_menu_create_damping);
 	vae->addEntry(vdamp);
 
-	SetupMenu *meanclimb = new SetupMenu("Mean Climb", vario_menu_create_meanclimb);
-	meanclimb->setHelp("Options for calculation of Mean Climb (MC recommendation) displayed by green/red dot");
+	SetupMenu *meanclimb = new SetupMenu("AVG Climb", vario_menu_create_meanclimb);
+	meanclimb->setHelp("Parameter for Average Climb (MC recommendation) displayed by green/red dot");
 	vae->addEntry(meanclimb);
 
-    if ( SetupCommon::isMaster() ) {
-        SetupMenu *elco = new SetupMenu("TE Compensation", vario_menu_create_tek);
-        vae->addEntry(elco);
-    }
+    SetupMenu *elco = new SetupMenu("TE Compensation", vario_menu_create_tek);
+    vae->addEntry(elco);
 }
 
 static void options_menu_create_units(SetupMenu *top) {
