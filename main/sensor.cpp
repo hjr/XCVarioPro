@@ -346,7 +346,7 @@ void readSensors(void *pvParameters)
             }
         }
 
-        // every second
+        // every second todo convert into a sensor
         if ( !(count%10) ) {
             // battery voltage update
             if ( SetupCommon::isMaster() ) {
