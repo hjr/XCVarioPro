@@ -29,7 +29,6 @@ private:
     ~FlarmSim();
 
     int     _tick_count = -5;
-    bool    _done = false;
     Device  *_d; // hijacked device
     // Active flagging instance
     static FlarmSim *_sim;

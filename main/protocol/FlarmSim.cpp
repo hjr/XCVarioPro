@@ -65,7 +65,6 @@ bool FlarmSim::tick()
         vector_f own_pos{0., 0., 0.};
         vector_f o_to_t = _target_pos - own_pos;
         int dist = o_to_t.get_norm();
-        if ( dist > 700 || _tick_count > 20 ) { _done = true; ESP_LOGI(FNAME,"done"); }
         int bear = rad2deg( -fast_atan2(o_to_t.y, o_to_t.x) );
         int vert = o_to_t.z;
         int levl = 0;
@@ -100,11 +99,12 @@ bool FlarmSim::tick()
         _target_inc = q.rotate(_target_inc);  
         _target_pos += _target_inc;
         _target_pos.x -= 27.f; // ownship at 100km/h
-    }
+        if ( dist > 700 || _tick_count > 20 ) {
+            ESP_LOGI(FNAME,"done");
+            delete this;
+            return true;
+        }
 
-    if ( _done ) {
-        delete this;
-        return true;
     }
 
     _tick_count++;
@@ -126,9 +126,6 @@ FlarmSim::FlarmSim(Device *d, const SIMRUN *sv) :
 
 FlarmSim::~FlarmSim()
 {
-    InterfaceCtrl *ic = _d->_itf;
-    // Reconnect datalink
-    ic->addDataLink(_d->_link);
     _sim = nullptr;
 }
 
@@ -142,9 +139,7 @@ void FlarmSim::StartSim(int variant)
         Device *d = DEVMAN->getDevice(FLARM_DEV);
         if ( d ) {
             ESP_LOGI(FNAME,"Found Flarm %d", d->_id);
-            // a Flarm is connected
-            InterfaceCtrl *ic = d->_itf;
-            ic->MoveDataLink(0); // the device has a backup of the data link pointer
+            // a Flarm is connected, inject here
             _sim = new FlarmSim(d, simVariant + variant);
         }
 
