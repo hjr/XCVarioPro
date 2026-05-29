@@ -62,7 +62,7 @@ typedef enum e_cruise_audio { AUDIO_S2F, AUDIO_VARIO } e_cruise_audio_2;
 typedef enum e_vario_mode { VARIO_BRUTTO, VARIO_NETTO, CRUISE_ONLY_NETTO } e_vario_mode_t;
 typedef enum e_netto_mode { NETTO_NORMAL, NETTO_RELATIVE } e_netto_mode_t;
 typedef enum e_screen_mode { SCREEN_OFF, SCREEN_DYNAMIC, SCREEN_ON, SCREEN_PRIMARY } e_screen_mode_t;
-enum e_windanalyser_mode { WA_OFF=0, WA_STRAIGHT=1, WA_CIRCLING=2, WA_BOTH=3, WA_EXTERNAL=4 }; // do nto change (bit-field)
+enum e_windanalyser_mode { WA_OFF=0, WA_STRAIGHT=1, WA_CIRCLING=2, WA_BOTH=3, WA_EXTERNAL=4 }; // do not change (bit-field)
 enum e_logging { LOGG_DISABLE, LOGG_WIND, LOGG_GYRO_MAG, LOGG_BOTH, LOGG_RAW_SENSOR_DATA }; // bit field (!)
 enum class quantity_t : uint8_t { QUANT_NONE, QUANT_TEMPERATURE, QUANT_ALT, QUANT_HSPEED, QUANT_HSLEGACY, QUANT_VSPEED, QUANT_QNH, QUANT_MASS, QUANT_TIME };
 enum temperature_unit_t { T_CELCIUS, T_FAHRENHEIT, T_KELVIN };
@@ -265,7 +265,7 @@ extern SetupNG<float>  		deadband_neg;
 
 extern SetupNG<float>  		wifi_max_power;
 extern SetupNG<int>  		factory_reset;
-extern SetupNG<int>  		factory_menu;
+extern SetupNG<int>  		normal_setup;
 extern SetupNG<int>  		alt_select;
 extern SetupNG<int>  		fl_auto_transition;
 extern SetupNG<int>  		alt_display_mode;

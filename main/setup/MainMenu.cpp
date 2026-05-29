@@ -76,7 +76,7 @@ static int factory_nvs_action(SetupMenuSelect* p) {
         p->reBoot();
     }
     else if (p->getValue() == 3) {
-        factory_menu.set(0);
+        normal_setup.set(0);
     }
     return 0;
 }
@@ -291,7 +291,7 @@ static int exitFactoryMenu(SetupMenuSelect* p){
         else
 #endif
         {
-            factory_menu.set(1); // dont show it any more
+            normal_setup.set(1); // dont show it any more
             p->setTerminateMenu();
         }
     }

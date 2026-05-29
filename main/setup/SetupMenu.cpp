@@ -12,6 +12,7 @@
 
 #include "setup/SetupNG.h"
 #include "setup/SetupMenuSelect.h"
+#include "setup/SetupMenuValFloat.h"
 #include "logdefnone.h"
 
 #include <algorithm>
@@ -26,6 +27,10 @@ int set_parent_parent_dirty(SetupMenuSelect* p) {
     return 0;
 }
 int set_parent_dirty(SetupMenuSelect* p) {
+    p->getParent()->setDirty();
+    return 0;
+}
+int set_parent_dirty(SetupMenuValFloat* p) {
     p->getParent()->setDirty();
     return 0;
 }
@@ -240,8 +245,7 @@ void SetupMenu::press()
 {
 	ESP_LOGI(FNAME,"press() inSet %d highl: %d", gflags.inSetup, highlight );
 	if (highlight == -1) {
-        if (factory_menu.get()) { // lock factory menu
-            _parent->highlightTop();
+        if (normal_setup.get()) { // lock factory menu
             exit();
         }
 	} else {
@@ -255,7 +259,7 @@ void SetupMenu::press()
 void SetupMenu::longPress()
 {
 	if (highlight == -1) {
-        if (factory_menu.get()) { // lock factory menu
+        if (normal_setup.get()) { // lock factory menu
             exit(-1); // fast exit
         }
 	} else {
