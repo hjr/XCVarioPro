@@ -446,8 +446,10 @@ static void vario_menu_create(SetupMenu *vae) {
 	meanclimb->setHelp("Options for calculation of Mean Climb (MC recommendation) displayed by green/red dot");
 	vae->addEntry(meanclimb);
 
-	SetupMenu *elco = new SetupMenu("TE Compensation", vario_menu_create_tek);
-	vae->addEntry(elco);
+    if ( SetupCommon::isMaster() ) {
+        SetupMenu *elco = new SetupMenu("TE Compensation", vario_menu_create_tek);
+        vae->addEntry(elco);
+    }
 }
 
 static void options_menu_create_units(SetupMenu *top) {
@@ -526,7 +528,7 @@ static void options_menu_create_altimeter(SetupMenu *top) {
 		// only the master XCV has this choice
 		SetupMenuSelect *als = new SetupMenuSelect("Alt. Source", RST_NONE, SetupMenu::switch_alt_source, &alt_select);
 		top->addEntry(als);
-		als->setHelp("Select source for the altitude, either TE sensor or Baro sensor (default), or an external source e.g. FLARM");
+		als->setHelp("Select source for the altitude, either TE sensor or Baro sensor (default), or the GPS e.g. FLARM");
 		als->addEntry("Baro Sensor", ALT_BARO_SENSOR);
 		als->addEntry("TE Sensor", ALT_TE_SENSOR);
 		als->addEntry("GPS/FLARM", ALT_EXTERNAL);
@@ -554,12 +556,12 @@ static void options_menu_create_flarm(SetupMenu* top) {
         flarml->addEntry("Level 3", 3);
         top->addEntry(flarml);
 
-        SetupMenuValFloat* flarmt = new SetupMenuValFloat("Alarm Timeout", "sec", nullptr, &flarm_alarm_time);
-        flarmt->setHelp("The time FLARM alarm warning keeps displayed after alarm went off");
+        SetupMenuValFloat* flarmt = new SetupMenuValFloat("Timeout", "sec", nullptr, &flarm_alarm_time);
+        flarmt->setHelp("The FLARM warning stays on the screen after the alarm went off");
         top->addEntry(flarmt);
 
         SetupMenuSelect* flarms = new SetupMenuSelect("Check", RST_NONE, startFlarmSimulation);
-        flarms->setHelp("Simulate an airplane crossing from left to right with different alarm levels and vertical distance in 5 seconds");
+        flarms->setHelp("Check out the traffic alarm with different levels etc. (in 5 seconds)");
         flarms->addEntry("Cancel");
         flarms->addEntry("Cross Deeper");
         flarms->addEntry("Cross Higher");
@@ -709,7 +711,7 @@ static void options_menu_create(SetupMenu *opt) { // dynamic!
 		opt->addEntry(alti);
         alti->setHelp("Altitude reference, display modes"); 
 
-		SetupMenu *flarm = new SetupMenu("FLARM", options_menu_create_flarm);
+		SetupMenu *flarm = new SetupMenu("Traffic Alarm", options_menu_create_flarm);
 		opt->addEntry(flarm);
 		flarm->setHelp("FLARM alarm level, timeout");
 
@@ -791,8 +793,10 @@ static void system_menu_create_battery(SetupMenu *top) {
 	SetupMenuValFloat *bfull = new SetupMenuValFloat("Full", "Volt ", nullptr, &bat_full_volt, RST_NONE, false);
 	top->addEntry(bfull);
 
-	SetupMenuValFloat *met_adj = SetupMenu::createVoltmeterAdjustMenu();
-	top->addEntry(met_adj);
+    if ( SetupCommon::isMaster() ) {
+        SetupMenuValFloat *met_adj = SetupMenu::createVoltmeterAdjustMenu();
+        top->addEntry(met_adj);
+    }
 }
 
 
@@ -800,19 +804,19 @@ static void system_menu_create_hardware_type(SetupMenu *top) {
 	// Display Orientation
 	SetupMenuSelect * diso = new SetupMenuSelect( "Orientation", RST_ON_EXIT, nullptr, &display_orientation );
 	top->addEntry( diso );
-	diso->setHelp( "Display Orientation.  NORMAL means Rotary on left, TOPDOWN means Rotary on right  (reboots). A change will reset the IMU reference.");
+	diso->setHelp( "NORMAL means Rotary on left (reboots). A change will reset the IMU reference.");
 	diso->addEntry( "NORMAL");
 	diso->addEntry( "TOPDOWN");
     if ( gflags.expert ) {
         diso->addEntry( "NINETY");
     }
 
-	SetupAction *dtest = new SetupAction("Display Test", do_display_test, 0);
+	SetupAction *dtest = new SetupAction("Pixel Test", do_display_test, 0);
 	dtest->setHelp("Start display test screens, press rotary to cancel");
 	top->addEntry(dtest);
 
 #ifdef DEBUG_AND_TEST
-	SetupMenuValFloat *dcadj = new SetupMenuValFloat("Display Clk Adj", "%", nullptr, &display_clock_adj, RST_IMMEDIATE);
+	SetupMenuValFloat *dcadj = new SetupMenuValFloat("Bus Clk Adj", "%", nullptr, &display_clock_adj, RST_IMMEDIATE);
 	dcadj->setHelp("Modify display clock by given percentage (restarts on exit)");
 	top->addEntry(dcadj);
 #endif
@@ -842,11 +846,11 @@ static void system_menu_create_hardware_rotary(SetupMenu *top) {
 	sact->addEntry("Long Press");
 }
 
-static void system_menu_create_hardware(SetupMenu *top) {
+static void system_menu_create_hardware(SetupMenu *top) { // dynamic!
     if (top->getNrChilds() == 0) {
         top->setDynContent();
 
-        SetupMenu* display = new SetupMenu("Display Type", system_menu_create_hardware_type);
+        SetupMenu* display = new SetupMenu("Display", system_menu_create_hardware_type);
         top->addEntry(display);
 
         SetupMenu* rotary = new SetupMenu("Rotary Knob", system_menu_create_hardware_rotary);
@@ -871,9 +875,11 @@ static void system_menu_create_hardware(SetupMenu *top) {
 		gear->addEntry("S2 RS232 negative");
 		gear->addEntry("External");  // A $g,w<n>*CS command from an external device
 
-        // Airspeed
-        SetupMenu* velocity = new SetupMenu("Airspeed", system_menu_create_airspeed);
-        top->addEntry(velocity);
+        if ( SetupCommon::isMaster() ) {
+            // Airspeed
+            SetupMenu* velocity = new SetupMenu("Airspeed", system_menu_create_airspeed);
+            top->addEntry(velocity);
+        }
 
         if (accSensor) {
             SetupMenu* ahrs = new SetupMenu("IMU & AHRS", system_menu_create_hardware_imu);
