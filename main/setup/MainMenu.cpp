@@ -416,7 +416,7 @@ static void wiper_menu_create(SetupMenu *top) {
 static void vario_menu_create(SetupMenu *vae) {
 	ESP_LOGI(FNAME,"SetupMenu::vario_menu_create( %p )", vae );
 
-	SetupMenuValFloat *vga = new SetupMenuValFloat("Range", "", audio_setup_f, &scale_range, RST_NONE, false);
+	SetupMenuValFloat *vga = new SetupMenuValFloat("Range", "", nullptr, &scale_range, RST_NONE, false);
 	vga->setHelp("Upper and lower value for Vario scale range");
 	vga->setPrecision(0);
 	vae->addEntry(vga);
@@ -886,18 +886,20 @@ static void system_menu_create_hardware(SetupMenu *top) {
         top->addEntry(bat);
     }
     SetupMenu* wkm = static_cast<SetupMenu*>(top->getEntry(3));  // Flap Sensor
-    if (Speed2Fly.hasFlaps()) {
+    if (Speed2Fly.hasFlaps() && ! XcvCaps::isPeerCap(XcvCaps::FLAPSENS_CAP)) {
         wkm->unlock();
         if (flap_sensor.get()) {
             wkm->setBuzzword(ENABLE_MODE[1].data());  // enabled
-        } else if (Flap::sensAvailable()) {
-            wkm->setBuzzword(ENABLE_MODE[4].data());  // from peer
         } else {
             wkm->setBuzzword(ENABLE_MODE[0].data());  // disabled
         }
     } else {
         wkm->lock();
-        wkm->setBuzzword("n/a");
+        if ( XcvCaps::isPeerCap(XcvCaps::FLAPSENS_CAP) ) {
+            wkm->setBuzzword(ENABLE_MODE[4].data());  // from peer
+        } else {
+            wkm->setBuzzword("n/a");
+        }
     }
 }
 
@@ -1045,8 +1047,11 @@ void SetupMenu::initGearWarning() {
 		gpio_set_pull_mode(io, GPIO_PULLUP_ONLY);
 		gpio_pullup_en(io);
         // add gear warn to my caps
-        CANPeerCaps::addCapability(XcvCaps::GEARSENS_CAP);
+        XcvCaps::addToMine(XcvCaps::GEARSENS_CAP);
 	}
+    else {
+        XcvCaps::removeFromMine(XcvCaps::GEARSENS_CAP);
+    }
 	ESP_LOGI(FNAME,"initGearWarning: IO: %d", io );
 }
 

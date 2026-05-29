@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "setup/Capability.h"
 #include "math/Units.h"
 
 #include <cmath>
@@ -107,7 +108,7 @@ public:
     float getFlapPosition() const;
 
     // sensor access
-    static bool sensAvailable();
+    static inline bool sensAvailable() { return XcvCaps::haveCap(XcvCaps::FLAPSENS_CAP); }
     bool haveAdcSensor() const { return sensorAdc != nullptr; }
     void configureADC();
     int getSensorRaw() const;

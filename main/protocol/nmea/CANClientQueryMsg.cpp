@@ -126,7 +126,7 @@ dl_action_t CANClientQueryMsg::registration(NmeaPlugin *plg)
             master_caps = std::stoi(NMEA::extractWord(sm->_frame, pos));
             ESP_LOGI(FNAME, "Mcaps received 0x%x", master_caps);
             peer_caps.set(master_caps);
-            CANPeerCaps::setupPeerProtos(c_id, m_id);
+            XcvCaps::setupPeerProtos(c_id, m_id);
         }
     }
     return NOACTION;

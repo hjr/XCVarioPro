@@ -661,7 +661,7 @@ void system_startup(void *args){
     // The once permanently configured temp sensor is used as indication to infinitely trying to reconnect to it.
     if (dev) {
         // publish this cabability
-        CANPeerCaps::addCapability(XcvCaps::TEMP_CAP);
+        XcvCaps::addToMine(XcvCaps::TEMP_CAP);
     }
 
     ESP_LOGI(FNAME, "Wirelss-ID: %s", SetupCommon::getID());
@@ -691,7 +691,7 @@ void system_startup(void *args){
     if (accSensor) {
         // ok a MPU got probed already
         // add AHRS to my caps
-        CANPeerCaps::addCapability(XcvCaps::AHRS_CAP);
+        XcvCaps::addToMine(XcvCaps::AHRS_CAP);
         ESP_LOGI(FNAME, "MPU setup");
         if (accSensor->setup()) { // after CAN bus self test !
             vector_f accelG, sum;

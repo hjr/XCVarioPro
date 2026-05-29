@@ -467,18 +467,18 @@ SetupNG<second_t>  		s2f_auto_lag( "S2F_HYST", 5, true, SYNC_BIDIR, PERSISTENT, 
 
 						// set audio volume exclusively through the Audio class
 SetupNG<float> 			audio_volume("AUD_VOL", 10, true, SYNC_BIDIR, VOLATILE, change_volume, quantity_t::QUANT_NONE, &percentage_limits);
-SetupNG<float>  		default_volume( "DEFAULT_VOL", 25.0, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, &percentage_limits);
-SetupNG<float>          alarm_volraise( "FLARM_VOL", 40, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, &percentage_limits);
-SetupNG<int>  			audio_split_vol( "AUD_SPLIT", 0, true, SYNC_BIDIR );
-SetupNG<int>  			audio_range( "AUDIO_RANGE" , AUDIO_RANGE_5_MS, true, SYNC_BIDIR );
-SetupNG<float>  		center_freq( "AUDIO_CENTER_F", 500.0, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(200.0, 2000.0, 10.0));
-SetupNG<float>  		tone_var( "OCTAVES", 2.0, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(1.2, 4, 0.05));
-SetupNG<int>  			dual_tone( "DUAL_TONE", 0, true, SYNC_BIDIR );
-SetupNG<int>  			chopping_mode( "CHOPPING_MODE", BOTH_CHOP, true, SYNC_BIDIR );
-SetupNG<int>  			audio_harmonics( "AUD_HARMONICS" , AUD_HARM_HIGH, true, SYNC_BIDIR );
-SetupNG<float>		    audio_factor( "AUDIO_FACTOR", 1, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(0.1, 2, 0.025));
-SetupNG<float>  		deadband( "DEADBAND", 0.3, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_VSPEED, LIMITS(.0, 5.0, 0.1));
-SetupNG<float>  		deadband_neg("DEADBAND_NEG" , -0.3, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_VSPEED, LIMITS(-5.0, .0, 0.1));
+SetupNG<float>  		default_volume( "DEFAULT_VOL", 25.0, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_NONE, &percentage_limits);
+SetupNG<float>          alarm_volraise( "FLARM_VOL", 40, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_NONE, &percentage_limits);
+SetupNG<int>  			audio_split_vol( "AUD_SPLIT", 0, true, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<int>  			audio_range( "AUDIO_RANGE" , AUDIO_RANGE_5_MS, true, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<float>  		center_freq( "AUDIO_CENTER_F", 500.0, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_NONE, LIMITS(200.0, 2000.0, 10.0));
+SetupNG<float>  		tone_var( "OCTAVES", 2.0, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_NONE, LIMITS(1.2, 4, 0.05));
+SetupNG<int>  			dual_tone( "DUAL_TONE", 0, true, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<int>  			chopping_mode( "CHOPPING_MODE", BOTH_CHOP, true, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<int>  			audio_harmonics( "AUD_HARMONICS" , AUD_HARM_HIGH, true, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<float>		    audio_factor( "AUDIO_FACTOR", 1, true, SYNC_NONE, PERSISTENT, change_audio, quantity_t::QUANT_NONE, LIMITS(0.1, 2, 0.025));
+SetupNG<float>  		deadband( "DEADBAND", 0.3, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_VSPEED, LIMITS(.0, 5.0, 0.1));
+SetupNG<float>  		deadband_neg("DEADBAND_NEG" , -0.3, true, SYNC_BIDIR, PERSISTENT, change_audio, quantity_t::QUANT_VSPEED, LIMITS(-5.0, .0, 0.1));
 
 SetupNG<float>  		wifi_max_power( "WIFI_MP" , 50, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(10.0, 100.0, 5.0));
 SetupNG<int>  			factory_reset( "FACTORY_RES" , 0, true ); // factory reset flag
@@ -559,7 +559,7 @@ SetupNG<int>		    wk_sens_pos_6("WK_SP_6", 0, false );
 SetupNG<int>            stall_warning( "STALL_WARN", 0, true, SYNC_BIDIR, PERSISTENT );
 SetupNG<int>            flarm_warning( "FLARM_LEVEL", 1, true, SYNC_BIDIR, PERSISTENT );
 SetupNG<second_t>       flarm_alarm_time( "FLARM_ALM", 5, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(1, 15, 1));
-SetupNG<int>            flap_sensor( "FLAP_SENS", FLAP_SENSOR_DISABLE, false, SYNC_NONE, PERSISTENT, flap_act);
+SetupNG<int>            flap_sensor( "FLAP_SENS", 0, false, SYNC_NONE, PERSISTENT, flap_act);
 // SetupNG<float>          compass_dev_0( "CP_DEV_0", 0 );
 // SetupNG<float>          compass_dev_45( "CP_DEV_45", 0 );
 // SetupNG<float>          compass_dev_90( "CP_DEV_90", 0 );
@@ -648,8 +648,8 @@ SetupNG<float>  			leak_test_loss("LEAK_TEST", 0.0, false );
 // Master or Second device role
 SetupNG<int> 			xcv_role("XCVROLE", MASTER_ROLE, false, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(MASTER_ROLE, SECOND_ROLE, 1));
 // Bitfield to exchange status on connected devices between master and second
-SetupNG<int> 			my_caps("MACAPS", 0, false, SYNC_NONE, VOLATILE, propagate_caps );
-SetupNG<int>			peer_caps("SECAPS", 0, false, SYNC_NONE, VOLATILE );
+SetupNG<int> 			my_caps("MCAPS", 0, false, SYNC_NONE, VOLATILE, propagate_caps );
+SetupNG<int>			peer_caps("PCAPS", 0, false, SYNC_NONE, VOLATILE );
 // Connected device entries persistance
 SetupNG<DeviceNVS>		anemoi_devsetup("ANEMOI", DeviceNVS() );
 SetupNG<DeviceNVS>		flarm_devsetup("FLARM", DeviceNVS() );

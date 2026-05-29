@@ -145,7 +145,8 @@ dl_action_t XCVSyncMsg::parse_caps(NmeaPlugin *plg)
         return NOACTION;
     }
 
-    int pos = word->at(1);
+    int pos = word->at(0);
+    ESP_LOGI(FNAME,"parse_caps: %s pos %d", sm->_frame.c_str(), pos );
     int caps = std::stoi(NMEA::extractWord(sm->_frame, pos));
     peer_caps.set(caps);
     ESP_LOGI(FNAME, "XCV CAPS received %x", caps);

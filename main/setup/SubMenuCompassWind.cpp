@@ -1,20 +1,16 @@
 
 #include "SubMenuCompassWind.h"
 
-// #include "comm/Devices.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuValFloat.h"
-// #include "sensor/mag/MagVSensor.h"
+#include "setup/Capability.h"
 
 #include "ShowCirclingWind.h"
 #include "ShowStraightWind.h"
-// #include "comm/DeviceMgr.h"
 #include "setup/SetupNG.h"
 #include "wind/WindCalcTask.h"
-// #include "math/vector_3d.h"
 #include "AdaptUGC.h"
-// #include "Colors.h"
 #include "logdefnone.h"
 
 #include <cstdlib>
@@ -363,11 +359,10 @@ void options_menu_create_compasswind_circlingwind(SetupMenu *top) {
 void options_menu_create_wind(SetupMenu *top) {
 	// Wind speed observation window
 	SetupMenuSelect *windcal = new SetupMenuSelect("Source", RST_NONE, windResourcesAction, &wind_enable);
-	// windcal->addEntry("Disable", WA_OFF, 0);
-	// windcal->addEntry("Straight", WA_STRAIGHT);
-	// windcal->addEntry("Circling", WA_CIRCLING);
 	windcal->addEntry("XCVario", WA_BOTH);
-	windcal->addEntry("External", WA_EXTERNAL);
+    if ( XcvCaps::haveCap(XcvCaps::EXTWIND_CAP) ) {
+        windcal->addEntry("External", WA_EXTERNAL);
+    }
 	windcal->setHelp("Chose the source for the wind calculation");
 	top->addEntry(windcal);
 

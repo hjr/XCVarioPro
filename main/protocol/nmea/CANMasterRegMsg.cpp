@@ -154,7 +154,7 @@ dl_action_t CANMasterRegMsg::registration_query(NmeaPlugin *plg)
             // save and digest the client caps and add optional features
             ESP_LOGI(FNAME, "Client caps: %x", client_caps);
             peer_caps.set(client_caps);
-            CANPeerCaps::setupPeerProtos(master_ch, client_ch);
+            XcvCaps::setupPeerProtos(master_ch, client_ch);
         }
     }
 

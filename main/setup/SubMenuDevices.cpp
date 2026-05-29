@@ -298,7 +298,7 @@ static uint8_t remove_dev(DeviceId did)
     }
     ESP_LOGI(FNAME, "remove %d", did);
     ret = DEVMAN->removeDevice(did, true);
-    CANPeerCaps::updateCapsFromDev(did, false);
+    XcvCaps::updateCapsFromDev(did, false);
     if ( did == NAVI_DEV ) {
         // remove a flarm host on the same itf
         Device *fhdev = DEVMAN->getDevice(FLARM_HOST_DEV);
@@ -418,7 +418,7 @@ static uint8_t create_dev(DeviceId did, InterfaceId iid)
     }
     if ( dev ) {
         ESP_LOGI(FNAME, "Created device %d on itf %d", did, iid);
-        CANPeerCaps::updateCapsFromDev(did, true);
+        XcvCaps::updateCapsFromDev(did, true);
         if ( iid == BT_SPP || iid == BT_LE ) return RESTART_BT_CHANGE;
         if ( iid == WIFI_APSTA ) return RESTART_WIFI_CHANGE;
     }

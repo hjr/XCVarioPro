@@ -15,6 +15,7 @@
 #include "setup/SetupMenuSelect.h"
 #include "setup/SetupMenuChar.h"
 #include "setup/SetupMenuValFloat.h"
+#include "setup/Capability.h"
 #include "AdaptUGC.h"
 #include "sensor/Filters.h"
 #include "math/Floats.h"
@@ -38,8 +39,9 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
 {
     ESP_LOGI(FNAME, "select_flap_sens_pin");
     Flap::theFlap()->configureADC();
-    if (p->getSelect() == FLAP_SENSOR_ENABLE)
+    if (p->getSelect())
     {
+        // enable flap sensor
         p->clear();
         ESP_LOGI(FNAME, "select_flap_sens_pin, have flap");
         if (FLAP->haveAdcSensor())
@@ -61,13 +63,14 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
         vTaskDelay(pdMS_TO_TICKS(800));
         p->clear();
         // add the flap sensor to my caps
-        my_caps.set( my_caps.get() | XcvCaps::FLAPSENS_CAP );
+        XcvCaps::addToMine(XcvCaps::FLAPSENS_CAP );
     }
     else
     {
+        // disable flap sensor
         ESP_LOGI(FNAME, "NO flap");
         // remove the flap sensor to my caps
-        my_caps.set( my_caps.get() & ~XcvCaps::FLAPSENS_CAP );
+        XcvCaps::removeFromMine(XcvCaps::FLAPSENS_CAP );
     }
     p->getParent()->setDirty();
     p->getParent()->getParent()->setDirty();
@@ -150,7 +153,7 @@ void flap_menu_create_flap_sensor(SetupMenu *wkm) // dynamic!
         wkm->addEntry(wkcal);
     }
     SetupMenu *wkcal = static_cast<SetupMenu*>(wkm->getEntry(1));
-    if ( flap_sensor.get() == FLAP_SENSOR_ENABLE ) {
+    if ( flap_sensor.get() ) {
         wkcal->unlock();
     } else {
         wkcal->lock();

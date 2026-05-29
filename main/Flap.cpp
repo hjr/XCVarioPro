@@ -307,12 +307,6 @@ float Flap::getFlapPosition() const
 // sensor access
 //////////////////////////////////
 
-// sudo wrapper to the flap_sensor setup variable considering also the peer capabilities
-bool Flap::sensAvailable()
-{
-    return flap_sensor.get() || (peer_caps.get() & XcvCaps::FLAPSENS_CAP);
-}
-
 // create the optional flap sensor
 void Flap::configureADC() {
     ESP_LOGI(FNAME, "Flap::configureADC");

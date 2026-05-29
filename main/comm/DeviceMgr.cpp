@@ -496,6 +496,8 @@ Device* DeviceManager::addDevice(DeviceId did, ProtocolType proto, int listen_po
                 nvsave = false;
             }
         }
+        // update the capability list
+        XcvCaps::updateCapsFromDev(did, true);
     }
 
     EnumList pl;
@@ -593,6 +595,7 @@ uint8_t DeviceManager::removeDevice(DeviceId did, bool nvsave)
     if ( dev ) {
         InterfaceCtrl *itf = dev->_itf;
         if ( dev->_sensor ) { itf->notifySensorDelete(dev->_sensor); } // inform the bus that the sensor is gone
+        XcvCaps::updateCapsFromDev(dev->_id, false); // remove capabilities for this device
         delete dev;
         // is it the last device on this interface
         if ( itf->getNrDLinks() == 0 ) {
@@ -794,7 +797,7 @@ void DeviceManager::reserectFromNvs()
                 }
             }
             // update my caps
-            CANPeerCaps::updateCapsFromDev(did, true);
+            XcvCaps::updateCapsFromDev(did, true);
         }
     }
     ESP_LOGI(FNAME, "Reserected %d dev entries from NVS", nr_set_up);
@@ -980,6 +983,7 @@ Device::~Device()
             // _link->removeId(_id); not needed
         }
     }
+
     // Todo: Currently not the authentic place to manage the sensors.
     // They grant once created and registered to some static buffer memory and are referenced through a set of exquisit global pointers. 
     // So they are not really owned by the device, but more by the bus (OneWire) or the manager (Flarm). So do not delete them here, 
