@@ -123,17 +123,6 @@ int update_range_entry_s(SetupMenuSelect *p)
     return update_range_entry(nullptr);
 }
 
-int audio_setup_s(SetupMenuSelect *p) {
-    AUDIO->applySetup();
-    p->getParent()->setDirty();
-    return 0;
-}
-int audio_setup_f(SetupMenuValFloat *p) {
-    AUDIO->applySetup();
-    p->getParent()->setDirty();
-    return 0;
-}
-
 static int show_vol_dflt(SetupMenuValFloat *p) {
     AUDIO->setVolume(p->getNVSVal());
     return 0;
@@ -157,20 +146,20 @@ void audio_menu_create_tonestyle(SetupMenu *top) { // dynamic!
         prfl->setSelect(selected_profile);
         top->addEntry(prfl);
 
-        SetupMenuValFloat *cf = new SetupMenuValFloat("CenterFreq", "Hz", audio_setup_f, &center_freq);
+        SetupMenuValFloat *cf = new SetupMenuValFloat("CenterFreq", "Hz", set_parent_dirty, &center_freq);
         cf->setHelp("Center frequency for Audio at zero Vario or zero S2F delta");
         top->addEntry(cf);
 
-        SetupMenuValFloat *oc = new SetupMenuValFloat("Tone Variation", "fold", audio_setup_f, &tone_var);
+        SetupMenuValFloat *oc = new SetupMenuValFloat("Tone Variation", "fold", set_parent_dirty, &tone_var);
         oc->setHelp("Maximum tone frequency variation");
         top->addEntry(oc);
 
-        SetupMenuSelect *dt = new SetupMenuSelect("Dual Tone", RST_NONE, audio_setup_s, &dual_tone);
+        SetupMenuSelect *dt = new SetupMenuSelect("Dual Tone", RST_NONE, set_parent_dirty, &dual_tone);
         dt->setHelp("Select dual tone modue aka ilec sound (di/da/di), or single tone (di/di/di) mode");
         dt->mkEnable();
         top->addEntry(dt);
 
-        SetupMenuSelect *tch = new SetupMenuSelect("Chopping", RST_NONE, audio_setup_s, &chopping_mode);
+        SetupMenuSelect *tch = new SetupMenuSelect("Chopping", RST_NONE, set_parent_dirty, &chopping_mode);
         tch->setHelp("Select tone chopping option on positive values for Vario and or S2F");
         tch->addEntry("Disabled");      // 0
         tch->addEntry("Vario only");    // 1
@@ -178,7 +167,7 @@ void audio_menu_create_tonestyle(SetupMenu *top) { // dynamic!
         tch->addEntry("Vario and S2F"); // 3  default
         top->addEntry(tch);
 
-        SetupMenuSelect *tharm = new SetupMenuSelect("Harmonics", RST_NONE, audio_setup_s, &audio_harmonics);
+        SetupMenuSelect *tharm = new SetupMenuSelect("Harmonics", RST_NONE, set_parent_dirty, &audio_harmonics);
         tharm->setHelp("Add harmonics to the vario tone, making it a bit more crispy");
         tharm->addEntry("None", AUD_HARM_OFF);
         tharm->addEntry("Some", AUD_HARM_LOW);
@@ -186,7 +175,7 @@ void audio_menu_create_tonestyle(SetupMenu *top) { // dynamic!
         tharm->addEntry("Sparky", AUD_HARM_HIGH);
         top->addEntry(tharm);
 
-        SetupMenuValFloat *afac = new SetupMenuValFloat("Audio Response", "", audio_setup_f, &audio_factor);
+        SetupMenuValFloat *afac = new SetupMenuValFloat("Audio Response", "", set_parent_dirty, &audio_factor);
         afac->setHelp("How the audio frequency responds to the climb rate: < 1 for logarithmic, and > 1 for exponential, response");
         top->addEntry(afac);
     }
@@ -201,23 +190,23 @@ void audio_menu_create_tonestyle(SetupMenu *top) { // dynamic!
 
 void audio_menu_create_deadband(SetupMenu *top) {
     update_range_entry(0);
-    SetupMenuSelect *audio_range_sm = new SetupMenuSelect("Range", RST_NONE, audio_setup_s, &audio_range);
+    SetupMenuSelect *audio_range_sm = new SetupMenuSelect("Range", RST_NONE, set_parent_dirty, &audio_range);
     audio_range_sm->addEntry(range0.c_str());
     audio_range_sm->addEntry(range1.c_str());
     audio_range_sm->addEntry(range2.c_str());
     audio_range_sm->setHelp("Audio range: fixed, or variable according to current Vario display range setting");
     top->addEntry(audio_range_sm);
 
-	SetupMenuValFloat *dbminlv = new SetupMenuValFloat("Lower Vario", "", audio_setup_f, &deadband_neg);
+	SetupMenuValFloat *dbminlv = new SetupMenuValFloat("Lower Vario", "", set_parent_dirty, &deadband_neg);
 	top->addEntry(dbminlv);
 
-	SetupMenuValFloat *dbmaxlv = new SetupMenuValFloat("Upper Vario", "", audio_setup_f, &deadband);
+	SetupMenuValFloat *dbmaxlv = new SetupMenuValFloat("Upper Vario", "", set_parent_dirty, &deadband);
 	top->addEntry(dbmaxlv);
 
-	SetupMenuValFloat *dbmaxls2fn = new SetupMenuValFloat("Lower S2F", "", audio_setup_f, &s2f_deadband_neg);
+	SetupMenuValFloat *dbmaxls2fn = new SetupMenuValFloat("Lower S2F", "", set_parent_dirty, &s2f_deadband_neg);
 	top->addEntry(dbmaxls2fn);
 
-	SetupMenuValFloat *dbmaxls2f = new SetupMenuValFloat("Upper S2F", "", audio_setup_f, &s2f_deadband);
+	SetupMenuValFloat *dbmaxls2f = new SetupMenuValFloat("Upper S2F", "", set_parent_dirty, &s2f_deadband);
 	top->addEntry(dbmaxls2f);
 }
 
@@ -225,7 +214,7 @@ void audio_menu_create_deadband(SetupMenu *top) {
 void audio_menu_create(SetupMenu *audio) {
     if (audio->getNrChilds() == 0)
     {
-        SetupMenuSelect *asida = new SetupMenuSelect("V-Tone at Sink", RST_NONE, audio_setup_s, &audio_mute_sink);
+        SetupMenuSelect *asida = new SetupMenuSelect("V-Tone at Sink", RST_NONE, set_parent_dirty, &audio_mute_sink);
         asida->setHelp("Select whether vario audio will be on while in sink");
         asida->addEntry(ENABLE_MODE[0].data(), 1);
         asida->addEntry(ENABLE_MODE[1].data(), 0); // inverted logic

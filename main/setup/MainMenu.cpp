@@ -38,7 +38,6 @@
 #include "sensor/imu/AccMPU6050.h"
 #include "sensor/pressure/PressureSensor.h"
 #include "sensor/press_diff/AirspeedSensor.h"
-// #include "driver/audio/ESPAudio.h"
 #include "driver/gpio/AnalogInput.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
@@ -227,11 +226,11 @@ static int wiper_button(SetupAction *p) {
 	return 0;
 }
 
-static int startFlarmSimulation(SetupMenuSelect *p) {
-	if ( p->getSelect() > 0 ) {
-		FlarmSim::StartSim(p->getSelect()-1);
-	}
-	return 0;
+static int startFlarmSimulation(SetupMenuSelect* p) {
+    if (p->getSelect() > 0) {
+        FlarmSim::StartSim(p->getSelect() - 1);
+    }
+    return 0;
 }
 
 static int student_mode_action(SetupMenuSelect* p) {
@@ -853,7 +852,7 @@ static void system_menu_create_hardware(SetupMenu *top) {
         SetupMenu* rotary = new SetupMenu("Rotary Knob", system_menu_create_hardware_rotary);
         top->addEntry(rotary);
 
-        SetupMenuSelect *ageda = new SetupMenuSelect("Speaker", RST_NONE, audio_setup_s, &audio_mute_gen);
+        SetupMenuSelect *ageda = new SetupMenuSelect("Speaker", RST_NONE, nullptr, &audio_mute_gen);
         ageda->addEntry("Disable", AUDIO_OFF);
         ageda->addEntry("Enable", AUDIO_ON);
         top->addEntry(ageda);

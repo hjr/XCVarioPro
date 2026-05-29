@@ -339,6 +339,10 @@ void change_volume() {
 	AUDIO->setVolume(vol, false);
 	ESP_LOGI(FNAME,"change_volume -> %f", vol );
 }
+static void change_audio() {
+    AUDIO->applySetup();
+}
+
 
 void flap_act() {
     if ( flapbox_enable.get() || Flap::sensAvailable() ) {
@@ -418,7 +422,7 @@ SetupNG<float> 			polar_wingarea( "POLAR_WINGAREA", 10.5, true, SYNC_BIDIR, PERS
 SetupNG<float>  		speedcal( "SPEEDCAL", 0.0, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(-100, 100, 1));
 SetupNG<second_t>  		vario_delay( "VARIO_DELAY", 4.0, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(2.0, 10.0, 0.1));
 SetupNG<second_t>  		vario_av_delay( "VARIO_AV_DELAY", 25.0, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(7.0, 50.0, 1)); // changed to 20 seconds (quasi standard) what equals to a half circle
-SetupNG<mps_t>  		scale_range( "VARIO_RANGE", 5.0, true, SYNC_NONE, PERSISTENT, 0, quantity_t::QUANT_VSPEED, LIMITS(3.0, 7.0, 1));
+SetupNG<mps_t>  		scale_range( "VARIO_RANGE", 5.0, true, SYNC_NONE, PERSISTENT, change_audio, quantity_t::QUANT_VSPEED, LIMITS(3.0, 7.0, 1));
 SetupNG<int>			log_scale( "LOG_SCALE", 0 );
 SetupNG<float>  		ballast( "BALLAST" , 0.0, true, SYNC_NONE, VOLATILE, 0 );  // ballast increase from reference weight in %
 SetupNG<kilogram_t>  	ballast_kg( "BAL_KG" , 0.0, true, SYNC_BIDIR, PERSISTENT, change_bal_water, quantity_t::QUANT_MASS, LIMITS(0.0, 500, 1));
@@ -599,8 +603,8 @@ SetupNG<int> 			wk_label_4( "WK_LBL_4", 0, false, SYNC_BIDIR, PERSISTENT, flap_u
 SetupNG<int> 			wk_label_5( "WK_LBL_5", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act );
 SetupNG<int> 			wk_label_6( "WK_LBL_6", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act );
 SetupNG<float> 			flap_takeoff("FLAPTOp", 0,  false, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(0, 6, 1));
-SetupNG<int> 			audio_mute_sink( "AUDISS", 0 );
-SetupNG<int> 			audio_mute_gen( "AUDISG", AUDIO_ON );
+SetupNG<int> 			audio_mute_sink( "AUDISS", 0, false, SYNC_BIDIR, PERSISTENT, change_audio );
+SetupNG<int> 			audio_mute_gen( "AUDISG", AUDIO_ON, false, SYNC_NONE, PERSISTENT, change_audio );
 SetupNG<int>			vario_mode("VAMOD", CRUISE_ONLY_NETTO, true, SYNC_NONE, PERSISTENT, change_cruise);  // switch to netto mode when cruising
 SetupNG<int>			airspeed_sensor("PTYPE", AirspeedSensor::NONE, false);
 SetupNG<int>			cruise_audio_mode("CAUDIO", 0 );

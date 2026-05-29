@@ -16,6 +16,7 @@ class SetupMenuSelect;
 extern char small_buf[64];
 extern int set_parent_parent_dirty(SetupMenuSelect* p);
 extern int set_parent_dirty(SetupMenuSelect* p);
+extern int set_parent_dirty(SetupMenuValFloat* p);
 
 
 class SetupMenu : public MenuEntry

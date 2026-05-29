@@ -15,7 +15,7 @@ union ucg_color_t
         uint8_t g;
         uint8_t b;
     };
-	uint8_t color[3];             /* 0: Red, 1: Green, 2: Blue */
+    uint8_t color[3];             /* 0: Red, 1: Green, 2: Blue */
     constexpr ucg_color_t() : color{0, 0, 0} {}
     constexpr ucg_color_t(uint8_t r_, uint8_t g_, uint8_t b_) : color{r_, g_, b_} {}
     void fadeTo(const ucg_color_t& target, float fade) {

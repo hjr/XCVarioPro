@@ -13,6 +13,8 @@
 
 class Poti;
 class TestSequence;
+class Audio;
+extern Audio *AUDIO;
 
 enum e_audio_sound_type
 {
@@ -98,4 +100,3 @@ private:
     bool _terminate = true;
 };
 
-extern Audio *AUDIO;
