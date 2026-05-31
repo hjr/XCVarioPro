@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "vqfekf.h"
-#include "../SensorBase.h"
+#include "sensor/Filters.h"
+#include "sensor/SensorBase.h"
 #include "math/vector_3d_fwd.h"
 
 
@@ -37,7 +37,7 @@ public:
     inline float getAxD() const { return _gyro_lpf_dwydt.get(); }
     bool detectRest();
     void saveBias();
-    inline const vector_f& getBias() const { return _bias_estimator.getBias(); }
+    inline const vector_f& getBias() const { return _bias_estimator.getRef(); }
 
 private:
     void pushBias(vector_f& bias);
@@ -47,7 +47,7 @@ private:
     LowPassFilterT<float> _gyro_lpf_dwydt{0.5f}; // to compensate the accelerometer mounting position in front of CG
     LowPassFilterT<float> _gps_omega_lpf{0.3f};
     // vqf rest detection and bias estimation
-    BiasEstimatorEKF _bias_estimator;
+    LowPassFilterT<vector_f> _bias_estimator{0.001};
     uint8_t _bias_update = 0;
     int _restTimer = 0; // milliseconds since last movement
     uint8_t _isResting = 0; // goes in three stages: 0 = moving, 1 = long half rest (bias update enforced), 2 = rest 

@@ -55,7 +55,7 @@ bool GyroMPU6050::doRead(vector_f& val) {
         // tmpvec.y = abs(tmpvec.y) < gate ? 0.0 : tmpvec.y;
         // tmpvec.z = abs(tmpvec.z) < gate ? 0.0 : tmpvec.z;
         // into glider reference system
-        val = _my_mpu.rotate(tmpvec) - _bias_estimator.getBias();
+        val = _my_mpu.rotate(tmpvec) - _bias_estimator.getRef();
         // ESP_LOGI(FNAME, "gyro raw: %d/%d/%d scaled: %f/%f/%f", imuRaw.x, imuRaw.y, imuRaw.z, val.x, val.y, val.z);
         _gyro_lpf_dwydt.filter((val.y - getHeadPtr()->y) / getDutyCycleS()); // diverenciate and filter to get dwy/dt for accelerometer compensation
         return true;
@@ -71,7 +71,7 @@ void GyroMPU6050::postProcess() {
     static bool rest_old = false;
     const vector_f& gyro = getHead();
 
-    _processed = gyro - _bias_estimator.getBias(); // a corrected measurment
+    _processed = gyro - _bias_estimator.getRef(); // a corrected measurment
     rps_t gate = Units::deg_to_rad(gyro_gating.get());
     _processed.x = abs(_processed.x) < gate ? 0.0 : _processed.x;
     _processed.y = abs(_processed.y) < gate ? 0.0 : _processed.y;
@@ -87,7 +87,9 @@ void GyroMPU6050::postProcess() {
     bool rest = detectRest() && accSensor->isResting() && abs(omegalp) < Units::deg_to_rad(1.5f);
 
     // feed the bias filter
-    _bias_estimator.update(gyro, (_isResting > 0) && accSensor->isResting());
+    if ( rest ) {
+        _bias_estimator.filter(gyro);
+    }
 
     if ( rest != rest_old) {
         ESP_LOGI(FNAME, "rest state changed: %c -> %c (%d)", rest_old ? 'R' : 'M', rest ? 'R' : 'M', _isResting);
@@ -129,7 +131,7 @@ bool GyroMPU6050::detectRest() {
 }
 
 void GyroMPU6050::saveBias() {
-    vector_f bias = _bias_estimator.getBias();
+    vector_f bias = _bias_estimator.get();
     pushBias(bias);
 }
 
