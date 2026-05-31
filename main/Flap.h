@@ -105,12 +105,13 @@ public:
     float getOptimum(mps_t speed) const;
     mps_t getSpeedBand(float wkf, mps_t &maxv) const;
     mps_t getSpeed(float wkf) const;
-    float getFlapPosition() const;
+    static float getFlapPosition();
 
     // sensor access
     static inline bool sensAvailable() { return XcvCaps::haveCap(XcvCaps::FLAPSENS_CAP); }
     bool haveAdcSensor() const { return sensorAdc != nullptr; }
     void configureADC();
+    void removeADC();
     int getSensorRaw() const;
     int getNrPositions() const { return flevel.size(); }
     static constexpr const int MAX_NR_POS = 7;

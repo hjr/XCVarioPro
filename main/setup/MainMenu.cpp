@@ -365,9 +365,10 @@ static void vario_menu_create_s2f(SetupMenu *top) {
 	top->addEntry(autospeed);
 	autospeed->setHelp("Transition speed for the AutoSpeed S2F switch");
 
-	if ( FLAP ) {
-		SetupMenuValFloat *s2f_flap = new SetupMenuValFloat("AutoFlap Position", "flp", nullptr, &s2f_flap_pos, RST_NONE, false);
+	if ( Flap::sensAvailable() ) {
+		SetupMenuValFloat *s2f_flap = new SetupMenuValFloat("AutoFlap Pos.", "flp", nullptr, &s2f_flap_pos, RST_NONE, false);
 		top->addEntry(s2f_flap);
+        s2f_flap->setPrecision(1);
 		s2f_flap->setHelp("Precise flap position for the AutoFlap S2F switch");
 	}
 

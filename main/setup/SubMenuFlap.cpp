@@ -62,15 +62,12 @@ static int select_flap_sens_pin(SetupMenuSelect *p)
         }
         vTaskDelay(pdMS_TO_TICKS(800));
         p->clear();
-        // add the flap sensor to my caps
-        XcvCaps::addToMine(XcvCaps::FLAPSENS_CAP );
     }
     else
     {
         // disable flap sensor
         ESP_LOGI(FNAME, "NO flap");
-        // remove the flap sensor to my caps
-        XcvCaps::removeFromMine(XcvCaps::FLAPSENS_CAP );
+        Flap::theFlap()->removeADC();
     }
     p->getParent()->setDirty();
     p->getParent()->getParent()->setDirty();

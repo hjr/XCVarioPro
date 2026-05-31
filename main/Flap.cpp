@@ -4,6 +4,7 @@
 #include "glider/Polars.h"
 #include "driver/gpio/AnalogInput.h"
 #include "setup/SetupNG.h"
+#include "setup/Capability.h"
 #include "sensor/imu/AccMPU6050.h"
 #include "math/Floats.h"
 #include "sensor.h"
@@ -55,10 +56,7 @@ Flap::Flap() {
     FLAP = this;
 }
 Flap::~Flap() {
-    if (sensorAdc) {
-        delete sensorAdc;
-        sensorAdc = nullptr;
-    }
+    removeADC();
     _instance = nullptr;
     FLAP = nullptr;
 }
@@ -298,7 +296,7 @@ mps_t Flap::getSpeed(float wkf) const
     return ret;
 }
 
-float Flap::getFlapPosition() const
+float Flap::getFlapPosition()
 {
     return flap_pos.get();
 }
@@ -319,7 +317,7 @@ void Flap::configureADC() {
         // nonzero -> configured, only one port needed for XCV23+ HW
         sensorAdc = new AnalogInput(-1, ADC_CHANNEL_6);
     }
-    if (sensorAdc != 0) {
+    if (sensorAdc) {
         ESP_LOGI(FNAME, "Flap sensor properly configured");
         sensorAdc->begin(ADC_ATTEN_DB_0, ADC_UNIT_1, false);
         delay(10);
@@ -329,9 +327,18 @@ void Flap::configureADC() {
         } else {
             ESP_LOGI(FNAME, "Flap sensor looks good, reading: %d", (int)read);
         }
+        XcvCaps::addToMine(XcvCaps::FLAPSENS_CAP);
     } else {
         ESP_LOGI(FNAME, "Sensor ADC NOT properly configured");
     }
+}
+
+void Flap::removeADC() {
+    if (sensorAdc) {
+        delete sensorAdc;
+        sensorAdc = nullptr;
+    }
+    XcvCaps::removeFromMine(XcvCaps::FLAPSENS_CAP);
 }
 
 int Flap::getSensorRaw() const
