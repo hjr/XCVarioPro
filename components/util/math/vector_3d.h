@@ -49,7 +49,7 @@ class vector_3d {
     vector_3d<T> get_normalized() const;
     // vector_3d<std::common_type_t<T, float>> clamp(float max_norm) const;
     void clamp_inplace(float max_norm);
-    vector_3d<T> clamp(T minl, T maxl);
+    vector_3d<T>& clamp(T minl, T maxl);
     // Interpretation as Euler angles
     float Roll() const { return x; }
     void setRoll(float roll) { x = roll; }

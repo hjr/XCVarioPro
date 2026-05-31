@@ -191,7 +191,7 @@ void vector_3d<T>::clamp_inplace(float max_norm)
 }
 
 template <typename T>
-vector_3d<T> vector_3d<T>::clamp(T minl, T maxl) {
+vector_3d<T>& vector_3d<T>::clamp(T minl, T maxl) {
     x = std::clamp(x, minl, maxl);
     y = std::clamp(y, minl, maxl);
     z = std::clamp(z, minl, maxl);

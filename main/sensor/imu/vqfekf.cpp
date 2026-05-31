@@ -8,6 +8,8 @@
 
 #include "vqfekf.h"
 
+#include <algorithm>
+
 
 BiasEstimatorEKF::BiasEstimatorEKF() :
     biasP{1e-3f, 1e-3f, 1e-3f} // initial covariance (relativ hoch, da Anfangsunsicherheit) 
@@ -18,34 +20,27 @@ BiasEstimatorEKF::BiasEstimatorEKF() :
 // bias filter update
 void BiasEstimatorEKF::update(const vector_f& gyro_meas, bool isResting) {
     constexpr float dt = 0.1f;
-    vector_f meas; // gyro reading
-    float R;    // current measurement noise (depends on rest/motion)
-    
-    if (isResting) {
-        // trust measurement is mostly bias
-        meas = gyro_meas;  // directly the measurement
-        R = restR;
-    } else {
-        // during motion: No direct measurement → only process update (no measurement update!)
-        // or weak update from your main EKF
-        meas = {0,0,0};    // dummy
-        R = motionR;       // large -> almost no update
-    }
-    
+
     // prediction
     biasP += dt * biasQ;
 
-    // update
-    if (isResting) {
-        vector_f innov = meas - biasEstimate;
-    
-        // Kalman gain
-        vector_f K     = biasP / (biasP + R);
-    
-        // state- und covariance update
-        biasEstimate += K * innov;
-        biasP *= vector_f(1.f, 1.f, 1.f) - K;
+    if (!isResting) {
+        // during motion: No direct measurement, only decrease confidence
+        return;
     }
+
+    // update
+    vector_f innov = gyro_meas - biasEstimate;
+
+    // Kalman gain
+    vector_f K     = biasP / (biasP + restR);
+
+    // state- und covariance update
+    // constexpr float maxBiasStep = 1e-4f;
+    // vector_f biasStep = K * innov;
+    // biasEstimate += biasStep.clamp(-maxBiasStep, maxBiasStep);
+    biasEstimate += K * innov;
+    biasP *= vector_f(1.f, 1.f, 1.f) - K;
 }
 
 void BiasEstimatorEKF::reset() {
