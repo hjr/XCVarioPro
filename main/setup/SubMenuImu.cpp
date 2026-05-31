@@ -438,16 +438,19 @@ static int imu_status_action(SetupMenuDisplay *p, int mode) {
 
 void screens_menu_create_extreme_records(SetupMenu *top) {
 	SetupMenuValFloat *gmpos = new SetupMenuValFloat("Peak Positive G", "", nullptr, &gload_pos_max, RST_NONE, false);
-	top->addEntry(gmpos);
+    gmpos->setPrecision(1);
 	gmpos->lock();
+	top->addEntry(gmpos);
 
 	SetupMenuValFloat *gmneg = new SetupMenuValFloat("Peak Negative G", "", nullptr, &gload_neg_max, RST_NONE, false);
-	top->addEntry(gmneg);
+    gmneg->setPrecision(1);
 	gmneg->lock();
+	top->addEntry(gmneg);
 
 	SetupMenuValFloat *maxias = new SetupMenuValFloat("Peak Airspeed", "", nullptr, &airspeed_max, RST_NONE, false);
+	maxias->setPrecision(1);
+    maxias->lock();
 	top->addEntry(maxias);
-	maxias->lock();
 
 	SetupMenuSelect *gloadres = new SetupMenuSelect("Reset Peak-Hold", RST_NONE, gload_reset);
 	gloadres->addEntry("Cancel");

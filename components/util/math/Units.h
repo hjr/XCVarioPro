@@ -29,6 +29,7 @@ using newton_t   = float;
 using joule_t    = float;
 using watt_t     = float;
 using kilogram_t = float;
+using gee_t      = float;
 
 namespace Units {
 

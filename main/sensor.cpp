@@ -369,10 +369,9 @@ void readSensors(void *pvParameters)
                 gload_neg_max.set(g);
             }
         }
-		if( ias.get() > airspeed_max.get() ){
-			airspeed_max.set( ias.get() );
-		}
-
+        if (ias.get() > airspeed_max.get()) {
+            airspeed_max.set(Units::mps_to_kmh(ias.get()));
+        }
 
         if (OneWIRE) {
             // read one wire sensors
