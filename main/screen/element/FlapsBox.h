@@ -64,7 +64,7 @@ private: // attributes
     LowPassFilterT<float> _fp_filter;
     FBoxStateHash _state = {0,0,0};
     int16_t _last_flap_idx = 0;
-    int16_t _flap_off_idx = 0;
+    int16_t _flap_ideal_idx = 0;
     int   _snd_event_time = 0;
     SwitchEvent _last_event;
     int   _same_event_to = -1;

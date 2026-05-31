@@ -70,7 +70,7 @@ bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
 FlapsBox::FlapsBox(Flap* flap, int16_t cx, int16_t cy, bool vertical) :
     ScreenElement(cx, cy),
     _flap(flap),
-    _fp_filter(0.15f),
+    _fp_filter(0.17f),
     _last_event(0,0),
     _vertical(vertical)
 {
@@ -127,9 +127,10 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
     }
     MYUCG->setColor(1, g_col_background, g_col_background, g_col_background);
 
-    // foreground labels
+    // foreground labels, clipped to the inner level box
     MYUCG->setFont(ucg_font_fub14_hr);
     MYUCG->setColor(COLOR_WHITE); // highlight the recommendation, or current position
+    MYUCG->setClipRange(boxx, _ref.y - 13 , boxw + 1, 27);
     const int from = std::max((int)(fast_floorf(cs.getWk() + 0.2)), 0);
     const int to   = ((from + 1) == fast_iroundf(cs.getWk() + 0.3)) ? from + 1 : from;
     for (int wk = from; wk <= to; wk++)
@@ -142,18 +143,22 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
         MYUCG->setColor(COLOR_WHITE); // highlight the recommendation, or current position
         MYUCG->print(label);
     }
+    MYUCG->undoClipRange();
 
     // optional flap setting recommendation
-    if ( _flap_off_idx != 0) {
-        const char *label = _flap->getFL(_flap_off_idx)->label;
-        int16_t pixoff = ((_flap_off_idx < cs.getWk()) ? -1 : 1) * (BOX_LENGTH/2-2 - _LFH/2);
+    if ( _flap_ideal_idx > -1) {
+        const char *label = _flap->getFL(_flap_ideal_idx)->label;
+        int16_t pixoff = ((_flap_ideal_idx < cs.getWk()) ? -1 : 1) * (BOX_LENGTH/2 - _LFH/2);
         int16_t lwidth = MYUCG->getStrWidth(label);
         MYUCG->setPrintPos(_ref.x + (BOX_WIDTH - lwidth)/2 + 1, _ref.y + pixoff + _LFH/2);
+        // highlight the recommendation
+        const ucg_color_t& c = ndl_color[needle_color.get() & 3];
+        MYUCG->setColor(c.color[0], c.color[1], c.color[2]);
         MYUCG->print(label);
     }
 
-
     // box frame
+    MYUCG->setColor(COLOR_WHITE);
     MYUCG->drawHLine(boxx, _ref.y - 14, boxw);
     MYUCG->drawHLine(boxx, _ref.y + 14, boxw);
     MYUCG->finishBuffering();
@@ -174,8 +179,13 @@ void FlapsBox::draw(mps_t ias)
 
     float curr_fp;
     bool have_sens = Flap::sensAvailable();
+    _flap_ideal_idx = fast_iroundf(_flap->getOptimum(ias));
     if ( have_sens ) {
-        curr_fp = _flap->getFlapPosition();
+        curr_fp = Flap::getFlapPosition();
+        if ( std::abs(curr_fp - _flap_ideal_idx) < 0.75f ) {
+            _flap_ideal_idx = -1; // close enough
+        }
+        ESP_LOGI(FNAME, "flap position from sensor: %1.2f", curr_fp);
         // rasterize to .0, and .5
         float fp_base = fast_floorf(curr_fp);
         if ( curr_fp - fp_base < 0.25f ) {
@@ -186,8 +196,8 @@ void FlapsBox::draw(mps_t ias)
             curr_fp = fp_base + 1.f;
         }
     } else {
-        curr_fp = fast_iroundf(_flap->getOptimum(ias));
-        _flap_off_idx = 0; // no sensor, so no sound, so no "off" position
+        curr_fp = _flap_ideal_idx; // without sensor, just show the recommendation, and play sound when it changes
+        _flap_ideal_idx = -1; // no sensor, so no "off" position
     }
     // damp speed of indicator to make it good readable
     curr_fp = _fp_filter.filter(curr_fp);
@@ -195,11 +205,11 @@ void FlapsBox::draw(mps_t ias)
     mps_t minv, maxv;
     minv = _flap->getSpeedBand(curr_fp, maxv);
     // enlarge the speed band just for a nicer overlapping visualization
-    minv -= Units::kmh_to_mps(5.f);
-    maxv += Units::kmh_to_mps(5.f);
+    minv -= Units::kmh_to_mps(2.f);
+    maxv += Units::kmh_to_mps(2.f);
     if ( airborne.get() == false ) {
         // on ground, set the ias virtually into the green band for the correct start position
-        ias = _flap->getSpeed(flap_takeoff.get()); // pretend start speed
+        ias = _flap->getSpeed(flap_takeoff.get() - .5f); // pretend start speed
         ESP_LOGI(FNAME, "on ground, set ias to %.1f for flap position %.1f", ias, curr_fp);
     }
     minv -= ias;
@@ -221,14 +231,11 @@ void FlapsBox::draw(mps_t ias)
     int16_t flap_idx = fast_iroundf(curr_fp);
     if ( have_sens ) {
         _last_flap_idx = flap_idx; // keep in sync with actual position, option to not play any sound
-        _flap_off_idx = 0;
         if ( minv > 0. && flap_idx < _flap->getNrPositions()-1 ) { // slipped below the lower speed limit
             flap_idx++;
-            _flap_off_idx = flap_idx;
         }
         else if ( maxv < 0. && flap_idx > 0 ) { // exceeded the upper speed limit
             flap_idx--;
-            _flap_off_idx = flap_idx;
         }
     }
 
