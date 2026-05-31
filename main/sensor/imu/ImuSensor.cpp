@@ -91,7 +91,7 @@ bool MpuImu::setup() {
     esp_err_t err = myMPU.reset();
     err |= myMPU.resetFIFO();
     // initialize the chip and set default configurations
-    // which is: 50Hz; ACCEL_FS_8G scale; GYRO_FS_250DPS scale; DLPF_5HZ low pass
+    // which is: 500Hz; ACCEL_FS_8G scale; GYRO_FS_250DPS scale; DLPF_10HZ low pass
     err |= myMPU.initialize(_who_typ == ImuType::ICM20602);
     axes_i16_abi tmp = gyro_bias.get(); // will get refined on Rest condition while on the ground
     err |= myMPU.setGyroOffset(mpud::raw_axes_t(tmp.x, tmp.y, tmp.z));
