@@ -31,6 +31,7 @@ struct _eglib_struct {
 	} display;
     bool do_buffer : 1; // whether to use the buffer for drawing, or write directly to display
 	drawing_t drawing;
+    uint8_t *frame_buffer;
 };
 
 /**

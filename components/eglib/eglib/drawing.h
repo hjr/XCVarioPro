@@ -13,21 +13,41 @@
 #define EGLIB_DRAW_LOWER_RIGHT  0x08
 #define EGLIB_DRAW_ALL (EGLIB_DRAW_UPPER_RIGHT|EGLIB_DRAW_UPPER_LEFT|EGLIB_DRAW_LOWER_RIGHT|EGLIB_DRAW_LOWER_LEFT)
 
+#define EGLIG_CLIP_STACK_SIZE 4
+
 // font origin
 // bottom - draw as usual, y is bottom line and aligning with the left/bottom reference point of the glyphs
 // middle - center vertically on glyphs ascent, and ignore the descent portion below baseline
 // top    - draw with the top of the font at y, so y aligns with the top bounding box of the glyphs
 typedef enum _font_origin {  FONT_BOTTOM, FONT_MIDDLE, FONT_TOP } e_font_origin;
 
+typedef struct {
+    coordinate_t xmin;
+    coordinate_t xmax;
+    coordinate_t ymin;
+    coordinate_t ymax;
+} clip_region_t;
+
 typedef struct s_drawing{
-		color_t color_index[4];
-		struct _gradient_t gradient;
-		const struct font_t *font;
-		bool filled_mode;
-		e_font_origin font_origin;
-        uint8_t *buffer;
-        coordinate_t clip_xmin, clip_xmax, clip_ymin, clip_ymax;
-        coordinate_t clbs_xmin, clbs_xmax, clbs_ymin, clbs_ymax; // two level clip region stack
+    color_t color_index[4];
+    struct _gradient_t gradient;
+    const struct font_t *font;
+    bool filled_mode;
+    e_font_origin font_origin;
+    uint8_t *buffer;
+    uint16_t frame_width;
+    union {
+        struct {
+            coordinate_t clip_xmin;
+            coordinate_t clip_xmax;
+            coordinate_t clip_ymin;
+            coordinate_t clip_ymax;
+        };
+        clip_region_t current;
+    };
+    clip_region_t clip_stack[EGLIG_CLIP_STACK_SIZE]; // four level clip region stack
+    uint8_t *clip_buffer[EGLIG_CLIP_STACK_SIZE];
+    uint8_t clip_level;
 } drawing_t;
 
 

@@ -31,6 +31,7 @@ void eglib_Init(eglib_t *eglib, const hal_t *hal_driver, void *hal_driver_config
 
 	eglib->hal.driver->init(eglib);
 	eglib->display.driver->init(eglib);
+    eglib->frame_buffer = eglib_buffer;
     coordinate_t width, height;
     eglib->display.driver->get_dimension(eglib, &width, &height);
     eglib->do_buffer = false;
@@ -39,6 +40,7 @@ void eglib_Init(eglib_t *eglib, const hal_t *hal_driver, void *hal_driver_config
     eglib->drawing.clip_ymin = 0;
     eglib->drawing.clip_ymax = height;
     eglib->drawing.buffer = eglib_buffer;
+    eglib->drawing.clip_level = 0;
 }
 
 void eglib_SleepIn(eglib_t *eglib) {

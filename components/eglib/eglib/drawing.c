@@ -38,19 +38,30 @@ void eglib_setClipRange(
     coordinate_t w,
     coordinate_t h
 ) {
+    // push the existing c.r. to stack, and set the new one
+    if (eglib->drawing.clip_level >= EGLIG_CLIP_STACK_SIZE)
+        return; // overflow
+
     // Backup existing c.r.
-    eglib->drawing.clbs_xmax = eglib->drawing.clip_xmax;
-    eglib->drawing.clbs_xmin = eglib->drawing.clip_xmin;
-    eglib->drawing.clbs_ymax = eglib->drawing.clip_ymax;
-    eglib->drawing.clbs_ymin = eglib->drawing.clip_ymin;
+    eglib->drawing.clip_stack[eglib->drawing.clip_level] = eglib->drawing.current;
+    eglib->drawing.clip_buffer[eglib->drawing.clip_level] = eglib->drawing.buffer;
+    eglib->drawing.clip_level++;
+
     // Set a new one, it have to reduce the given
     //ESP_LOGI( "dl>", "S given x:%d y:%d w:%d h:%d", x, y, w, h );
-    if ( (x >= eglib->drawing.clip_xmin) && (x < eglib->drawing.clip_xmax)) eglib->drawing.clip_xmin = x;
-    if ( ((x+w) >= eglib->drawing.clip_xmin) && ((x+w) < eglib->drawing.clip_xmax)) eglib->drawing.clip_xmax = x+w;
-    if ( (y >= eglib->drawing.clip_ymin) && (y < eglib->drawing.clip_ymax)) eglib->drawing.clip_ymin = y;
-    if ( ((y+h) >= eglib->drawing.clip_ymin) && ((y+h) < eglib->drawing.clip_ymax)) eglib->drawing.clip_ymax = y+h;
+    uint16_t frame_offset = 0;
+    if ( (x > eglib->drawing.clip_xmin) && (x < eglib->drawing.clip_xmax)) {
+        frame_offset = (x - eglib->drawing.clip_xmin) * 3;
+        eglib->drawing.clip_xmin = x;
+    }
+    if ( ((x+w) > eglib->drawing.clip_xmin) && ((x+w) < eglib->drawing.clip_xmax)) eglib->drawing.clip_xmax = x+w;
+    if ( (y > eglib->drawing.clip_ymin) && (y < eglib->drawing.clip_ymax)) {
+        frame_offset += (y - eglib->drawing.clip_ymin) * eglib->drawing.frame_width * 3;
+        eglib->drawing.clip_ymin = y;
+    }
+    if ( ((y+h) > eglib->drawing.clip_ymin) && ((y+h) < eglib->drawing.clip_ymax)) eglib->drawing.clip_ymax = y+h;
     // ESP_LOGI( "dl>", "S xmin:%d xmax:%d ymin:%d ymax:%d", eglib->drawing.clip_xmin, eglib->drawing.clip_xmax, eglib->drawing.clip_ymin, eglib->drawing.clip_ymax );
-    return;
+    eglib->drawing.buffer = eglib->do_buffer ? eglib->drawing.buffer + frame_offset : eglib->frame_buffer;
 };
 
 /**
@@ -61,17 +72,20 @@ void eglib_setClipRange(
  * Recall the previous c.r.
  */
 
-void eglib_undoClipRange( eglib_t *eglib){
-    // Pop the old one back
-    eglib->drawing.clip_xmax = eglib->drawing.clbs_xmax;
-    eglib->drawing.clip_xmin = eglib->drawing.clbs_xmin;
-    eglib->drawing.clip_ymax = eglib->drawing.clbs_ymax;
-    eglib->drawing.clip_ymin = eglib->drawing.clbs_ymin;
-    // Delete the old one
-    eglib->drawing.clbs_xmax = eglib_GetWidth(eglib);
-    eglib->drawing.clbs_xmin = 0;
-    eglib->drawing.clbs_ymax = eglib_GetHeight(eglib);
-    eglib->drawing.clbs_ymin = 0;
+void eglib_undoClipRange( eglib_t *eglib) {
+    if (eglib->drawing.clip_level > 0) {
+        eglib->drawing.clip_level--;
+        // Pop the old one back
+        eglib->drawing.current = eglib->drawing.clip_stack[eglib->drawing.clip_level];
+        eglib->drawing.buffer = eglib->drawing.clip_buffer[eglib->drawing.clip_level];
+    } else {
+        // set display size
+        eglib->drawing.clip_xmax = eglib_GetWidth(eglib);
+        eglib->drawing.clip_xmin = 0;
+        eglib->drawing.clip_ymax = eglib_GetHeight(eglib);
+        eglib->drawing.clip_ymin = 0;
+        eglib->drawing.buffer = eglib->frame_buffer;
+    }
     // ESP_LOGI( "dl<", "U xmin:%d xmax:%d ymin:%d ymax:%d", eglib->drawing.clip_xmin, eglib->drawing.clip_xmax, eglib->drawing.clip_ymin, eglib->drawing.clip_ymax );
     return;
 };
@@ -1323,122 +1337,118 @@ struct font_t {
 };
 */
 
-void eglib_DrawGlyph(eglib_t *eglib, coordinate_t x, coordinate_t y, const struct glyph_t *glyph) {
-	if(glyph == NULL)
-		return;
-	uint8_t *buffer = eglib->drawing.buffer;
-	int16_t ascent = eglib->drawing.font->ascent;
-	int16_t descent = eglib->drawing.font->descent;
-	int16_t ascheight = ascent - descent;
-	int16_t alignment = -ascheight; // FONT_BOTTOM
-	int16_t head = ascent - glyph->top; // empty space on top of the glyph
-  int16_t left = glyph->left; // empty space on the left of the glyph (might be negative)
-	// ESP_LOGI("eglib_DrawGlyph 1", "gly width:%d adv:%d hei:%d head:%d asc:%d dec:%d", width, glyph->advance, height, head, ascent, descent );
+void eglib_DrawGlyph(eglib_t* eglib, coordinate_t x, coordinate_t y, const struct glyph_t* glyph) {
+    if (glyph == NULL)
+        return;
+    uint8_t* buffer = eglib->drawing.buffer;
+    int16_t ascent = eglib->drawing.font->ascent;
+    int16_t descent = eglib->drawing.font->descent;
+    int16_t ascheight = ascent - descent;
+    int16_t alignment = -ascheight;      // FONT_BOTTOM
+    int16_t head = ascent - glyph->top;  // empty space on top of the glyph
+    int16_t left = glyph->left;          // empty space on the left of the glyph (might be negative)
+                                 // ESP_LOGI("eglib_DrawGlyph 1", "gly width:%d adv:%d hei:%d head:%d asc:%d dec:%d", width, glyph->advance,
+                                 // height, head, ascent, descent );
 
-  if( eglib->drawing.font_origin == FONT_MIDDLE ) {
-		alignment = - ascheight / 2; //  descent - (ascent+1) / 2;
-  }
-	else if( eglib->drawing.font_origin == FONT_TOP )
-		alignment = 0;
+    if (eglib->drawing.font_origin == FONT_MIDDLE) {
+        alignment = -ascheight / 2;  //  descent - (ascent+1) / 2;
+    } else if (eglib->drawing.font_origin == FONT_TOP)
+        alignment = 0;
 
-  int16_t width = glyph->width; // in non filled mode, only the glyph is rendered
-  int16_t height = glyph->height;
-  coordinate_t startcol = left; // means first column of the glyph bitmap is rendered
-  coordinate_t startrow = head; // in non filled mode, the empty space on top of the glyph is not rendered
-  if( eglib->drawing.filled_mode ) {
-    // render the whole bounding box of the glyph if filled mode is active
-    // also render the trailing space of the glyph (advance - width) if any, to make sure the background is properly rendered
-    // |    left         |    glyph width |   trailing space | non filled mode only renders the glyph width
-    // +-----------------+----------------+------------------+
-    // |           advance                                   | filled mode renders the whole advance
-    // |                 + x_frame:=x
-    // + x_frame:=x+left (no fill)
-    width = glyph->advance;
-    startcol = 0; // in filled mode, the left padding is also rendered
+    int16_t width = glyph->width;  // in non filled mode, only the glyph is rendered
+    int16_t height = glyph->height;
+    coordinate_t startcol = left;  // means first column of the glyph bitmap is rendered
+    coordinate_t startrow = head;  // in non filled mode, the empty space on top of the glyph is not rendered
+    if (eglib->drawing.filled_mode) {
+        // render the whole bounding box of the glyph if filled mode is active
+        // also render the trailing space of the glyph (advance - width) if any, to make sure the background is properly rendered
+        // |    left         |    glyph width |   trailing space | non filled mode only renders the glyph width
+        // +-----------------+----------------+------------------+
+        // |           advance                                   | filled mode renders the whole advance
+        // |                 + x_frame:=x
+        // + x_frame:=x+left (no fill)
+        width = glyph->advance;
+        startcol = 0;  // in filled mode, the left padding is also rendered
 
-    // +-  ascent                     --- (FONT_TOP y_frame:=y)
-    // |     |   |
-    // |     |  head
-    // |     |   |   |---|-- glyph width
-    // |     |   +-- ,°°°.            -+- (FONT_MIDDLE y_frame:=y-(ascent-descent)/2)
-    // |     |  top  .   ;             |
-    // +--baseline----°°°---------  glyph height
-    // |     |          /              |
-    // +  descent     °° (negative)   -+- (FONT_BOTTOM y_frame:=y-(ascent-descent))
-    // |     |
-    // |  line_space
-    // +  ...
-    height = ascheight;
-    startrow = 0; // in filled mode, the whole height of the font is rendered, so start from the top of the bounding box
-  }
-  // ESP_LOGI("eglib_DrawGlyph 1.3", "left: %d width:%d adv: %d ashei: %d ghei:%d, gtop:%d", glyph->left, glyph->width, glyph->advance, ascheight, glyph->height, glyph->top);
-
-  // respect the clipping area
-  if ( x+startcol <  eglib->drawing.clip_xmin ) {
-    width -= eglib->drawing.clip_xmin - (x+startcol);
-    startcol = eglib->drawing.clip_xmin - x;
-  }
-  else if ( x+startcol >= eglib->drawing.clip_xmax ) {
-    return; // glyph is off clip area
-  }
-  if ( x+startcol+width >= eglib->drawing.clip_xmax ) {
-    width = eglib->drawing.clip_xmax - (x+startcol);
-  }
-  else if ( x+startcol+width < eglib->drawing.clip_xmin ) {
-    return; // glyph is off clip area
-  }
-  // check vertical clipping
-  if ( y+alignment+startrow < eglib->drawing.clip_ymin ) {
-    height -= eglib->drawing.clip_ymin - (y+alignment+startrow);
-    startrow = eglib->drawing.clip_ymin - (y+alignment);
-  }
-  else if ( y+alignment+startrow >= eglib->drawing.clip_ymax ) {
-    return; // glyph is off clip area
-  }
-  if ( y+alignment+startrow+height >= eglib->drawing.clip_ymax ) {
-    height = eglib->drawing.clip_ymax - (y+alignment+startrow);
-  }
-  else if ( y+alignment+startrow+height < eglib->drawing.clip_ymin ) {
-    return; // glyph is off clip area
-  }
-
-  // the minimal bounding box is now defined by startcol, startrow, width and height
-  // ESP_LOGI("eglib_DrawGlyph 1.5", "startcol:%d startrow:%d width:%d height:%d", startcol, startrow, width, height );
-
-	int pos3 = 0;
-	for(coordinate_t v1=startrow; v1 < (height+startrow); v1++){
-    int16_t screen_y = y + alignment + v1;
-    coordinate_t v = v1 - head; // glyph access coordinate
-    if ( eglib->do_buffer ) {
-      // calc offset into partial frame buffer
-      buffer = eglib->drawing.buffer 
-          + ((screen_y-eglib->drawing.clip_ymin) * (eglib->drawing.clip_xmax - eglib->drawing.clip_xmin) * 3) // y offset
-          + ((x+startcol - eglib->drawing.clip_xmin) * 3); // x offset
-      pos3 = 0;
+        // +-  ascent                     --- (FONT_TOP y_frame:=y)
+        // |     |   |
+        // |     |  head
+        // |     |   |   |---|-- glyph width
+        // |     |   +-- ,°°°.            -+- (FONT_MIDDLE y_frame:=y-(ascent-descent)/2)
+        // |     |  top  .   ;             |
+        // +--baseline----°°°---------  glyph height
+        // |     |          /              |
+        // +  descent     °° (negative)   -+- (FONT_BOTTOM y_frame:=y-(ascent-descent))
+        // |     |
+        // |  line_space
+        // +  ...
+        height = ascheight;
+        startrow = 0;  // in filled mode, the whole height of the font is rendered, so start from the top of the bounding box
     }
-		for(coordinate_t u1=startcol; u1 < (width+startcol); u1++) {
-      int16_t u = u1 - left; // glyph access coordinate
-      if ( ! eglib->do_buffer ) *(color_t *)(buffer+pos3) = eglib->drawing.color_index[1];  // preinitialize with background
-      if( (u < glyph->width) && (v < glyph->height) && u>=0 && v>=0)
-      {
-        if( get_bit2( glyph, u, v ) ){
-          *(color_t *)(buffer+pos3) = eglib->drawing.color_index[0];
+    // ESP_LOGI("eglib_DrawGlyph 1.3", "left: %d width:%d adv: %d ashei: %d ghei:%d, gtop:%d", glyph->left, glyph->width, glyph->advance,
+    // ascheight, glyph->height, glyph->top);
+
+    // respect the clipping area
+    if (x + startcol < eglib->drawing.clip_xmin) {
+        width -= eglib->drawing.clip_xmin - (x + startcol);
+        startcol = eglib->drawing.clip_xmin - x;
+    } else if (x + startcol >= eglib->drawing.clip_xmax) {
+        return;  // glyph is off clip area
+    }
+    if (x + startcol + width >= eglib->drawing.clip_xmax) {
+        width = eglib->drawing.clip_xmax - (x + startcol);
+    } else if (x + startcol + width < eglib->drawing.clip_xmin) {
+        return;  // glyph is off clip area
+    }
+    // check vertical clipping
+    if (y + alignment + startrow < eglib->drawing.clip_ymin) {
+        height -= eglib->drawing.clip_ymin - (y + alignment + startrow);
+        startrow = eglib->drawing.clip_ymin - (y + alignment);
+    } else if (y + alignment + startrow >= eglib->drawing.clip_ymax) {
+        return;  // glyph is off clip area
+    }
+    if (y + alignment + startrow + height >= eglib->drawing.clip_ymax) {
+        height = eglib->drawing.clip_ymax - (y + alignment + startrow);
+    } else if (y + alignment + startrow + height < eglib->drawing.clip_ymin) {
+        return;  // glyph is off clip area
+    }
+
+    // the minimal bounding box is now defined by startcol, startrow, width and height
+    // ESP_LOGI("eglib_DrawGlyph 1.5", "startcol:%d startrow:%d width:%d height:%d", startcol, startrow, width, height );
+
+    int pos3 = 0;
+    for (coordinate_t v1 = startrow; v1 < (height + startrow); v1++) {
+        int16_t screen_y = y + alignment + v1;
+        coordinate_t v = v1 - head;  // glyph access coordinate
+        if (eglib->do_buffer) {
+            // calc offset into partial frame buffer
+            buffer = eglib->drawing.buffer +
+                     ((screen_y - eglib->drawing.clip_ymin) * (eglib->drawing.frame_width) * 3)  // y offset
+                     + ((x + startcol - eglib->drawing.clip_xmin) * 3);                                                   // x offset
+            pos3 = 0;
         }
-      }
-      pos3 +=3;
-		}
-		// line[width] = 0;
-		// ESP_LOGI("Bitmap","L-%02d: %s", v1, line);   // debug bitmap
-	}
+        for (coordinate_t u1 = startcol; u1 < (width + startcol); u1++) {
+            int16_t u = u1 - left;  // glyph access coordinate
+            if (!eglib->do_buffer)
+                *(color_t*)(buffer + pos3) = eglib->drawing.color_index[1];  // preinitialize with background
+            if ((u < glyph->width) && (v < glyph->height) && u >= 0 && v >= 0) {
+                if (get_bit2(glyph, u, v)) {
+                    *(color_t*)(buffer + pos3) = eglib->drawing.color_index[0];
+                }
+            }
+            pos3 += 3;
+        }
+        // line[width] = 0;
+        // ESP_LOGI("Bitmap","L-%02d: %s", v1, line);   // debug bitmap
+    }
 
-  if ( ! eglib->do_buffer ) {
-    eglib->display.driver->send_buffer(eglib, buffer, x+startcol, y+alignment+startrow, width, height);
-  }
-  // eglib_SetIndexColor(eglib, 0, 255, 0, 0);
-  // eglib_DrawLine(eglib, x-1, y, x+1, y);
-  // eglib_DrawFrame(eglib, x+startcol-1, y+alignment+startrow-1, width+1, height+1);
+    if (!eglib->do_buffer) {
+        eglib->display.driver->send_buffer(eglib, buffer, x + startcol, y + alignment + startrow, width, height);
+    }
+    // eglib_SetIndexColor(eglib, 0, 255, 0, 0);
+    // eglib_DrawLine(eglib, x-1, y, x+1, y);
+    // eglib_DrawFrame(eglib, x+startcol-1, y+alignment+startrow-1, width+1, height+1);
 }
-
 
 #define MISSING_GLYPH_ADVANCE eglib->drawing.font->pixel_size
 
