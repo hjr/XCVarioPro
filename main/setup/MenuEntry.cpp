@@ -114,11 +114,11 @@ void MenuEntry::enter() {
     attach();  // set rotary focus
     if (isLeaf()) {
         if (canInline()) {
-            showhelp(true);
+            showHelp(true);
             bits._is_inline = true;
         } else {
             clear();
-            showhelp();
+            showHelp();
         }
     }
     display();
@@ -270,21 +270,19 @@ int MenuEntry::nrOfHelpLines() const
 
 // In case inline is requested: Try to squeeze the help under
 // the parents menu lines,
-// returns true when inlining
-bool MenuEntry::showhelp(bool inln)
+// returns true when help lines fit on the display
+bool MenuEntry::showHelp(bool inln)
 {
-    ESP_LOGI(FNAME, "MenuEntry showhelp() %s inline=%d", _title.c_str(), inln);
-    bool ret = true;  // inlining w/o help text is always possible
+    ESP_LOGI(FNAME, "MenuEntry showHelp() %s inline=%d", _title.c_str(), inln);
+    bool ret = true; // no help text fits always
     if (helptext) {
         // option to fit the help under the menu lines
         int needed_ln = nrOfHelpLines();
-        int16_t first_hln = current_menu->firstHelpLine();
+        int16_t first_hln = firstHelpLine();
         if (inln) {
-            if (current_menu->freeBottomLines() < needed_ln) {
-                ret = false;
-            }
-        } else {
-            first_hln = (dheight / LINE_HEIGHT + 1) / 2;  // Lower half of the display for help, default
+            first_hln = current_menu->firstHelpLine();
+        }
+        if ( needed_ln > maxLines() - first_hln) {
             ret = false;
         }
 
@@ -297,7 +295,7 @@ bool MenuEntry::showhelp(bool inln)
         if ( _help_line_start[0] == 0 ) {
             // just one line
             menuPrintLn(helptext, first_hln);
-            ESP_LOGI(FNAME,"MenuEntry showhelp() line 0: '%s'",  helptext );
+            ESP_LOGI(FNAME,"MenuEntry showHelp() line 0: '%s'",  helptext );
         }
         else {
             // multiple lines
@@ -305,7 +303,7 @@ bool MenuEntry::showhelp(bool inln)
             int16_t i;
             for (i=0; i < MAX_HELP_LINES && _help_line_start[i] != 0; i++) {
                 std::string lbuf(helptext + start, _help_line_start[i] - start);
-                ESP_LOGI(FNAME,"MenuEntry showhelp() line %d: '%s'", i, lbuf.data() );
+                ESP_LOGI(FNAME,"MenuEntry showHelp() line %d: '%s'", i, lbuf.data() );
                 menuPrintLn(lbuf.data(), first_hln + i);
                 start = _help_line_start[i];
             }

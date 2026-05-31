@@ -120,13 +120,13 @@ void SetupMenu::display(int mode)
 		}
 		// ESP_LOGI(FNAME,"Child: %s y=%d",child->getTitle() ,y );
 	}
-	showhelp(true);
+	showHelp(true);
 	dirty = false;
 }
 
 int16_t SetupMenu::freeBottomLines() const
 {
-    return dheight/25 - getNrChilds() - 1;
+    return maxLines() - getNrChilds() - 1;
 }
 
 int16_t SetupMenu::firstHelpLine() const
@@ -228,12 +228,12 @@ void SetupMenu::rot(int count)
     // show help like a mouse over when menu get highlighted
     MenuEntry* child = (highlight >= 0) ? _childs[highlight] : nullptr;
     if (child && child->canInline() && child->hasHelp() ) {
-        child->showhelp(true);
+        child->showHelp(true);
         _help_dirty = true;
     }
     else {
         if ( _help_dirty ) {
-            if ( hasHelp() ) { showhelp(true); }
+            if ( hasHelp() ) { showHelp(true); }
             else { clearHelpLines(firstHelpLine()); }
             _help_dirty = false;
         }

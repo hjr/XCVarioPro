@@ -141,7 +141,7 @@ static int scan_for_master(SetupMenuSelect *p) {
             p->setHelp("Failed to scan for master XCVario, try again later");
         }
     }
-    p->showhelp(true);
+    p->showHelp(true);
     vTaskDelay(pdMS_TO_TICKS(2000));
     p->setSelect(0);
     return 0;

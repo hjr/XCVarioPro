@@ -130,6 +130,15 @@ const char *SetupMenuSelect::value() const
 	return "";
 }
 
+int16_t SetupMenuSelect::firstHelpLine() const
+{
+    int16_t lns = _values.size() + 1;
+    if (lns > MenuEntry::firstHelpLine()) {
+        return lns;
+    }
+    return MenuEntry::firstHelpLine();
+}
+
 bool SetupMenuSelect::existsEntry(const char* ent){
 	for( std::vector<ITEM_t>::iterator iter = _values.begin(); iter != _values.end(); ++iter ) {
 		if( strcmp(iter->first, ent) == 0 ) {

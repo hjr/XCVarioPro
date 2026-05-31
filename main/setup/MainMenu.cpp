@@ -89,7 +89,7 @@ static int expert_menu_action(SetupMenuChar *p) {
         p->reset(); // hide the once entered code
         p->setHelp("Expert menus are unlocked now");
     }
-    p->showhelp();
+    p->showHelp();
     vTaskDelay(pdMS_TO_TICKS(1000));
     p->setTerminateSetup();
     return 0;
