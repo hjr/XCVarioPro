@@ -32,7 +32,7 @@ ArrowIndicator::ArrowIndicator(PolarGauge &g, int16_t tipradius, int16_t length,
     _shoulder_val_offset(atan(static_cast<float>(half_base)/(_tip-length))*g.IDX_SCALE), // correct for cutting the radius from base points
     _half_width(half_base)
 {
-    color = { COLOR_RED };
+    color = { COLOR_POINTER };
     ESP_LOGI(FNAME,"Base  tl:%d off:%d tip:%d base:%d", _tip-length, _shoulder_val_offset, _tip, _root );
     prev.x_0 = _gauge.CosCenteredDeg2(0, _root); // root center
     prev.y_0 = _gauge.SinCenteredDeg2(0, _root);
