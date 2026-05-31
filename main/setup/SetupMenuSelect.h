@@ -32,8 +32,9 @@ public:
 	void press() override;
 	void longPress() override;
 	const char *value() const override;
-	void setNvsVar(SetupNG<int> *anvs) { _nvs = anvs; refresh(); }
+    int16_t firstHelpLine() const override;
 
+    void setNvsVar(SetupNG<int> *anvs) { _nvs = anvs; refresh(); }
 	bool existsEntry(const char* ent);
     void addEntry(const char* ent, int val);
     void addEntry(const char* ent);

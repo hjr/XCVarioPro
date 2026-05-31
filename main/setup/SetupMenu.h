@@ -32,7 +32,8 @@ public:
 	bool isLeaf() const override { return false; }
 	const char *value() const override { return buzzword; };
 	int16_t freeBottomLines() const;
-    int16_t firstHelpLine() const;
+    int16_t firstHelpLine() const override;
+
 	// accessors
 	int getHighlight() const { return highlight; }
 	int incHighlight() { return ++highlight; }

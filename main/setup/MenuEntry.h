@@ -59,6 +59,7 @@ public:
 	virtual void refresh() {} // reread temp values coping with side efects on refreshing the display
 	virtual bool isLeaf() const { return true; }
 	virtual const char* value() const = 0; // content as string
+    virtual int16_t firstHelpLine() const { return maxLines() / 2; };
 
 	void lock() { bits._locked = true; }
 	void unlock() { bits._locked = false; }
@@ -82,7 +83,7 @@ public:
 	void focusPosLn(const char *str, int16_t pos, bool mode=false) const;
 	bool canInline() const;
 	int nrOfHelpLines() const;
-	bool showhelp(bool inln=false);
+	bool showHelp(bool inln=false);
 	static void clear();
 	void clearHelpLines(int16_t ln) const;
 	// const MenuEntry* findMenu(const char *title) const;
@@ -94,6 +95,7 @@ public:
 	void scheduleReboot(uint8_t r = 0x80) { _restart |= r; }
 	void unscheduleReboot(uint8_t r) { _restart &= ~r; }
 	static void reBoot(int s=1);
+    static uint16_t maxLines() { return dheight / LINE_HEIGHT; }    
 
 public:
 	static int16_t dwidth;
@@ -109,7 +111,7 @@ protected:
 	static int16_t cur_indent;
 	static int16_t cur_row;
 
-   private:
+  private:
     const char* helptext = nullptr;
     uint8_t _help_line_start[MAX_HELP_LINES];
     static MenuEntry* current; // the currently selected menu entry, may be a menu or a leaf, but always a child of the current_menu
