@@ -386,7 +386,6 @@ BTnus::BTnus() :
 BTnus::~BTnus()
 {
     stop();
-    BLUEnus = nullptr;
     core.release();
 }
 

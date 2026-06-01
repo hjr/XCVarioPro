@@ -614,14 +614,14 @@ uint8_t DeviceManager::removeDevice(DeviceId did, bool nvsave)
             }
             else if ( itf == BLUEspp ) {
                 ESP_LOGI(FNAME, "stopping BTspp");
-                BTspp *tmp = BLUEspp;
+                delete BLUEspp; // stop() and BT callback need the pointer
                 BLUEspp = nullptr;
-                delete tmp;
                 ret = RESTART_BT_CHANGE; // restart needed
             }
             else if ( itf == BLUEnus ) {
                 ESP_LOGI(FNAME, "stopping BTle");
                 delete BLUEnus; // organizes the proper nullptr setting of global pointer in destructor
+                BLUEnus = nullptr;
                 ret = RESTART_BT_CHANGE; // restart needed
             }
             else if ( itf == S1 ) {
