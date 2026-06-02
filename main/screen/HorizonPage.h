@@ -25,8 +25,8 @@ public:
     static HorizonPage* HORIZON();
     ~HorizonPage() = default;
 
+    void rot(int count);
     void draw(Quaternion q);
-    void drawR(Quaternion q);
 
     static constexpr const int16_t BOX_SIZE = 200;
 
@@ -35,5 +35,6 @@ private:
     static HorizonPage* instance;
     Line previous_horizon_line;
     Point horizon_box[4];
-
+    float _gaa = 0.f; // ground angle of attack adjustment
+    int16_t _show_adjustment = 0; // show adjustment for some seconds
 };

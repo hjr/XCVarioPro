@@ -174,6 +174,10 @@ void ScreenRoot::exit(int levels)
 
 void ScreenRoot::rot(int count)
 {
+    if ( active_screen == SCREEN_HORIZON ) {
+        HorizonPage::HORIZON()->rot(count); // todo needs a better solution than static access
+        return;
+    }
     // ESP_LOGI(FNAME,"root: rot");
     if (rot_default.get() == 1) {
         // MC Value

@@ -17,7 +17,7 @@
 #include "setup/SetupNG.h"
 #include "AdaptUGC.h"
 #include "Colors.h"
-#include "logdef.h"
+#include "logdefnone.h"
 
 #include <cstdint>
 
@@ -49,13 +49,22 @@ HorizonPage::HorizonPage()
     horizon_box[2] = {(int16_t)(left+BOX_SIZE), top};
     horizon_box[3] = {left, top};
     _DIRTY = true;
+    // pick up once the nvs value
+    _gaa = glider_ground_aa.get();
+}
+
+void HorizonPage::rot(int count)
+{
+    // adjust the GAA and thus the horizon pitch
+    _gaa += count * 0.5f;
+    accSensor->getMpu().applyImuReference(_gaa, MpuImu::getDefaultImuReference());
+    _show_adjustment = 50;
 }
 
 void HorizonPage::draw( Quaternion q )
 {
     if ( _DIRTY ) {
         Display->clear();
-        // --- REMOVED: side triangles + side scales ---
         previous_horizon_line = Line();
     }
 
@@ -87,9 +96,7 @@ void HorizonPage::draw( Quaternion q )
             Display->clipPolygonByLine(above, na, shifted, optb, &ob, opta, &oa);
             MYUCG->setColor( COLOR_SKYBLUE );
             Display->drawPolygon(opta, oa);
-
-            shifted._d -= 2.0f;   // 1-2 = -1 so 1 Pixel up 
-
+            shifted._d -= 2.0f;   // 1-2 = -1 so 1 pixel up 
             Display->clipPolygonByLine(below, nb, shifted, optb, &ob, opta, &oa);
             MYUCG->setColor( COLOR_EARTH );
             Display->drawPolygon(optb, ob);
@@ -102,9 +109,9 @@ void HorizonPage::draw( Quaternion q )
             Display->drawPolygon(below, nb);
         }
 
-        // --- Aircraft symbol ---
-        const int cx = DISPLAY_W / 2;
-        const int cy = DISPLAY_H / 2;
+        // --- aircraft symbol ---
+        const int16_t cx = DISPLAY_W / 2;
+        const int16_t cy = DISPLAY_H / 2;
         MYUCG->setColor(COLOR_WHITE);
         // center ring
         MYUCG->drawCircle(cx, cy, 5, UCG_DRAW_ALL);
@@ -129,15 +136,16 @@ void HorizonPage::draw( Quaternion q )
         MYUCG->drawLine(cx - 45, cy, cx - 51, cy - 4);
 
 
-        int full_len = 30;
-        int short_len = (int)(full_len * 0.3f);
+        constexpr int16_t full_len = 30;
+        constexpr int16_t short_len = (int)(full_len * 0.3f);
         float px_per_5deg = 12.0f;
 
         // text config
         MYUCG->setFont(ucg_font_fub11_hr, false );   // small, readable
-        int gap = 8;                        // space between line and number
+        MYUCG->setFontPosCenter();
+        constexpr int16_t gap = 8; // space between line and number
 
-        for (int deg = -35; deg <= 35; deg += 5) {
+        for (int16_t deg = -35; deg <= 35; deg += 5) {
 
             if (deg == 0) continue;
             if (deg == 5)
@@ -145,65 +153,51 @@ void HorizonPage::draw( Quaternion q )
             else
                 MYUCG->setColor(COLOR_POINTER);
 
-            int y = cy - (int)((deg / 5.0f) * px_per_5deg);
-            bool isLong = (deg % 10 == 0);
-            int len = isLong ? full_len : short_len;
+            int16_t y = cy - (int)((deg / 5.0f) * px_per_5deg);
+            int16_t len_h = (!(deg % 10) ? full_len : short_len) / 2;
 
-            // draw tick
-            MYUCG->drawHLine(cx - len/2, y, len);
+            // draw pitch tick line
+            MYUCG->drawHLine(cx - len_h, y, len_h * 2);
 
-            // numbers only for 10/20/30
-            if (isLong) {
-                int absDeg = abs(deg);
-                if (absDeg == 20) {
-                    char buf[4];
-                    sprintf(buf, "%d", absDeg);
+            // numbers only for 20deg
+            int absDeg = abs(deg);
+            if (absDeg == 20) {
+                char buf[4];
+                sprintf(buf, "%d", absDeg);
 
-                    int str_w = MYUCG->getStrWidth(buf);
+                int16_t str_w = MYUCG->getStrWidth(buf);
 
-                    int ascent  = MYUCG->getFontAscent();
-                    int descent = MYUCG->getFontDescent();
-                    // center text vertically on the tick line
-                    int text_y = y + (ascent - descent) / 2;
+                // left number
+                int tx = cx - len_h - gap - str_w;
 
-                    // LEFT number
-                    int tx = cx - len/2 - gap - str_w;
-                    int center_x = tx + str_w / 2;
-                    int center_y = text_y - (ascent - descent) / 2;
-                    float side = l.fct(Point(center_x, center_y));
-
-                    // choose background color
-                    if(side > 0) {
-                        MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
-                    } else {
-                        MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
-                    }
-
-                    MYUCG->setPrintPos(cx - len/2 - gap - str_w, text_y);
-                    MYUCG->print(buf);
-
-                    // RIGHT number
-                    tx = cx + len/2 + gap;
-                    center_x = tx + str_w / 2;
-                    center_y = text_y - (ascent - descent) / 2;
-                    side = l.fct(Point(center_x, center_y));
-
-                    // choose background color
-                    if(side > 0) {
-                        MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
-                    } else {
-                        MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
-                    }
-
-                    MYUCG->setPrintPos(cx + len/2 + gap, text_y);
-                    MYUCG->print(buf);
+                // choose background color
+                if (l.fct(Point(tx + str_w / 2, y)) > 0.f) {
+                    MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
+                } else {
+                    MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
                 }
+                MYUCG->setPrintPos(cx - len_h - gap - str_w, y);
+                MYUCG->print(buf);
+
+                // right number
+                tx = cx + len_h + gap;
+
+                // choose background color
+                if (l.fct(Point(tx + str_w / 2, y)) > 0.f) {
+                    MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
+                } else {
+                    MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
+                }
+                MYUCG->setPrintPos(cx + len_h + gap, y);
+                MYUCG->print(buf);
             }
         }
+        MYUCG->setColor(1, COLOR_BLACK);
 
         // --- bank label ---
         MYUCG->setColor(1, COLOR_BLACK); // bg color
         MYUCG->setFont(ucg_font_fub14_hn, true);
+        MYUCG->setFontPosBottom();
         MYUCG->setColor(COLOR_HEADER_LIGHT);
         int baseY = DISPLAY_H / 2 - BOX_SIZE / 2 - 10;
         MYUCG->setPrintPos((DISPLAY_W-BOX_SIZE)/2, baseY-4);
@@ -221,48 +215,66 @@ void HorizonPage::draw( Quaternion q )
         previous_horizon_line = l;
     }
 
-    // --- Magnetic Heading (HDG) / Track (TRK) ---
+    _DIRTY = false;
+
     static bool was_valid = false;
     bool valid = heading_tru.getValid() && GpsVSensor::getValid();
-    if (valid) {
-        int heading;
-        bool isMag = heading_tru.getValid();
-        if (isMag) {
-            heading = fast_iroundf(Units::rad_to_deg(heading_tru.get()));
-        } else {
-            heading = fast_iroundf(Units::rad_to_deg(gnd_course.get()));
-        }
-        if (heading >= 0 && (heading != heading_old || !was_valid)) {
-            int baseY = DISPLAY_H / 2 + BOX_SIZE / 2 + 25;
-            MYUCG->setColor(1, COLOR_BLACK);
-            // hdg/trk label
-            MYUCG->setFont(ucg_font_fub14_hn, true);
-            MYUCG->setColor(COLOR_HEADER_LIGHT);
-            MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, baseY + 3);
-            MYUCG->print(isMag ? "HDG" : "TRK");
-            // hdg/trk value
-            MYUCG->setFont(ucg_font_fub20_hn, true);
-            MYUCG->setColor(COLOR_WHITE);
-            char buf[20];
-            snprintf(buf, sizeof(buf), " % 4d°", heading);
-            int strWidth = MYUCG->getStrWidth(buf);
-            MYUCG->setPrintPos((DISPLAY_W / 2) - strWidth / 2 +5, baseY + 7);
-            MYUCG->print(buf);
-            heading_old = heading;
-        }
-
-    } else {
-        // clear display when signal lost ---
-        if (was_valid) {
-            int baseY = DISPLAY_H / 2 + BOX_SIZE / 2;
-            MYUCG->setColor(COLOR_BLACK);
-            MYUCG->drawBox((DISPLAY_W - BOX_SIZE) / 2, baseY, BOX_SIZE, 40);
-            heading_old = -1;   // force redraw when signal returns
+    if ( _show_adjustment > 0 ) {
+        // show GAA adjustment for a few seconds
+        MYUCG->setFont(ucg_font_fub14_hr, true);
+        MYUCG->setColor(COLOR_WHITE);
+        char buf[30];
+        snprintf(buf, sizeof(buf), "Pitch Adjust: %.1f°   ", _gaa);
+        int16_t ypos = std::min((DISPLAY_H + BOX_SIZE) / 2 + 25, DISPLAY_H - 10);
+        MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, ypos);
+        MYUCG->print(buf);
+        _show_adjustment--;
+        if ( _show_adjustment == 0 ) {
+            // save to nvs
+            glider_ground_aa.set(_gaa);
+            _DIRTY = true;
         }
     }
-    was_valid = valid;
+    else {
+        // --- Magnetic Heading (HDG) / Track (TRK) ---
+        if (valid) {
+            int heading;
+            bool isMag = heading_tru.getValid();
+            if (isMag) {
+                heading = fast_iroundf(Units::rad_to_deg(heading_tru.get()));
+            } else {
+                heading = fast_iroundf(Units::rad_to_deg(gnd_course.get()));
+            }
+            if (heading >= 0 && (heading != heading_old || !was_valid)) {
+                int16_t baseY = (DISPLAY_H + BOX_SIZE) / 2 + 25;
+                // hdg/trk label
+                MYUCG->setFont(ucg_font_fub14_hn, true);
+                MYUCG->setColor(COLOR_HEADER_LIGHT);
+                MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, baseY + 3);
+                MYUCG->print(isMag ? "HDG" : "TRK");
+                // hdg/trk value
+                MYUCG->setFont(ucg_font_fub20_hn, true);
+                MYUCG->setColor(COLOR_WHITE);
+                char buf[20];
+                snprintf(buf, sizeof(buf), " % 4d°", heading);
+                int16_t strWidth = MYUCG->getStrWidth(buf);
+                MYUCG->setPrintPos((DISPLAY_W / 2) - strWidth / 2 +5, baseY + 7);
+                MYUCG->print(buf);
+                heading_old = heading;
+            }
 
-    _DIRTY = false;
+        } else {
+            // clear display when signal lost ---
+            if (was_valid) {
+                int baseY = DISPLAY_H / 2 + BOX_SIZE / 2;
+                MYUCG->setColor(COLOR_BLACK);
+                MYUCG->drawBox((DISPLAY_W - BOX_SIZE) / 2, baseY, BOX_SIZE, 40);
+                heading_old = -1;   // force redraw when signal returns
+            }
+        }
+    }
+
+    was_valid = valid;
 
 #ifdef HORIZON_TEST
     // axes for testing

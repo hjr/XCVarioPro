@@ -48,13 +48,6 @@ static int set_ahrs_defaults(SetupMenuSelect *p) {
 	return 0;
 }
 
-static int imu_gaa(SetupMenuValFloat *f) {
-    if (accSensor && !(imu_reference.get() == Quaternion())) {
-        accSensor->getMpu().applyImuReference(f->get(), imu_reference.get());
-    }
-    return 0;
-}
-
 // 1: left wing down, -1: right wing down, 0: leveled
 static void drawGliderPic(int16_t lev) {
     int X = DISPLAY_W / 2;
@@ -540,12 +533,6 @@ void system_menu_create_hardware_imu(SetupMenu *top) {
 #endif
 
     if ( gflags.expert ) {
-        SetupMenuValFloat* gaa = new SetupMenuValFloat("Angle of Atk.", "°", imu_gaa, &glider_ground_aa, RST_NONE, false);
-        gaa->setHelp(
-            "Ground angle of attack with tail skid on the ground to adjust the AHRS horizon level");
-        gaa->setPrecision(0);
-        top->addEntry(gaa);
-    
         SetupMenuSelect* gyro_reset = new SetupMenuSelect("Gyro Zero", RST_NONE, imu_calib);
         gyro_reset->setHelp("Reset gyro bias to zero");
         gyro_reset->addEntry("Cancel", 0);

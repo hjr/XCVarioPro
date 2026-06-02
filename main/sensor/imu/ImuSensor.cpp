@@ -107,10 +107,11 @@ bool MpuImu::setup() {
 
     // Load reference calibration
     Quaternion basic_ref = imu_reference.get();
-    _ref_rot = concatGaaAndImuReference(glider_ground_aa.get(), basic_ref);
     if (basic_ref == Quaternion()) {
-        // If unset, set the default, but do not apply the GAA (!)
-        _ref_rot = getDefaultImuReference();
+        _ref_rot = concatGaaAndImuReference(glider_ground_aa.get(), getDefaultImuReference());
+    } else {
+        _ref_rot = concatGaaAndImuReference(glider_ground_aa.get(), basic_ref);
+
     }
 
     return err == ESP_OK;
