@@ -413,14 +413,14 @@ const SOUND Knock = { knock_tim.data(), { knock_seq1.data(), knock_seq2.data(), 
 const std::array<DURATION, 10> flapf_tim = {{ {55}, {50},   {55}, {50},   {55}, {50},   {55}, {50},   {100}, {0} }};
 const std::array<TONE, 10> flapf_seq1 = {{    {925}, {925}, {616}, {616}, {462}, {462}, {308}, {308}, {0}, {0} }};
 const std::array<TONE, 10> flapf_seq2 = {{    {0}, {925},   {0}, {616*toneFactor(4)},   {0}, {462},   {0}, {308*toneFactor(4)},   {0}, {0} }};
-const std::array<VOICECONF, 2> flapf_vconf = {{ {0, 150}, {1, 70} }};
+const std::array<VOICECONF, 2> flapf_vconf = {{ {0, 180}, {1, 120} }};
 const SOUND FlapForward = { flapf_tim.data(), { flapf_seq1.data(), flapf_seq2.data(), nullptr, nullptr }, flapf_vconf.data(), 0 };
 
 // Flap back
 const std::array<DURATION, 13> flapb_tim = {{ {25}, {30}, {50},  {25}, {30}, {50},    {25}, {30}, {50},    {25}, {30}, {50}, {0} }};
 const std::array<TONE, 13> flapb_seq1 = {{    {925}, {925}, {0}, {1391}, {1391}, {0}, {1855}, {1855}, {0}, {2754}, {2754}, {0}, {0} }};
 const std::array<TONE, 13> flapb_seq2 = {{    {925*toneFactor(2)}, {0}, {0},   {1391}, {0}, {0},    {1855*toneFactor(2)}, {0}, {0},    {2754}, {0}, {0}, {0} }};
-const std::array<VOICECONF, 2> flapb_vconf = {{ {0, 150}, {1, 80}  }};
+const std::array<VOICECONF, 2> flapb_vconf = {{ {0, 180}, {1, 120}  }};
 const SOUND FlapBack = { flapb_tim.data(), { flapb_seq1.data(), flapb_seq2.data(), nullptr, nullptr }, flapb_vconf.data(), 0 };
 
 // Wind noise
