@@ -352,7 +352,7 @@ static void initRefs()
 	AVGOFFX = gflags.isPro ? -5-38 : -8;
     UPPERYPOS = OPT_Y_IN * DISPLAY_H + 16;
     LOWERYPOS = (1. - OPT_Y_IN) * DISPLAY_H + 16;
-	INNER_RIGHT_ALIGN = DISPLAY_W - 44;
+	INNER_RIGHT_ALIGN = DISPLAY_W - 40;
 	LOAD_MPG_POS = DISPLAY_H*0.33;
 	LOAD_MIAS_POS = DISPLAY_H*0.63;
 
@@ -495,7 +495,7 @@ void IpsDisplay::initDisplay() {
     clear();
 
     if (!MAINgauge) {
-        int16_t scale_geometry = (display_orientation.get() == DISPLAY_NINETY) ? 120 : (gflags.isPro ? 90 : 128 );
+        int16_t scale_geometry = gflags.isPro ? 90 : 128;
         MAINgauge = new PolarGauge(AMIDX, AMIDY, scale_geometry, 
                         DISPLAY_H/2 - ((display_orientation.get() == DISPLAY_NINETY) ? 20 : 35), 
                         gflags.isPro ? PolarGauge::XCVPRO : PolarGauge::CLUB);
@@ -535,7 +535,7 @@ void IpsDisplay::initDisplay() {
     }
     if (battery_display.get() ) {
         if (!BATgauge) {
-            BATgauge = new Battery(DISPLAY_W - ((display_orientation.get() == DISPLAY_NINETY) ? 90 : 24), DISPLAY_H);
+            BATgauge = new Battery(DISPLAY_W - ((display_orientation.get() == DISPLAY_NINETY) ? 70 : 24), DISPLAY_H);
         }
     }
     else {
