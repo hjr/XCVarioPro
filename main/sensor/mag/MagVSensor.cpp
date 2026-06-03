@@ -60,8 +60,8 @@ void MagVSensor::postProcess()
 
     if ( ! getHeadValid() ) {
         heading_mag.setInvalid();
-        heading_tru.setInvalid();
-        // ESP_LOGI(FNAME, "mag reading not valid");
+        // heading_tru.setInvalid(); // fixme later, currently set from gps sensor as temporary solution
+        ESP_LOGI(FNAME, "mag reading not valid");
         return;
     }
     const vector_f mv = getAVG(500); // avg over the last ca. 0.5sec

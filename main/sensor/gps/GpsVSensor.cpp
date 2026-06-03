@@ -95,6 +95,7 @@ void GpsVSensor::postProcess() {
     if( ! tas.getValid() || ! synoptic_wind.getValid() ) {
         heading_tru.set(track); // fall back
         heading_wca.set(0.f);
+        ESP_LOGI(FNAME, "postProcess: missing TAS or wind for heading calc, fallback to track");
         return;
     }
 
@@ -117,7 +118,7 @@ void GpsVSensor::postProcess() {
 
     // and for plausible airspeed result to prevent wild heading indications
     float true_airspeed = tas.get();
-    if (!floatEqualFastAbs(air_vec.get_norm(), true_airspeed, 0.1f * true_airspeed)) {
+    if (!floatEqualFastAbs(air_vec.get_norm(), true_airspeed, 0.15f * true_airspeed)) {
         heading_tru.set(track); // fallback to track if airspeed calculation seems off
         ESP_LOGW(FNAME, "postProcess: airspeed mismatch: air_vec=%.1f vs TAS=%.1f, fallback to track", 
             Units::mps_to_kmh(air_vec.get_norm()), Units::mps_to_kmh(true_airspeed));
