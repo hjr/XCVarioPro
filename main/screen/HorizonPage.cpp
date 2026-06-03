@@ -198,7 +198,7 @@ void HorizonPage::draw( Quaternion q )
         MYUCG->setColor(1, COLOR_BLACK); // bg color
         MYUCG->setFont(ucg_font_fub14_hn, true);
         MYUCG->setFontPosBottom();
-        MYUCG->setColor(COLOR_HEADER_LIGHT);
+        MYUCG->setColor(COLOR_HEADER);
         int baseY = DISPLAY_H / 2 - BOX_SIZE / 2 - 10;
         MYUCG->setPrintPos((DISPLAY_W-BOX_SIZE)/2, baseY-4);
         MYUCG->print("BANK");
@@ -206,11 +206,13 @@ void HorizonPage::draw( Quaternion q )
         // --- bank value
         int roll = fast_iroundf(accSensor->getRollDeg());
         MYUCG->setFont(ucg_font_fub20_hn, true);
-        snprintf(buf, sizeof(buf), " % 4d°   ", roll);
+        snprintf(buf, sizeof(buf), " % 4d", roll);
         int strWidth = MYUCG->getStrWidth(buf);
-        MYUCG->setColor(COLOR_WHITE);
+        MYUCG->setColor(COLOR_WGREY);
         MYUCG->setPrintPos(DISPLAY_W / 2 - strWidth / 2 +5, baseY);
         MYUCG->print(buf);
+        MYUCG->setColor(COLOR_HEADER);
+        MYUCG->print("°  ");
 
         previous_horizon_line = l;
     }
@@ -222,11 +224,13 @@ void HorizonPage::draw( Quaternion q )
     if ( _show_adjustment > 0 ) {
         // show GAA adjustment for a few seconds
         MYUCG->setFont(ucg_font_fub14_hr, true);
-        MYUCG->setColor(COLOR_WHITE);
         char buf[30];
-        snprintf(buf, sizeof(buf), "Pitch Adjust: %.1f°   ", _gaa);
+        snprintf(buf, sizeof(buf), "% 2.1f°  ", _gaa);
         int16_t ypos = std::min((DISPLAY_H + BOX_SIZE) / 2 + 25, DISPLAY_H - 10);
         MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, ypos);
+        MYUCG->setColor(COLOR_LBBLUE);
+        MYUCG->print("Pitch Adjust: ");
+        MYUCG->setColor(COLOR_WHITE);
         MYUCG->print(buf);
         _show_adjustment--;
         if ( _show_adjustment == 0 ) {
@@ -249,12 +253,12 @@ void HorizonPage::draw( Quaternion q )
                 int16_t baseY = (DISPLAY_H + BOX_SIZE) / 2 + 25;
                 // hdg/trk label
                 MYUCG->setFont(ucg_font_fub14_hn, true);
-                MYUCG->setColor(COLOR_HEADER_LIGHT);
+                MYUCG->setColor(COLOR_HEADER);
                 MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, baseY + 3);
                 MYUCG->print(isMag ? "HDG" : "TRK");
                 // hdg/trk value
                 MYUCG->setFont(ucg_font_fub20_hn, true);
-                MYUCG->setColor(COLOR_WHITE);
+                MYUCG->setColor(COLOR_WGREY);
                 char buf[20];
                 snprintf(buf, sizeof(buf), " % 4d°", heading);
                 int16_t strWidth = MYUCG->getStrWidth(buf);
