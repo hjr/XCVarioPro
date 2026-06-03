@@ -447,10 +447,11 @@ void PolarGauge::colorRange(float from, float to, int16_t color)
 // refresh small area from [scale], to [scale] ( from > to .. always)
 void PolarGauge::drawScale(float from, float to)
 {
+    bool logscale = func->isLog();
     // line width in pixel
     int16_t w1 = 1, w2 = 2, w3 = 3;
     if ( _flavor == CLUB ) {
-        w1 = 2;
+        w1 = (logscale) ? 2 : 0;
         w2 = 4;
         w3 = 6;
     }
@@ -471,7 +472,6 @@ void PolarGauge::drawScale(float from, float to)
     // increment in 1/10 scale steps
     int16_t start = fast_iroundf(_range)*10, stop = fast_iroundf(_mrange)*10;
     int16_t middleat = 10 * func->getZero();
-    bool logscale = func->isLog();
     if (from > -1000.)
     {
         // partial scale repainting
@@ -510,7 +510,7 @@ void PolarGauge::drawScale(float from, float to)
             int16_t width = w1; // .1 little/short lines
             int16_t r_off = _scale_line_len / 2;
 
-            if (!(a % 5))
+            if (logscale && !(a % 5))
             {
                 // .5 small line
                 width = w2;
