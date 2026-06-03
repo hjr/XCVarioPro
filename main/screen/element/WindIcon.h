@@ -29,16 +29,15 @@ class WindIcon : public ScreenElement
 
     // API
     using ScreenElement::draw;
-    bool draw(WindData w);
+    void draw(WindData w);
 
   private:
     void drawIcon(int16_t deg2) const;
-    void drawUnit() const;
+    void drawStatic() const;
     void drawDirection() const;
 
   private: // attributes
     WindData _wind; // current wind data
     int16_t _radius; // radius of the wind icon
-    int16_t _str_width; // width of the string for the wind strength
     Point _arrow[4];
 };

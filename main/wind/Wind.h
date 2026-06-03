@@ -36,15 +36,16 @@ union WindData
     constexpr WindData(int16_t wdir, int16_t wval) : dir(wdir), val(wval) {}
     constexpr WindData(rad_t wdir, mps_t wval) : dir((fast_iroundf(Units::rad_to_deg(Vector::normalizePI2(wdir))) * 2) % 720), val(fast_iroundf(wval * 8)) {}
     // getters
-    constexpr int getDeg2() const { return dir; }
-    constexpr int getVDeg2() const { return dir + 360; } // get wind vector direction -> +180° shift
+    constexpr int16_t getDeg2() const { return dir; }
+    constexpr int16_t getVDeg2() const { return dir + 360; } // get wind vector direction -> +180° shift
     constexpr vector_f getVector() const {
         int16_t wdir2 = (dir + 360) % 720;
         float wval = static_cast<float>(val) / 8.f;
         return vector_f(wval * fast_cos_idx(wdir2), wval * fast_sin_idx(wdir2), .0f);
     }
-    constexpr int getDeg() const { return dir/2; }
+    constexpr int16_t getDeg() const { return dir/2; }
     constexpr mps_t getVal() const { return static_cast<float>(val) / 8.0f; }
+    constexpr int16_t relToHeading(rad_t d) const { return (dir - fast_iroundf(Units::rad_to_deg(d) * 2)) % 720; }
     constexpr bool isValid() const { return raw != 0xffff; }
     constexpr int data() const { return raw; }
     // setters

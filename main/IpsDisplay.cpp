@@ -605,7 +605,7 @@ void IpsDisplay::initDisplay() {
     }
     if (vario_lower_gauge.get() == MultiGauge::GAUGE_WIND) {
         if (!WNDicon) {
-            WNDicon = new WindIcon(INNER_RIGHT_ALIGN, LOWERYPOS, 18);
+            WNDicon = new WindIcon(INNER_RIGHT_ALIGN - 39, LOWERYPOS, 18);
         }
     } else {
         if (WNDicon) {
