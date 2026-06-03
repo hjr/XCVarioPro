@@ -396,7 +396,8 @@ static void vario_menu_create_tek(SetupMenu *top) {
     top->addEntry(enac);
 
     SetupMenuValFloat* elca = new SetupMenuValFloat("eAdjustment", "%", nullptr, &te_comp_adjust, RST_NONE, false);
-    elca->setHelp("Electronic correction factor off from lossless \"100%\"");
+    elca->setHelp("Electronic correction factor deviating from lossless \"100%\"");
+    elca->setPrecision(1);
     top->addEntry(elca);
 }
 

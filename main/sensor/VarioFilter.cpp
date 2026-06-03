@@ -185,11 +185,11 @@ bool VarioFilter::doRead(meter_t& val) {
             curr_altitude = getHead();  // ignore readout when failed
         }
         mps_t ta_speed = tas.get();  // m/s
-        curr_altitude += ((ta_speed * ta_speed) / (2.f * Units::g0)) * (1.f + (te_comp_adjust.get() / 100.0)); // Ekin ~ h = v²/2g  * adjust
+        curr_altitude += ((ta_speed * ta_speed) / (2.f * Units::g0)) * te_comp_adjust.get() / 100.0f; // Ekin ~ h = v²/2g  * adjust
         // method 2
         pascal_t barP = baroSensor->getHead();
         pascal_t dynP = asSensor->getHead();
-        curr_altitude += Units::calcAltitudeISA(barP - dynP * (1 + (te_comp_adjust.get() / 100.0)));  // subtract PI pressure like TEK probe does
+        curr_altitude += Units::calcAltitudeISA(barP - (dynP * te_comp_adjust.get() / 100.0f));  // subtract PI pressure like TEK probe does
         curr_altitude /= 2.f; // simple average of both methods
     }
     else {
