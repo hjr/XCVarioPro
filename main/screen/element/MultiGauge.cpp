@@ -86,7 +86,7 @@ void MultiGauge::draw()
     }
     int val = fast_iroundf(fval * precision);
 
-    if (val_prev == val && ! _dirty) return;
+    if (val_prev == val && ! _dirty) { return; }
     ESP_LOGI(FNAME, "draw val %d (old: %d)", val, val_prev);
 
     if ( _large ) {
@@ -180,6 +180,17 @@ void MultiGauge::drawUnit() const
         MYUCG->print(unit_str);
         MYUCG->setPrintPos(4, _ref.y + 18);
         MYUCG->print(mode_str);
+    }
+}
+
+void MultiGauge::clearProgressive()
+{
+    // currently only used for the top gauge, which is the only one with progressive elements (wind and heading)
+    MYUCG->setColor(COLOR_BLACK);
+    if (_large) {
+        MYUCG->drawBox(_ref.x + 3, _ref.y - 17 - 16, 40, 14);
+    } else {
+        MYUCG->drawBox(1, _ref.y + 1, 40, 14);
     }
 }
 

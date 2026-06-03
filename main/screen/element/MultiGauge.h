@@ -25,8 +25,9 @@ public:
 
     // API
     void setDisplay(MultiDisplay d);
-    void draw();
+    void draw() override;
     void drawUnit() const;
+    void clearProgressive() override;
 
     // attributes
 private:

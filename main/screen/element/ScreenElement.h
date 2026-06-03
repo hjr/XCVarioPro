@@ -32,7 +32,7 @@ public:
     // virtual void drawStatic() { draw(); }
     // virtual void clearStatic() { clearBG(); }
     // virtual void drawProgressive(float a) { draw(a); }
-    // virtual void clearProgressive(float a) { clearBG(); }
+    virtual void clearProgressive() {}
 
 public:
     Point _ref;

@@ -692,6 +692,7 @@ void IpsDisplay::redrawValues()
     if (WNDicon) {
         WNDicon->forceRedraw();
     }
+    tick = 0; // enforce progressive elements
 }
 
 void IpsDisplay::setBottomDirty()
@@ -832,6 +833,13 @@ void IpsDisplay::drawDisplay(){
 		screens_init |= INIT_DISPLAY_RETRO;
         return; // split the first draw into two calls
 	}
+
+    if ( tick == 0 ) {
+        // draw progressive elements
+        if ( TOPgauge ) {
+            TOPgauge->drawUnit();
+        }
+    }
 	tick++;
 
 	// todo integrate better into screen element
@@ -908,8 +916,8 @@ void IpsDisplay::drawDisplay(){
             // WindData swind(Units::deg_to_rad(idir), (mps_t)(fast_sin_idx(idir*1.5)+1)/2*60.f/3.6f - 1);
             // iwind = WindData(Units::deg_to_rad(idir), (mps_t)ival/3.6);
 
-            ESP_LOGI(FNAME, "draw wind swind: %d@%.1f cwind: %d@%.1f", swind.getDeg(), Units::mps_to_kph(swind.getVal()), 
-                iwind.getDeg(), Units::mps_to_kph(iwind.getVal()));
+            ESP_LOGI(FNAME, "draw wind swind: %d@%.1f cwind: %d@%.1f", swind.getDeg(), Units::mps_to_kmh(swind.getVal()), 
+                iwind.getDeg(), Units::mps_to_kmh(iwind.getVal()));
             WNDgauge->drawWind(swind, iwind);
         }
         if (wind_enable.get() > WA_OFF && WNDicon) {
@@ -983,6 +991,13 @@ void IpsDisplay::drawDisplay(){
         MAINgauge->drawAvgClimb();
     }
 
+    if ( tick == PROGRESSIVE_TO ) {
+        // remove progressive elements
+        ESP_LOGI(FNAME, "clear progressive elements");
+        if ( TOPgauge ) {
+            TOPgauge->clearProgressive();
+        }
+    }
     if (flags.bottom_dirty) {
         ESP_LOGI(FNAME, "redraw scale bottom");
         flags.bottom_dirty = false;

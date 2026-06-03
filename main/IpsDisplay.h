@@ -106,6 +106,7 @@ public:
 	static void drawLoadDisplay( float loadFactor );
 	static void drawLoadDisplayTexts();
 	static void initDisplay();
+    static void showProgressive() { if ( tick > PROGRESSIVE_TO ) tick = 0; } // show progressive elements for some time, then clear them
 	static void clear();   // erase whole display
 	static void redrawValues();
     // the following may be called from any context (!)
@@ -130,6 +131,7 @@ public:
     static Temperature* OATgauge;
     static Connection* CONNgauge;
 
+    static constexpr int PROGRESSIVE_TO = 1000;
     static int tick;
 
     // local variabls for dynamic display

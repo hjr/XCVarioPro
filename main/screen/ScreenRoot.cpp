@@ -178,6 +178,9 @@ void ScreenRoot::rot(int count)
         HorizonPage::HORIZON()->rot(count); // todo needs a better solution than static access
         return;
     }
+    
+    IpsDisplay::showProgressive();
+    
     // ESP_LOGI(FNAME,"root: rot");
     if (rot_default.get() == 1) {
         // MC Value
