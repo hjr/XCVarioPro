@@ -976,12 +976,9 @@ void IpsDisplay::drawDisplay(){
 
         if (vario_centeraid.get()) {
             WNDgauge->clearGauge();
-            if (CRMOD.getCMode()) {
+            if (CRMOD.getCMode() && wind_enable.get() == WA_EXTERNAL) {
                 WNDgauge->drawRose();
             }
-            // else {
-            //     WNDgauge->clearGauge();
-            // }
         }
         flags.mode_dirty = false;
     }
