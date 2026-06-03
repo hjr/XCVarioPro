@@ -311,7 +311,7 @@ void NmeaPrtcl::sendXCVVersion(int v)
     2) M = magnetic
     3) Checksum
 */
-void NmeaPrtcl::sendXCVNmeaHDM(rad_t heading)
+void NmeaPrtcl::sendXCVNmeaHDM()
 {
     if ( _dl.isBinActive() ) {
         return; // no NMEA output in binary mode
@@ -319,11 +319,13 @@ void NmeaPrtcl::sendXCVNmeaHDM(rad_t heading)
     Message *msg = newMessage();
 
     msg->buffer = "$HCHDM,";
-    char str[12];
-    sprintf( str,"%3.1f,M", Units::rad_to_deg(heading) );
-    ESP_LOGI(FNAME,"Magnetic Heading: %3.1f", Units::rad_to_deg(heading) );
-    msg->buffer += str;
-    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
+    if ( heading_mag.getValid() ) {
+        char str[12];
+        sprintf( str,"%3.1f", Units::rad_to_deg(heading_mag.get()) );
+        msg->buffer += str; // only add heading if valid, otherwise leave empty to indicate invalid data
+        ESP_LOGI(FNAME,"Magnetic Heading: %s", str);
+    }
+    msg->buffer += ",M*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     DEV::Send(msg);
 }
 
@@ -339,7 +341,7 @@ void NmeaPrtcl::sendXCVNmeaHDM(rad_t heading)
     2) T = True
     3) Checksum
 */
-void NmeaPrtcl::sendXCVNmeaHDT(rad_t heading)
+void NmeaPrtcl::sendXCVNmeaHDT()
 {
     if ( _dl.isBinActive() ) {
         return; // no NMEA output in binary mode
@@ -347,11 +349,13 @@ void NmeaPrtcl::sendXCVNmeaHDT(rad_t heading)
     Message *msg = newMessage();
 
     msg->buffer = "$HCHDT,";
-    char str[12];
-    sprintf( str,"%3.1f,T", Units::rad_to_deg(heading) );
-    ESP_LOGI(FNAME,"True Heading: %3.1f", Units::rad_to_deg(heading) );
-    msg->buffer += str;
-    msg->buffer += "*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
+    if ( heading_tru.getValid() ) {
+        char str[12];
+        sprintf( str,"%3.1f", Units::rad_to_deg(heading_tru.get()) );
+        msg->buffer += str; // only add heading if valid, otherwise leave empty to indicate invalid data
+        ESP_LOGI(FNAME,"True Heading: %s", str);
+    }
+    msg->buffer += ",T*" + NMEA::CheckSum(msg->buffer.c_str()) + "\r\n";
     DEV::Send(msg);
 }
 
