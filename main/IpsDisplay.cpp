@@ -79,13 +79,14 @@ IpsDisplay *Display = nullptr;
 static int16_t AMIDY;
 static int16_t AMIDX;
 static int16_t AVGOFFX;
+static int16_t UPPERXPOS;
 static int16_t UPPERYPOS;
 static int16_t LOWERYPOS;
 constexpr const float OPT_Y_IN = 0.217f;
 
-static int16_t INNER_RIGHT_ALIGN = 170;
-static int16_t LOAD_MPG_POS = 0;
-static int16_t LOAD_MIAS_POS = 0;
+static int16_t INNER_RIGHT_ALIGN;
+static int16_t LOAD_MPG_POS;
+static int16_t LOAD_MIAS_POS;
 
 AdaptUGC *IpsDisplay::ucg = 0;
 Point IpsDisplay::screen_edge[4];
@@ -353,6 +354,7 @@ static void initRefs()
     UPPERYPOS = OPT_Y_IN * DISPLAY_H + 16;
     LOWERYPOS = (1. - OPT_Y_IN) * DISPLAY_H + 16;
 	INNER_RIGHT_ALIGN = DISPLAY_W - 40;
+    UPPERXPOS = INNER_RIGHT_ALIGN;
 	LOAD_MPG_POS = DISPLAY_H*0.33;
 	LOAD_MIAS_POS = DISPLAY_H*0.63;
 
@@ -365,6 +367,7 @@ static void initRefs()
 	}
     else if ( !gflags.isPro ) {
         INNER_RIGHT_ALIGN = 78;
+        UPPERXPOS = 60;
         UPPERYPOS = 32;
         LOWERYPOS = DISPLAY_H - 1;
     }
@@ -612,7 +615,7 @@ void IpsDisplay::initDisplay() {
     }
     if (vario_upper_gauge.get()) {
         if (!TOPgauge) {  // except wind and altimeter, we need less space for max 3 digit numbers here
-            TOPgauge = new MultiGauge(INNER_RIGHT_ALIGN, UPPERYPOS, (MultiGauge::MultiDisplay)vario_upper_gauge.get(), 
+            TOPgauge = new MultiGauge(UPPERXPOS, UPPERYPOS, (MultiGauge::MultiDisplay)vario_upper_gauge.get(), 
             gflags.isPro || display_orientation.get() == DISPLAY_NINETY);
         }
         TOPgauge->setDisplay((MultiGauge::MultiDisplay)(vario_upper_gauge.get()));
