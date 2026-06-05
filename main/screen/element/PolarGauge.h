@@ -49,7 +49,7 @@ class PolarGauge : public ScreenElement
     friend class CenterAid;
 
 public:
-    using GaugeFlavor = enum : uint8_t { CLUB, XCVPRO, GLOAD, COMPASS};
+    using GaugeFlavor = enum : uint8_t { PURE, XCVPRO, GLOAD, COMPASS};
 
     PolarGauge(int16_t refx, int16_t refy, int16_t scale_end, int16_t radius, GaugeFlavor flavor);
     ~PolarGauge();
@@ -62,6 +62,7 @@ public:
     void setColor(int color_idx);
     void setFigOffset(int16_t ox, int16_t oy);
     void setFigExtras(bool show) { if ( _figure ) _figure->showExtras(show); }
+    void setFlavor(GaugeFlavor flavor) { _flavor = flavor; }
 
     using ScreenElement::draw;
     void draw(float a);
@@ -71,7 +72,6 @@ public:
     void drawFigure(float a);
     void drawWind(WindData s, WindData i);
     using BowColorIdx = enum { GREEN, BLUE, ORANGE, RED };
-    void colorRange(float from, float to, int16_t color);
     void drawScale(float from = -1000., float to = -1000.);
     void drawScaleBottom();
     void drawRose(int16_t at = -1000) const;
@@ -79,11 +79,14 @@ public:
     void forceRedrawMode();
 
   private:
+    void colorRange(float from, float to) const;
+
+  private:
     // indicator and attributes
     ArrowIndicator *_arrow = nullptr;
     WindIndicator *_wind_avg = nullptr;
     WindIndicator *_wind_live = nullptr;
-    GaugeFlavor _flavor = CLUB;
+    GaugeFlavor _flavor = PURE;
     float _scale_max = 1.57f; // half scale extend in rad
     int16_t _radius = 50; // pixel
     int16_t _scale_line_len = 50 + 20; // pixel, end of scale

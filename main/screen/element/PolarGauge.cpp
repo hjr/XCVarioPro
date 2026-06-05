@@ -62,7 +62,7 @@ PolarGauge::PolarGauge(int16_t refx, int16_t refy, int16_t scale_end, int16_t ra
     _flavor(flavor),
     _scale_max(deg2rad((float)scale_end)),
     _radius(radius),
-    _scale_line_len(15 + (_flavor == CLUB ? 7 : 0))
+    _scale_line_len(15 + (_flavor == PURE ? 7 : 0))
 {
     func = new GaugeFunc(1.,0.);
     if ( flavor != COMPASS ) {
@@ -432,11 +432,38 @@ void PolarGauge::drawDirLabel(int16_t deg2, const char *labl) const
     MYUCG->print(labl);
 }
 
-
-void PolarGauge::colorRange(float from, float to, int16_t color)
+// only for the g-load display
+void PolarGauge::colorRange(float from, float to) const
 {
     int16_t ol = dice_up(from);
-    drawBow(dice_up(to), ol, -10, 0, color);
+    ESP_LOGI(FNAME,"colorRange from: %f to: %f ol: %d", from, to, ol);
+
+    // parse range from high to low
+    float part_to = gload_pos_limit.get();
+    if ( from > part_to ) {
+        int16_t next_ol = dice_up(part_to);
+        drawBow(ol, next_ol, -10, 0, PolarGauge::RED);
+        ol = dice_up(part_to); // do not use next_ol here it is already nodified by drawBow
+        from = part_to;
+    }
+    if ( from < to ) return;
+    part_to = gload_pos_limit_low.get();
+    if ( from > part_to ) {
+        int16_t next_ol = dice_up(part_to);
+        drawBow(ol, next_ol, -10, 0, PolarGauge::ORANGE);
+    }
+    from = gload_neg_limit_low.get();
+    if ( from < to ) return;
+    part_to = gload_neg_limit.get();
+    {
+        ol = dice_up(from);
+        int16_t next_ol = dice_up(part_to);
+        drawBow(next_ol, ol, -10, 0, PolarGauge::ORANGE);
+        // ol = next_ol; // already don by drawBow
+        from = part_to;
+    }
+    if ( from < to ) return;
+    drawBow(dice_up(to), ol, -10, 0, PolarGauge::RED);
 }
 
 // draw a scale from _range down to _mrange
@@ -450,7 +477,7 @@ void PolarGauge::drawScale(float from, float to)
     bool logscale = func->isLog();
     // line width in pixel
     int16_t w1 = 1, w2 = 2, w3 = 3;
-    if ( _flavor == CLUB ) {
+    if ( _flavor != XCVPRO ) {
         w1 = (logscale) ? 2 : 0;
         w2 = 4;
         w3 = 6;
@@ -458,7 +485,7 @@ void PolarGauge::drawScale(float from, float to)
     // line density on outer scale area
     int16_t modulo = (_range > 10) ? 20 : (_range < 5) ? 5 : 10; // typically start in "no details" area
     int16_t special_mark = -1000;
-    if ( _avg_climb > .0 ) {
+    if ( _avg_climb > .0 && _flavor != GLOAD ) {
         special_mark = _avg_climb * 10.f;
     }
 
@@ -481,6 +508,11 @@ void PolarGauge::drawScale(float from, float to)
             modulo = (logscale && _dist05 > 47) ? 1 : (logscale && _dist05 > 28) ? 2 : (_dist05 > 29) ? 5 : 10;
         }
         // ESP_LOGI(FNAME, "scale from %d to %d", start, stop);
+    }
+
+    if ( _flavor == GLOAD ) {
+        // draw orange and red areas into the background
+        colorRange(start/10.f, stop/10.);
     }
 
     MYUCG->setFontPosCenter();
@@ -535,25 +567,25 @@ void PolarGauge::drawScale(float from, float to)
             draw_label = false;
         }
     }
-    if ( special_mark <= start && special_mark >= stop ) {
+    if ( special_mark <= start && special_mark >= stop ) { // is the mark in the drawn area?
         MYUCG->setColor(_avg_climb_color.color[0], _avg_climb_color.color[1], _avg_climb_color.color[2]);
         ESP_LOGI(FNAME, "special mark at a:%d", special_mark);
         drawDisc(_avg_climb);
     }
 
-    if (_flavor == XCVPRO) {
-        int16_t prev = dice_up(start/10.) +12; // overdraw a bit
-        int16_t to = dice_up(stop/10.) -12;
-        if (start > 0)
-        {
-            drawBow(to, prev, _radius - _arrow->getBase(), 0);
-        }
-        else
-        {
-            // draw bow towards zero to get the background color
-            drawBow(prev, to, _radius - _arrow->getBase(), 0);
-        }
-    }
+    // if (_flavor == XCVPRO) { todo later
+    //     int16_t prev = dice_up(start/10.) +12; // overdraw a bit
+    //     int16_t to = dice_up(stop/10.) -12;
+    //     if (start > 0)
+    //     {
+    //         drawBow(to, prev, _radius - _arrow->getBase(), 0);
+    //     }
+    //     else
+    //     {
+    //         // draw bow towards zero to get the background color
+    //         drawBow(prev, to, _radius - _arrow->getBase(), 0);
+    //     }
+    // }
     MYUCG->setFontPosBottom();
 }
 

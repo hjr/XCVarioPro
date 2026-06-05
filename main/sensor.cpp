@@ -497,7 +497,7 @@ void system_startup(void *args){
     Speed2Fly.begin();
 	AverageVario::begin();
 
-    // Design the club
+    // Design the pure
     gflags.isPro = false;
 
     // Set for now hidden but used setup variable to their default

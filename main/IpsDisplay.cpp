@@ -501,8 +501,9 @@ void IpsDisplay::initDisplay() {
         int16_t scale_geometry = gflags.isPro ? 90 : 128;
         MAINgauge = new PolarGauge(AMIDX, AMIDY, scale_geometry, 
                         DISPLAY_H/2 - ((display_orientation.get() == DISPLAY_NINETY) ? 20 : 35), 
-                        gflags.isPro ? PolarGauge::XCVPRO : PolarGauge::CLUB);
+                        gflags.isPro ? PolarGauge::XCVPRO : PolarGauge::PURE);
     }
+    MAINgauge->setFlavor( PolarGauge::PURE );
     MAINgauge->setFigOffset(AVGOFFX, 0);
     MAINgauge->setFigExtras(true);
     MAINgauge->setUnit(VarioUnit->scale);
@@ -744,21 +745,17 @@ void IpsDisplay::initLoadDisplay(){
 	int max_gscale = gload_pos_limit.get() + 2;
 	int min_gscale = gload_neg_limit.get() - 2;
 	if ( ! MAINgauge ) { // shared with
-		int16_t scale_geometry = ( display_orientation.get() == DISPLAY_NINETY ) ? 120 : (gflags.isPro ? 90 : 128 );
+        int16_t scale_geometry = gflags.isPro ? 90 : 128;
 		MAINgauge = new PolarGauge(AMIDX, AMIDY, scale_geometry, 
             DISPLAY_H/2 - ((display_orientation.get() == DISPLAY_NINETY) ? 20 : 35), 
             PolarGauge::GLOAD);
 	}
+    MAINgauge->setFlavor( PolarGauge::GLOAD );
 	MAINgauge->setFigOffset(AVGOFFX, 0);
     MAINgauge->setFigExtras(false);
 	MAINgauge->setUnit(1.);
 	MAINgauge->setRange(max_gscale, 1.f, false);
 	MAINgauge->setColor(needle_color.get());
-	// put the scale colored section into the background
-	MAINgauge->colorRange(gload_pos_limit_low.get(), gload_pos_limit.get(), PolarGauge::ORANGE);
-	MAINgauge->colorRange(gload_pos_limit.get(), max_gscale, PolarGauge::RED);
-	MAINgauge->colorRange(gload_neg_limit_low.get(), gload_neg_limit.get(), PolarGauge::ORANGE);
-	MAINgauge->colorRange(gload_neg_limit.get(), min_gscale, PolarGauge::RED);
 	MAINgauge->drawScale();
 	MAINgauge->forceAllRedraw();
 	old_gmax = 100;
@@ -812,7 +809,7 @@ void IpsDisplay::drawLoadDisplay( float loadFactor ){
 		
 		ucg->setFont(ucg_font_fub14_hr, true);
 		char buf[60];
-		sprintf( buf, "  %3d %s", fast_iroundf_positive(SpeedUnit->apply(airspeed_max.get())), SpeedUnit->getName() );
+		snprintf( buf, sizeof(buf), "  %3d %s", fast_iroundf_positive(SpeedUnit->apply(airspeed_max.get())), SpeedUnit->getName() );
 		int16_t text_width = ucg->getStrWidth( buf );
 		ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MIAS_POS+24);
 		ucg->print(buf);

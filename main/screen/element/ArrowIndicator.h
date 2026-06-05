@@ -37,14 +37,14 @@ public:
     bool draw(int16_t val);
     bool drawOver(int16_t val, float a);
     void testDraw(int16_t val);
-    int16_t getBase() { return _root; }
+    int16_t getBase() { return _base; }
     int16_t getPos() { return _needle_pos; }
 
 private: // attributes
     PolarGauge &_gauge;             // ref to gauge the pointer belonges to
     const int16_t _tip;             // distance from gauge ref. center to arrow tip
     const int16_t _arrowhead;       // length of the head of the arrow
-    const int16_t _root;            // distance from gauge ref. center to the tail of the indicator
+    const int16_t _base;            // distance from gauge ref. center to the tail of the indicator
     const int16_t _shoulder_val_offset; // .5deg steps from root point to shoulder point of arrow
     const int16_t _half_width;
     ucg_color_t color;
