@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "../SensorBase.h"
-// #include "Compass.h"
+#include "sensor/SensorBase.h"
+#include "Compass.h"
 #include "math/vector_3d_fwd.h"
 #include "sensor/Filters.h"
 

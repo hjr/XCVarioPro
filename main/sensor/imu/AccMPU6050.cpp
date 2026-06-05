@@ -13,7 +13,7 @@
 #include "math/Units.h"
 #include "math/Trigonometry.h"
 #include "vector.h"
-#include "../SensorMgr.h"
+#include "sensor/SensorMgr.h"
 #include "logdefnone.h"
 
 #include "mpu/math.hpp"
@@ -31,7 +31,7 @@ static __attribute__((aligned(4))) vector_f acc_buffer[ HSIZE + 1 ];
 AccMPU6050::AccMPU6050(MpuImu &mmpu) : 
     SensorTP<vector_f>(acc_buffer, HSIZE, DUTY_CYCLE_MS),
     _my_mpu(mmpu),
-    _lpf_accel(LowPassFilterT<vector_f>::alphaFromTau(0.2, DUTY_CYCLE_MS / 1000.f)),
+    _lpf_accel(LowPassFilterT<vector_f>::alphaFromTau(0.3, DUTY_CYCLE_MS / 1000.f)),
     _lpf_slip_angle(LowPassFilterT<float>::alphaFromTau(0.3, DUTY_CYCLE_MS / 1000.f))
 {
     _id = SensorId::ACC_INERTIAL | SensorFlags::SENSOR_LOCAL;
@@ -60,8 +60,7 @@ bool AccMPU6050::doRead(vector_f& val) {
             ESP_LOGE(FNAME, "accelaration change > 5 g in 0.1 sec");
             // return false;
         }
-        val = _my_mpu.rotate(tmp_ned); // todo later - _soft_bias; // into glider reference system, and compensate for soft bias
-        val.z -= gyroSensor->getAxD() * _my_mpu.getLeverArm(); // compensate the accelerometer mounting position in front of CG
+        val = _my_mpu.rotate(tmp_ned);
         // ESP_LOGI(FNAME, "val X:%f Y:%f Z:%f", val.x, val.y, val.z);
         return true;
     }
@@ -132,7 +131,9 @@ void AccMPU6050::postProcess() {
 
     float gravity_trust = 1;
     const vector_f& accel = *getHeadPtr();
-    _processed = _lpf_accel.filter(accel); // todo subtraced soft bias
+
+    _processed = _lpf_accel.filter(accel); // todo track and subtraced soft bias
+    _processed.z -= gyroSensor->getAxD() * _my_mpu.getLeverArm(); // compensate the accelerometer mounting position in front of CG
     const vector_f& gyro = gyroSensor->getRef();
     // ESP_LOGI( FNAME, " Accel: %.3f,%.3f,%.3f Gyro: %.3f,%.4f,%.4f dt: %.4f", accel.x, accel.y, accel.z, gyro.x, gyro.y, gyro.z, dt );
     // ESP_LOGI( FNAME, " Accel: %.3f,%.3f,%.3f dt: %.4f TS:%d", accel.x, accel.y, accel.z, dt, _my_mpu.getTempStatus() );

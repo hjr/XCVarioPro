@@ -40,7 +40,7 @@ class LowPassFilterT : public FilterItf<T>
 {
 public:
     explicit LowPassFilterT(float alpha) : _alpha(alpha), _last_output(T{}) {}
-    static inline float alphaFromTau(second_t tau, second_t dt) {
+    static constexpr inline float alphaFromTau(second_t tau, second_t dt) {
         return dt / (tau + dt);
     }
     void setTau(second_t tau, second_t dt) { _alpha = alphaFromTau(tau, dt); }

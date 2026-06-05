@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../SensorBase.h"
+#include "sensor/SensorBase.h"
 #include "math/Units.h"
 
 class AirspeedSensor : public SensorTP<pascal_t> {

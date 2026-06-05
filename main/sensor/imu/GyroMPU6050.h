@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "sensor/Filters.h"
+#include "math/vector_3d.h"
 #include "sensor/SensorBase.h"
-#include "math/vector_3d_fwd.h"
+#include "sensor/Filters.h"
 
 
 class MpuImu;
@@ -44,8 +44,8 @@ private:
     MpuImu& _my_mpu;
     const float _scale;
     // low-pass filter for gyro y-axis to get dw/dt
-    LowPassFilterT<float> _gyro_lpf_dwydt{0.5f}; // to compensate the accelerometer mounting position in front of CG
-    LowPassFilterT<float> _gps_omega_lpf{0.3f};
+    LowPassFilterT<float> _gyro_lpf_dwydt; // to compensate the accelerometer mounting position in front of CG
+    LowPassFilterT<float> _gps_omega_lpf;
     // vqf rest detection and bias estimation
     LowPassFilterT<vector_f> _bias_estimator{0.001};
     uint8_t _bias_update = 0;

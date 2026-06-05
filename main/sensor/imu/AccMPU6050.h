@@ -9,7 +9,7 @@
 #pragma once
 
 #include "ImuSensor.h"
-#include "../SensorBase.h"
+#include "sensor/SensorBase.h"
 #include "math/Units.h"
 #include "math/vector_3d_fwd.h"
 #include "math/Trigonometry.h"

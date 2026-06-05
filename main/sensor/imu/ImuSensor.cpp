@@ -56,6 +56,8 @@ struct PIController {
 MpuImu::MpuImu() :
     _MPUdev(myMPU)
 {
+    // init lever arm from nvs
+    setLeverArm(imu_leverarm.get());
 }
 
 MpuImu::~MpuImu() {

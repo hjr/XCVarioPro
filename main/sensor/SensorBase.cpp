@@ -10,6 +10,7 @@
 #include "SensorBase.h"
 
 #include "SensorMgr.h"
+#include "math/vector_3d.h"
 #include "logdef.h"
 
 SensorBase::SensorBase(int ums) :

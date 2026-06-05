@@ -8,10 +8,11 @@
 
 #pragma once
 
-#include "../SensorBase.h"
 #include "math/Quaternion.h"
 #include "math/Units.h"
+#include "math/vector_3d.h"
 #include "MPU.hpp"
+#include "setup/SetupNG.h"
 
 #include <mpu/types.hpp>
 
@@ -80,12 +81,12 @@ private:
     Quaternion _ref_rot; // maps sensor to body frame
     float _leverarm = 0.f; // distance of the accelerometer to the CG in m, used for acceleration compensation during rotation
     int16_t progress = 0; // bit-wise 0 -> 1 -> 3 -> 0 // start -> right -> left -> finish
-    vector_f bob_right_wing, bob_left_wing, bob_level;
+    vector_f bob_right_wing, bob_left_wing, bob_level; // todo allocate for calib process dynamically
     vector_f gyro_axis_right, gyro_axis_left;
-
+    // temp controller
     celsius_t _mpu_t_delta = 0; // difference to target temp, positive means too hot
     PIController *_pictrl = nullptr;
-
+    // MPT init. values
     constexpr static mpud::accel_fs_t ACCEL_SCALE = mpud::ACCEL_FS_8G;
     constexpr static mpud::gyro_fs_t GYRO_SCALE = mpud::GYRO_FS_250DPS;
 };
