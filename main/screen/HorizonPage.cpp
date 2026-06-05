@@ -9,7 +9,6 @@
 #include "HorizonPage.h"
 
 #include "math/Units.h"
-#include "math/Trigonometry.h"
 #include "math/Floats.h"
 
 #include "sensor/imu/AccMPU6050.h"
@@ -56,7 +55,7 @@ HorizonPage::HorizonPage()
 void HorizonPage::rot(int count)
 {
     // adjust the GAA and thus the horizon pitch
-    _gaa += count * 0.5f;
+    _gaa = std::clamp(_gaa + count, glider_ground_aa.getMin(), glider_ground_aa.getMax());
     accSensor->getMpu().applyImuReference(_gaa, MpuImu::getDefaultImuReference());
     _show_adjustment = 50;
 }
@@ -114,38 +113,42 @@ void HorizonPage::draw( Quaternion q )
         const int16_t cy = DISPLAY_H / 2;
         MYUCG->setColor(COLOR_WHITE);
         // center ring
-        MYUCG->drawCircle(cx, cy, 5, UCG_DRAW_ALL);
-        MYUCG->drawCircle(cx, cy, 6, UCG_DRAW_ALL);
+        MYUCG->drawCircle(cx, cy, 3, UCG_DRAW_ALL);
+        MYUCG->drawCircle(cx, cy, 4, UCG_DRAW_ALL);
 
         // small top post
-        MYUCG->drawVLine(cx, cy - 10, 5);
+        MYUCG->drawVLine(cx, cy - 9, 4);
 
-        // thicker wings (+20% span, shifted 5px outward)
-        MYUCG->drawHLine(cx + 13, cy,     32);
-        MYUCG->drawHLine(cx + 13, cy + 1, 32);
+        // wings
+        MYUCG->drawHLine(cx + 13, cy,     30);
+        MYUCG->drawHLine(cx + 13, cy + 1, 30);
 
-        MYUCG->drawHLine(cx - 45, cy,     32);
-        MYUCG->drawHLine(cx - 45, cy + 1, 32);
+        MYUCG->drawHLine(cx - 43, cy,     30);
+        MYUCG->drawHLine(cx - 43, cy + 1, 30);
 
-        // vertical hooks near fuselage moved outward too
+        // vertical hooks near fuselage
         MYUCG->drawVLine(cx + 13, cy, 4);
+        MYUCG->drawVLine(cx + 14, cy, 4);
         MYUCG->drawVLine(cx - 13, cy, 4);
+        MYUCG->drawVLine(cx - 14, cy, 4);
 
-        // wing tips upward
-        MYUCG->drawLine(cx + 45, cy, cx + 51, cy - 4);
-        MYUCG->drawLine(cx - 45, cy, cx - 51, cy - 4);
+        // wing tips upwards
+        MYUCG->drawLine(cx + 43, cy, cx + 49, cy - 4);
+        MYUCG->drawLine(cx + 43, cy + 1, cx + 49, cy - 4);
+        MYUCG->drawLine(cx - 43, cy, cx - 49, cy - 4);
+        MYUCG->drawLine(cx - 43, cy + 1, cx - 49, cy - 4);
 
 
-        constexpr int16_t full_len = 30;
+        constexpr int16_t full_len = 44;
         constexpr int16_t short_len = (int)(full_len * 0.3f);
-        float px_per_5deg = 12.0f;
+        constexpr float PX_PER_5DEG = 9.0f;
 
         // text config
         MYUCG->setFont(ucg_font_fub11_hr, false );   // small, readable
         MYUCG->setFontPosCenter();
         constexpr int16_t gap = 8; // space between line and number
 
-        for (int16_t deg = -35; deg <= 35; deg += 5) {
+        for (int16_t deg = -45; deg <= 45; deg += 5) {
 
             if (deg == 0) continue;
             if (deg == 5)
@@ -153,42 +156,39 @@ void HorizonPage::draw( Quaternion q )
             else
                 MYUCG->setColor(COLOR_POINTER);
 
-            int16_t y = cy - (int)((deg / 5.0f) * px_per_5deg);
-            int16_t len_h = (!(deg % 10) ? full_len : short_len) / 2;
+            int16_t y = cy - (int)((deg / 5.0f) * PX_PER_5DEG);
+            int16_t len = (!(deg % 10) ? full_len : short_len);
 
             // draw pitch tick line
-            MYUCG->drawHLine(cx - len_h, y, len_h * 2);
+            MYUCG->drawHLine(cx - len/2, y, len);
 
             // numbers only for 20deg
             int absDeg = abs(deg);
-            if (absDeg == 20) {
+            if (absDeg == 30) {
                 char buf[4];
                 sprintf(buf, "%d", absDeg);
-
                 int16_t str_w = MYUCG->getStrWidth(buf);
 
                 // left number
-                int tx = cx - len_h - gap - str_w;
-
+                int tx = cx - len/2 - gap - str_w;
                 // choose background color
                 if (l.fct(Point(tx + str_w / 2, y)) > 0.f) {
                     MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
                 } else {
                     MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
                 }
-                MYUCG->setPrintPos(cx - len_h - gap - str_w, y);
+                MYUCG->setPrintPos(cx - len/2 - gap - str_w, y);
                 MYUCG->print(buf);
 
                 // right number
-                tx = cx + len_h + gap;
-
+                tx = cx + len/2 + gap;
                 // choose background color
                 if (l.fct(Point(tx + str_w / 2, y)) > 0.f) {
                     MYUCG->setColor(1, COLOR_SKYBLUE); // bg color sky
                 } else {
                     MYUCG->setColor(1, COLOR_EARTH);   // bg color earth
                 }
-                MYUCG->setPrintPos(cx + len_h + gap, y);
+                MYUCG->setPrintPos(cx + len/2 + gap, y);
                 MYUCG->print(buf);
             }
         }
@@ -225,7 +225,7 @@ void HorizonPage::draw( Quaternion q )
         // show GAA adjustment for a few seconds
         MYUCG->setFont(ucg_font_fub14_hr, true);
         char buf[30];
-        snprintf(buf, sizeof(buf), "% 2.1f°  ", _gaa);
+        snprintf(buf, sizeof(buf), "% 2.0f°  ", _gaa);
         int16_t ypos = std::min((DISPLAY_H + BOX_SIZE) / 2 + 25, DISPLAY_H - 10);
         MYUCG->setPrintPos((DISPLAY_W - BOX_SIZE) / 2, ypos);
         MYUCG->setColor(COLOR_LBBLUE);
