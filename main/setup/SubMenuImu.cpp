@@ -541,11 +541,13 @@ void system_menu_create_hardware_imu(SetupMenu *top) {
 
         SetupMenuDisplay* imus = new SetupMenuDisplay("Imu Status", imu_status_action);
         top->addEntry(imus);
+
+    if ( accSensor->getMpu().hasHeatCtlr() ) {
+        SetupMenuValFloat* tcontrol = new SetupMenuValFloat("Temp Control", "°C", nullptr, &mpu_temperature, RST_NONE, false);
+        tcontrol->setPrecision(0);
+        tcontrol->setHelp("Target temperature of AHRS sensor temp-controler");
+        top->addEntry(tcontrol);
     }
-	SetupMenuValFloat* tcontrol = new SetupMenuValFloat("Temp Control", "°C", nullptr, &mpu_temperature, RST_NONE, false);
-    tcontrol->setPrecision(0);
-    tcontrol->setHelp("Target temperature of AHRS sensor temp-controler, if supported in hardware (model > 2023)");
-    top->addEntry(tcontrol);
 
 	SetupMenuSelect *rpyl = new SetupMenuSelect("AHRS RPYL", RST_NONE, nullptr, &ahrs_rpyl_dataset);
 	top->addEntry(rpyl);
