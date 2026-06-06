@@ -214,10 +214,10 @@ constexpr int MAX_VOICES = 4;
 // it also does work with the default vario ESP_LOGI(FNAME, "tim012 %d, %sound that stays in ram
 struct SOUND {
     const DURATION* timeseq;    // time sequence for the tones in msec, terminated with a 0
-                                // nr defined here have to be found in the tone sequence
+                                // nr of items defined here have to be found in the tone sequence
     const TONE* toneseq[MAX_VOICES]; // nr of seq found here need to have a vconf
     const VOICECONF* vconf;
-    int8_t repetitions; // -1 = infinite
+    int8_t repetitions; // -1 = infinite. Only used from vario sound and silence sound for now
     SOUND& operator=(const SOUND&) = default;
     int32_t getTotalDuration() const {
         int32_t total = 0;
@@ -229,6 +229,15 @@ struct SOUND {
         return total;
     }
 };
+// Interface to the DMA ISR and sequencer
+// - The length of the DMA DAC cycle is defined through the size of the DMA buffer length and the smple rate. 
+//   For the current settings this is ~15.5msec. To accomplish msec precise timing the ISR loader loop can switch 
+//   tones once (not twice, .. etc.) per DMA cycle. Th.m. a sound sequence item must be at leaset 15.5msec long.
+// - The timing of the sequencer is down to a msec precise. Time slices are defined in the timeseq of a SOUND.
+// - Activate a SOUND by settinge the timeseq, and the voices pointers in the current DMACMD buffer.
+// A playing sound with endless repetitions (like the vario sound) can by overlayed by another sound
+// - Overlays have less timing precision. Sound sequence itmes are only switched with the DMA cycle, but not in between. 
+//   So the timing of the overlayed sound is broken down to the 15.5msec cycle sync.
 struct DMACMD {
     void init();
     void loadSound(const SOUND* s, uint8_t volume_param=0);
@@ -242,7 +251,7 @@ struct DMACMD {
     uint8_t voicecount; // nr of voices used for this sequence
     int8_t  repcount;   // remaining repetitions
     uint8_t state;      // internal state 0 - uninit., 1 - loaded with sound, 2 - playing
-    uint8_t volume;    // volume parameter hand over for this sound, 0..15, 0=mute, 15=max
+    uint8_t volume;     // volume parameter hand over for this sound, 0..15, 0=mute, 15=max
     VOICECMD voice[MAX_VOICES];
 };
 static __attribute__((aligned(4))) DMACMD dma_cmd[2]; // double buffer for DMA command stream
@@ -289,7 +298,7 @@ constexpr float fC7 = noteFreq(27);
 const std::array<DURATION, 2> no_tone_tim = {{ {0}, {0} }};
 const std::array<TONE, 2> silence_seq = {{ {0.}, {0.} }};
 
-// Vario tone
+// Vario tone (static memory set from calc frequency)
 static std::array<DURATION, 3> vario_tim = {{ {100}, {50}, {0} }};
 static std::array<TONE, 3> vario_seq = {{ {0.}, {0.}, {0.} }};
 static std::array<TONE, 3> vario_extra = {{ {0.}, {0.}, {0.} }};
@@ -872,7 +881,7 @@ void Audio::updateAudioMode()
         _deadband_n = 0.01;
         _deadband_p = -0.01;
     }
-    ESP_LOGI(FNAME, "Deaband %f/%f", _deadband_p, _deadband_n);
+    ESP_LOGI(FNAME, "Deadband %f/%f", _deadband_p, _deadband_n);
 
     // chopping is cached from CRMOD
     ESP_LOGI(FNAME, "Vario chopping mode %d", CRMOD.audioIsChopping());
@@ -1005,12 +1014,13 @@ void Audio::stopAudio() {
         _dac_chan = nullptr;
     }
 
-    _terminate = true; // kill task
+    _terminate = true; // set kill task flag
     AudioEvent ev(START_SOUND, AUDIO_NO_SOUND); // wake up task
     xQueueSend(AudioQueue, &ev, 0);
 }
 
-void  Audio::calculateFrequency(float val) {
+// returns true when actually making a vario tone, false when in dead band
+bool Audio::calculateFrequency(float val) {
     float max_var = (val > 0) ? ((maxf - center_freq.get()) * 2) : (center_freq.get() - minf);
     float range = (CRMOD.audioIsVario()) ? _range : 5.0;
     float mult = std::pow((abs(val) / range) + 1, audio_factor.get());
@@ -1030,7 +1040,8 @@ void  Audio::calculateFrequency(float val) {
         vario_tim[0].setSamples(50);
         vario_tim[1].setSamples(50);
     }
-    if ( (inDeadBand(val) || speaker_volume < 1.0) && volumeadjust == 0 && ! current_dmacmd->voice[2].active) {
+    bool ret = inDeadBand(val) || speaker_volume < 1.0;
+    if ( ret && volumeadjust == 0 && ! current_dmacmd->voice[2].active) {
         vario_seq[0].step = vario_extra[0].step = vario_seq[1].step = vario_extra[1].step = 0;
         if ( current_dmacmd->repcount == -1 ) { mute(); } // stop only the vario sound
     }
@@ -1049,8 +1060,8 @@ void  Audio::calculateFrequency(float val) {
             vario_extra[1].step = vario_extra[0].step;
         }
     }
-
     // ESP_LOGI(FNAME, "New Freq: (%0.1f) TE:%0.2f exp_fac:%0.1f", freq, a, mult );
+    return ! ret;
 }
 
 // set the digital volume poti, 0..100%
@@ -1118,10 +1129,7 @@ void Audio::dactask()
                     float audio_value;
                     if( CRMOD.audioIsVario() ) {
                         // vario is the parameter for audio
-                        audio_value = te_vario.get();
-                        if ( CRMOD.isNetto() ) {
-                            audio_value -= bmpVario.getPolarSink();
-                        }
+                        audio_value = CRMOD.isNetto() ? te_netto.get() : te_vario.get();
                         if ( CRMOD.getVMode() == CruiseMode::MODE_REL_NETTO ) {
                             audio_value += Speed2Fly.getCirclingSink( ias.get() );
                         }
@@ -1134,7 +1142,7 @@ void Audio::dactask()
                         max = 5.0; // +/- 50km/h range, same audio as +/-5m/s
                     }
                     audio_value = std::clamp( audio_value, -max, max );
-                    calculateFrequency(audio_value);
+                    bool ret = calculateFrequency(audio_value);
                 }
             }
             else if ( event.cmd == VLOAD_DONE ) {
@@ -1183,7 +1191,7 @@ void Audio::dactask()
                 // dma ISR request !!
                 if ( !snd_queue.empty() ) {
                     AudioEvent ae = snd_queue.front();
-                    ESP_LOGI(FNAME, "Request sound %d (%d)", ae.getSoundId(), ae.getVolume());
+                    ESP_LOGI(FNAME, "Request sound id:%d vol:%d", ae.getSoundId(), ae.getVolume());
                     snd_queue.pop_front();
                     int sound_id = ae.getSoundId();
                     uint8_t sound_vol = 0;

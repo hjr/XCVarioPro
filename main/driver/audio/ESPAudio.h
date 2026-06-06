@@ -60,8 +60,8 @@ public:
 
     // system wide the only point to set audio volume !!!
     void setVolume(float vol, bool sync = true); // vol: 0.0 .. 100.0 logarythmic scale
-    void updateAudioMode();                     // call on cruise mode change
-    void updateTone();                          // call after sensor update
+    void updateAudioMode();                      // call on cruise mode change
+    void updateTone(uint16_t param);             // call after sensor update
     bool haveCAT5171() const;
     void dump();
 
@@ -71,7 +71,7 @@ private:
     bool startAudio(int16_t ch = 0); // initialisations and self-test, starts task driving the sequencer
     void stopAudio();                // terminate any sound output
     bool inDeadBand(float a) const { return (a > _deadband_n && a < _deadband_p); }
-    void calculateFrequency(float a);       // determine frequency to be generated depending on TE value
+    bool calculateFrequency(float a);       // determine frequency to be generated depending on TE value
     void writeVolume(float volume);
     static void mute();                     // mute the amplifier entirely
     static void unmute();                   // unmutes
