@@ -316,14 +316,12 @@ const std::array<TONE, 16> check_seq4 = {{ {0}, {0}, {0}, {0},          {0}, {0}
 const std::array<VOICECONF, 4> check_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {0, 128}  }};
 const SOUND CheckSound = { check_tim.data(), { check_seq1.data(), check_seq2.data(), check_seq3.data(), check_seq4.data() }, check_vconf.data(), 0 };
 
-// Audio check fail sound
-const std::array<DURATION, 16> fail_tim = {{ {150}, {150}, {150}, {150}, {150}, {150}, {150}, {150}, {150}, {150}, {150}, {150},     {4*150}, {4*150}, {1000}, {0} }};
-const std::array<TONE, 16> fail_seq1 = {{ {fD5}, {fDs5}, {fE5}, {fF5}, {fFs5}, {fG5}, {fGs5}, {fA5}, {fBd5}, {fB5}, {fB5}, {fBd5},   {fA5}, {fA5}, {0}, {0} }};
-const std::array<TONE, 16> fail_seq2 = {{ {fD5}, {fDs5}, {fE5}, {fF5}, {fFs5}, {fG5}, {fGs5}, {fA5}, {fFs5}, {fF5}, {fE5}, {fDs5},   {fD5}, {fD5}, {0}, {0} }};
-const std::array<TONE, 16> fail_seq3 = {{ {0}, {0}, {0}, {0},          {fD5}, {fD5}, {fD5}, {fD5},   {0}, {0}, {0}, {0},             {fF5}, {fF5},{0}, {0} }};
-const std::array<TONE, 16> fail_seq4 = {{ {0}, {0}, {0}, {0},          {0}, {0}, {0}, {0},           {0}, {0}, {0}, {0},             {0},   {fD4},  {0}, {0} }};
-const std::array<VOICECONF, 4> fail_vconf = {{ {0, 128}, {0, 128}, {0, 128}, {0, 128}  }};
-const SOUND FailSound = { fail_tim.data(), { fail_seq1.data(), fail_seq2.data(), fail_seq3.data(), fail_seq4.data() }, fail_vconf.data(), 0 };
+// Rittner curbs
+const std::array<DURATION, 3> curbs_tim = {{ {40}, {50}, {0} }};
+const std::array<TONE, 3> curbs_seq = {{ {500. * toneFactor(12)}, {0.}, {0.} }};
+const std::array<VOICECONF, 1> curbs_vconf = {{ {1, 160} }};
+const SOUND Curbs  = { curbs_tim.data(), { curbs_seq.data(), nullptr, nullptr, nullptr }, curbs_vconf.data(), 3 };
+
 
 // Center aid sounds
 const std::array<DURATION, 2> turn_tim = {{ {1000}, {0} }};
@@ -456,7 +454,7 @@ const std::array<TONE, 9> taddal_seq4 = {{  {0}, {0}, {0}, {0}, {0}, {0}, {fD6},
 const SOUND Tadda_long = { taddal_tim.data(), { taddal_seq1.data(), taddal_seq2.data(), taddal_seq3.data(), taddal_seq4.data() }, tadda_vconf.data(), 0 };
 
 // list of sounds
-const std::array<const SOUND*, 18> sound_list = { { &NoSound, &VarioSound, &CheckSound, &FailSound, 
+const std::array<const SOUND*, 18> sound_list = { { &NoSound, &VarioSound, &CheckSound, &Curbs, 
                                                     &TurnOut, &TurnIn, &Knock, &WindGust, &TurnIn, &FlapForward, &FlapBack,
                                                     &Tadda_short, &Tadda_long,
                                                     &StallWarn, &GloadWarn, &GearWarn, &FlarmIntro, &FlarmCode } };
@@ -894,11 +892,11 @@ void Audio::updateAudioMode()
     }
 }
 
-void Audio::updateTone()
+void Audio::updateTone(uint16_t param)
 {
     if (audio_mute_gen.get() == AUDIO_ON)
     {
-        AudioEvent ev(DO_VARIO, 0); // update vario sound
+        AudioEvent ev(DO_VARIO, param); // update vario sound
         xQueueSend(AudioQueue, &ev, 0);
     }
 }
@@ -1143,6 +1141,10 @@ void Audio::dactask()
                     }
                     audio_value = std::clamp( audio_value, -max, max );
                     bool ret = calculateFrequency(audio_value);
+                    if ( event.param && ret ) {
+                        // just stepped from negative to positive, make a noise
+                        event = AudioEvent(START_SOUND, AUDIO_CURBS);
+                    }
                 }
             }
             else if ( event.cmd == VLOAD_DONE ) {
@@ -1172,20 +1174,6 @@ void Audio::dactask()
                 else {
                     current_dmacmd->voice[vid].reset();
                 }
-            }
-            else if ( event.cmd == START_SOUND ) {
-                // external request to play a sound
-                if ( snd_queue.size() > 5 ) {
-                    ESP_LOGW(FNAME, "Sound queue overflow, dropping sound");
-                    continue;
-                }
-                if ( current_dmacmd->repcount  < 0 ) {
-                    // preempt endless sound
-                    ESP_LOGI(FNAME, "Preempt sound");
-                    current_dmacmd->repcount = 0;
-                }
-                ESP_LOGI(FNAME, "Queue sound %d (%d)", event.getSoundId(), snd_queue.size());
-                snd_queue.push_back(event.raw);
             }
             else if ( event.cmd == REQUEST_SOUND ) {
                 // dma ISR request !!
@@ -1270,6 +1258,24 @@ void Audio::dactask()
                     }
                 }
             }
+            // Option to kick sounds from within the task here
+            if ( event.cmd == START_SOUND ) {
+                // external request to play a sound
+                if ( snd_queue.size() > 5 ) {
+                    ESP_LOGW(FNAME, "Sound queue overflow, dropping sound");
+                    continue;
+                }
+                if ( current_dmacmd->repcount  < 0 ) {
+                    // preempt endless sound
+                    ESP_LOGI(FNAME, "Preempt sound");
+                    current_dmacmd->repcount = 0;
+                } else {
+                    ESP_LOGI(FNAME, "Queue sound request, but current sound is not endless %d", current_dmacmd->repcount = 0);
+                }
+                ESP_LOGI(FNAME, "Queue sound id%d at%d counter%d", event.getSoundId(), snd_queue.size(), (int)current_dmacmd->counter);
+                snd_queue.push_back(event.raw);
+            }
+
         }
 
         if ( _alarm_mode != alarm_type_t::ALARM_NONE && Clock::getMillis() > alarm_timeout ) {

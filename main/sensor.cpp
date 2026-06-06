@@ -314,7 +314,7 @@ void readSensors(void *pvParameters)
             AverageVario::recalcAvgClimb();
         }
 
-        // flap sensor update -> fixme create a external device gpio and a sensor to register
+        // flap sensor update -> fixme create an external device gpio and a sensor to register
         if (FLAP && FLAP->haveAdcSensor()) { FLAP->progress(count); }
 
         // Need to be done for client and main vario
@@ -380,7 +380,7 @@ void readSensors(void *pvParameters)
         }
 
         // audio update
-        AUDIO->updateTone();
+        AUDIO->updateTone(bmpVario.gotPositive());
 
         // UI update, to not flood the UI queue with a binary hand shake
         if ( ui_update_done ) {
