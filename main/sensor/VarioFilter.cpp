@@ -241,6 +241,7 @@ void VarioFilter::postProcess() {
 	mps_t TEAVG = TEavg( altDiff / 0.1 ); // in m/s
 	predictAlt = Altitude + (TEAVG * 0.1);
 	_TEF += ((TEAVG - _TEF)) / vario_delay.get();
+    _got_positive = _TEF > .0f && te_vario.get() < .0f;
 
     te_vario.set(_TEF);
     _polar_sink = Speed2Fly.getSink(ias.get());

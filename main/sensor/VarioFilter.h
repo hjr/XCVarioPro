@@ -29,6 +29,7 @@ class VarioFilter final : public SensorTP<meter_t> {
     void prepareForSimJump() { _prepare_sim_jump = 40; } // prepare for a disruptive jump in altitude in simulation mode
     float getAvgVario() const { return _avg_vario; }
     float getPolarSink() const { return _polar_sink; }
+    bool gotPositive() const { return _got_positive; }
 
    private:
     void init(meter_t alt);
@@ -45,6 +46,7 @@ class VarioFilter final : public SensorTP<meter_t> {
     float _avg_vario = 0.f;
     float _polar_sink = 0.f;
     int8_t _prepare_sim_jump = 0;
+    int8_t _got_positive : 1 = 0;
 };
 
 extern VarioFilter bmpVario;
