@@ -275,7 +275,7 @@ void S2F::recalcSinkNSpeeds() {
     // 2*a2*v + a1 = 0
     _min_sink_speed = -a1 / (2 * a2);
     _min_sink = getSink(_min_sink_speed);
-    _circling_speed = 1.2 * _min_sink_speed; // fixme calculate to current g-load
+    _circling_speed = 1.2 * _min_sink_speed;
     _circling_sink = getSink(_circling_speed);
     // use user defined/confirmed stall speed
     const float loading_factor = std::sqrtf((myballast + 100.0) / 100.0);

@@ -843,11 +843,10 @@ void IpsDisplay::drawDisplay(){
 	tick++;
 
 	// todo integrate better into screen element
-    mps_t te_ms = te_vario.get();
-    mps_t te_avg_ms = bmpVario.getAvgVario();
+    mps_t te_ms = CRMOD.isNetto() ? te_netto.get() : te_vario.get();
     mps_t polar_sink_ms = bmpVario.getPolarSink();
+    mps_t te_avg_ms = bmpVario.getAvgVario();
 	if ( CRMOD.isNetto() ) {
-		te_ms -= polar_sink_ms;
 		te_avg_ms -= polar_sink_ms; // average
 	}
 	if ( CRMOD.getVMode() == CruiseMode::MODE_REL_NETTO ) { // Super Netto, considering circling sink
