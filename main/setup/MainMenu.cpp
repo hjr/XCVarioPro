@@ -859,7 +859,7 @@ static void system_menu_create_hardware(SetupMenu *top) { // dynamic!
         SetupMenu* rotary = new SetupMenu("Rotary Knob", system_menu_create_hardware_rotary);
         top->addEntry(rotary);
 
-        SetupMenuSelect *ageda = new SetupMenuSelect("Speaker", RST_NONE, nullptr, &audio_mute_gen);
+        SetupMenuSelect *ageda = new SetupMenuSelect("Speaker", RST_NONE, audio_setup_enable, &audio_mute_gen);
         ageda->addEntry("Disable", AUDIO_OFF);
         ageda->addEntry("Enable", AUDIO_ON);
         top->addEntry(ageda);

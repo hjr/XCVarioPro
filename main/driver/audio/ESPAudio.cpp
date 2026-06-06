@@ -778,9 +778,9 @@ void Audio::applySetup() {
         }
     }
     else {
-        if ( ! isUp() ) { startAudio(); }
-        // reload the vario sound if not active
-        if ( audio_mute_gen.get() == AUDIO_ON ) {
+        if ( ! isUp() ) {
+            startAudio();
+            // reload the vario sound
             startSound(AUDIO_VARIO_SOUND);
         }
     }

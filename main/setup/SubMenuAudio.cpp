@@ -123,6 +123,13 @@ int update_range_entry_s(SetupMenuSelect *p)
     return update_range_entry(nullptr);
 }
 
+int audio_setup_enable(SetupMenuSelect *p) {
+    AUDIO->applySetup();
+    if ( p->getValue() == AUDIO_ON ) {
+        AUDIO->startSound(AUDIO_CHECK_SOUND);
+    }
+    return 0;
+}
 static int show_vol_dflt(SetupMenuValFloat *p) {
     AUDIO->setVolume(p->getNVSVal());
     return 0;
