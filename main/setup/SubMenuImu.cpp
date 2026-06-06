@@ -488,7 +488,12 @@ void screens_menu_create_gload(SetupMenu *top) {
 }
 
 void system_menu_create_hardware_ahrs_parameter(SetupMenu *top) {
-	SetupMenuValFloat *ahrsgf = new SetupMenuValFloat("Gyro Max Trust", "x", nullptr, &ahrs_gyro_factor, RST_NONE, false);
+    SetupMenuValFloat* lever_arm = new SetupMenuValFloat("CG Lever Arm", "m", nullptr, &imu_leverarm, RST_NONE, false);
+    lever_arm->setHelp(
+        "Distance from XCVario back to the CG of the glider. Used to compensate accelerometer readings.");
+    top->addEntry(lever_arm);
+
+    SetupMenuValFloat *ahrsgf = new SetupMenuValFloat("Gyro Max Trust", "x", nullptr, &ahrs_gyro_factor, RST_NONE, false);
 	ahrsgf->setPrecision(0);
 	ahrsgf->setHelp("Maximum Gyro trust factor in artifical horizon");
 	top->addEntry(ahrsgf);
@@ -536,11 +541,6 @@ void system_menu_create_hardware_imu(SetupMenu *top) {
 
         SetupMenuDisplay* imus = new SetupMenuDisplay("Imu Status", imu_status_action);
         top->addEntry(imus);
-
-        SetupMenuValFloat* lever_arm = new SetupMenuValFloat("CG Lever Arm", "m", nullptr, &imu_leverarm, RST_NONE, false);
-        lever_arm->setHelp(
-            "Distance from XCVario back to the CG of the glider. Used to compensate accelerometer readings.");
-        top->addEntry(lever_arm);
     }
 
     if ( accSensor->getMpu().hasHeatCtlr() ) {
