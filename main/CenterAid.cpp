@@ -23,13 +23,31 @@
 
 constexpr rad_t CA_STEP = Units::deg_to_rad(360/CA_NUM_DIRS); // 15
 constexpr rad_t CA_STEP_2 = CA_STEP/2.f;  // 7.5
-constexpr int MAX_DISK_RAD = 6;
-constexpr int PEAK_STORAGE = 120;
-constexpr int DRAW_SCALE = PEAK_STORAGE/MAX_DISK_RAD;
+constexpr int16_t MAX_DISK_RAD = 7;
 
 extern AdaptUGC *MYUCG;
 CenterAid  *theCenteraid = nullptr;
 
+float CenterAid::th_norm = 1.0;
+
+// the THermal helper struct
+void Thermal::set(mps_t s) {
+    strength = s;
+    timestamp = Clock::getMillis();
+}
+
+// normalized strecngth -1 .. 0 .. 1
+float Thermal::getStrength() const {
+    // scale to peak value and limit to max disk radius
+    // as well as fade with time passing
+    float agescale = 1.f - (Clock::getMillis() - timestamp) / 60000.f; // fade out over 60 seconds
+    if ( agescale < 0.f ) {
+        return 0.f;
+    }
+    return std::min(strength / CenterAid::th_norm * agescale, 1.f);
+}
+
+// Thermal assistant
 CenterAid *CenterAid::create(PolarGauge &g)
 {
     if ( ! theCenteraid ) {
@@ -55,7 +73,7 @@ CenterAid::CenterAid(PolarGauge &g) :
     _glider_on_top = vario_centeraid.get() != 2;
 }
 
-void CenterAid::drawThermal(int tn, int idir) {
+void CenterAid::drawThermal(const Thermal& th, int idir) {
     // ESP_LOGI(FNAME,"drawThermal, tn: %d, idir: %d, ds: %d", tn, idir, draw_red );
     if (idir >= CA_NUM_DIRS || idir < 0) {
         ESP_LOGE(FNAME, "index out of range: %d", idir);
@@ -65,7 +83,7 @@ void CenterAid::drawThermal(int tn, int idir) {
     if (!_glider_on_top) {
         if (flightmode == circling_t::circlingR) {
             ddir = (idir + 3 * CA_NUM_DIRS / 4) % CA_NUM_DIRS;  // move reference to the left
-        } else if (flightmode == circling_t::circlingL) {
+        } else {
             ddir = (idir + CA_NUM_DIRS / 4) % CA_NUM_DIRS;  // move reference to the right
         }
     }
@@ -74,14 +92,20 @@ void CenterAid::drawThermal(int tn, int idir) {
 
     // a green thermal spot that brightens with increasing thermal strength (up to 10%)
     ucg_color_t col = { COLOR_GREEN };
-    col.fadeTo(col, tn * (130.f/(float)PEAK_STORAGE) +.8f);
-    ESP_LOGI(FNAME,"drawThermal, tn: %d, fade: %.3f, color: %d,%d,%d", tn, tn * (30.f/(float)PEAK_STORAGE) +.8f, col.color[0], col.color[1], col.color[2]);
+    float ths = th.getStrength();
+    if ( ths >= 0.f ) {
+        col.fadeTo(col, ths * 1.2f);
+    }
+    else {
+        col = { COLOR_BLUE };
+    }
+    // ESP_LOGI(FNAME,"drawThermal, th: %.1f, ths: %.3f, color: %d,%d,%d", th.strength, ths, col.color[0], col.color[1], col.color[2]);
     MYUCG->setColor(col.color[0], col.color[1], col.color[2]);
     if (idir != 0) {
-        MYUCG->startBuffering(cx-6, cy-6, 12, 12);
-        if (tn > 0) {
-            MYUCG->drawDisc(cx, cy, tn / DRAW_SCALE, UCG_DRAW_ALL);
-        }
+        MYUCG->startBuffering(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD, 2*MAX_DISK_RAD);
+        // MYUCG->drawFrame(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD-1, 2*MAX_DISK_RAD-1);
+        int16_t radius = std::clamp(static_cast<int16_t>(std::abs(ths) * MAX_DISK_RAD), (int16_t)1, MAX_DISK_RAD);
+        MYUCG->drawDisc(cx, cy, radius, UCG_DRAW_ALL);
         MYUCG->finishBuffering();
     }
     else {
@@ -107,16 +131,19 @@ void CenterAid::drawGlider(int16_t cx, int16_t cy) {
     const int16_t triangle[3][6] = { { A, -W, A, W, B, 0}, {-A, -W, -B, 0, -A, W}, {-W, B, W, B, 0, A} }; // left, right, tail
 
     // select triangle for circling direction
+    MYUCG->setColor(COLOR_WHITE);
     int16_t *trptr = (int16_t*)triangle[2];
     if (_glider_on_top) {
         MYUCG->startBuffering(cx-B, cy-W, 2*B+1, 2*W+1);
+        // MYUCG->drawFrame(cx-B, cy-W, 2*B, 2*W);
         if ( flightmode == circling_t::circlingR )
             trptr = (int16_t*)triangle[0];
-        else if (flightmode == circling_t::circlingL) {
+        else {
             trptr = (int16_t*)triangle[1];
         }
     } else {
         MYUCG->startBuffering(cx-W, cy-B, 2*W+1, 2*B+1);
+        // MYUCG->drawFrame(cx-W, cy-B, 2*W, 2*B);
     }
     if ( flightmode == circling_t::circlingR || flightmode == circling_t::circlingL ) {
         MYUCG->setColor(COLOR_WHITE);
@@ -129,35 +156,62 @@ int CenterAid::maxClimbIndex(){
 	int max=0;
 	int max_index = -1;
 	for( int i=0; i<CA_NUM_DIRS; i++ ){
-		if( max < thermals[i] ){
-			max = thermals[i];
+		if( max < thermals[i].strength ){
+			max = thermals[i].strength;
 			max_index = i;
 		}
 	}
 	return max_index;
 }
 
+Point CenterAid::getThermalCG() const {
+    float sx = 0.0f, sy = 0.0f;
+    float sum = 0.f;
+
+    for (int i = 0; i < 24; i++) {
+        float w = thermals[i].strength;
+        sum += w;
+        sx += w * fast_cos_idx(i * 360/CA_NUM_DIRS*2);
+        sy += w * fast_sin_idx(i * 360/CA_NUM_DIRS*2);
+    }
+
+    float magnitude = sqrtf(sx*sx + sy*sy);
+    float eccentricity = magnitude / sum;  // 0.0 .. ~1.0
+    float roundness = 1.0f - eccentricity;
+
+
+    float angle = atan2f(sy, sx);
+    return Point(sx, sy);
+}
 
 void CenterAid::checkThermal(){
 	// ESP_LOGI(FNAME,"checkThermal");
-	idir = (int)(cur_heading * ((float)CA_NUM_DIRS / PI2f)) % CA_NUM_DIRS;
-	mps_t th = std::clamp(te_vario.get(), 0.0f, 5.0f); // limit to 5 m/s to avoid peak value excess
-	if( th > peak_value  )
-		peak_value += (th - peak_value)*0.1;  // a bit low passing to catch values out of the row
-	if( peak_value > 1.0 )                // don't go below 1 m/s this is maximum sensitivity
-		peak_value = peak_value * 0.999;  // Peak value aging 0.1% per 100 mS or 1% per second
-	scale = PEAK_STORAGE/peak_value;      // scale orients itself at measured peak values
-	int ti = std::clamp((int)(th*scale), 2*DRAW_SCALE, 127); // positive limit of 8 bit integer type
-	ESP_LOGI(FNAME,"newThermal dir:%d, TE:%.2f Peak:%.2f TI:%d", idir, th, peak_value, ti  );
-	addThermal( ti  );  // 1 m/s = 10; 5 m/s = 50; -10 m/s = -100
+    // clalc new idir from current heading
+    int8_t new_idir = (int)(cur_heading * ((float)CA_NUM_DIRS / PI2f)) % CA_NUM_DIRS;
+    if ( new_idir == _idir ) {
+        return; // no change, nothing to do
+    }
+	_idir = new_idir;
+	mps_t te = te_vario.get();
+	if( te > peak_value  ) {
+		peak_value += (te - peak_value)*0.1;  // a bit low passing to catch values out of the row
+    }
+	if( peak_value > 1.0 ) {              // don't go below 1 m/s this is maximum sensitivity
+		peak_value = peak_value * 0.999;  // Peak value aging 0.1% per 100 msec or 1% per second
+    }
+	// ESP_LOGI(FNAME,"newThermal dir:%d, TE:%.2f Peak:%.2f TI:%d", _idir, th, peak_value, ti  );
+    thermals[_idir].set(te);
 }
 
 void CenterAid::drawCenterAid(){
 	// ESP_LOGI(FNAME,"drawCenterAid");
-	int maxIndex = maxClimbIndex();
+	// int maxIndex = maxClimbIndex();
+    // recalc the current thermal norm for the current peak value
+    th_norm = peak_value;
+    ESP_LOGI(FNAME,"CenterAid draw, peak norm: %.2f", th_norm);
 	for( int i=0; i<CA_NUM_DIRS; i++ ){
-		int d = (i+idir) % CA_NUM_DIRS;
-		// ESP_LOGI(FNAME,"dir:%d TE:%d", d, thermals[d] );
+		int d = (i+_idir) % CA_NUM_DIRS;
+		// ESP_LOGI(FNAME,"dir:%d TE:%.1f", d, thermals[d].strength );
 		drawThermal( thermals[d], i );
 	}
 }
@@ -170,45 +224,6 @@ void CenterAid::drawCenterAid(){
 //     d = (i+idir) % CA_NUM_DIRS;
 //     drawThermal(thermals[d], i);
 // }
-
-
-// add one thermal and draw thermal
-void CenterAid::addThermal( int teval ){
-	// ESP_LOGI(FNAME,"addThermal %.1f (%d), TE:%d", cur_heading, idir, teval );
-	if( idir >= CA_NUM_DIRS || idir < 0 ){
-		ESP_LOGE(FNAME,"index out of range: %d", idir );
-	}else{
-		thermals[ idir ] = teval;
-	}
-}
-
-void CenterAid::ageThermal(){
-	// ESP_LOGI(FNAME,"age: dir %d, TH: %d, FM: %d", agedir, thermals[agedir], flightmode );
-	float lambda = 0.75; // age faster in straight flight: we leaf quickly the place of lift
-	if( flightmode == circling_t::circlingL ){
-		agedir--;
-		if( agedir < 0 )
-			agedir += CA_NUM_DIRS;
-		lambda = 0.95;
-	}
-	else if( flightmode == circling_t::circlingR ){
-		agedir++;
-		lambda = 0.95;
-	}
-	else{
-		agedir++;
-	}
-	if( agedir < 0 )
-		agedir += CA_NUM_DIRS;
-	agedir = agedir %CA_NUM_DIRS;
-	if( agedir >= CA_NUM_DIRS || agedir < 0 ){
-		ESP_LOGE(FNAME,"index out of range: %d", agedir );
-		return;
-	}
-	if( thermals[agedir] != 0 ){
-		thermals[agedir] = (int8_t)( (float)(thermals[agedir])*lambda);
-	}
-}
 
 
 void CenterAid::calcFlightMode( rad_t headingDiff ){
@@ -291,8 +306,4 @@ void CenterAid::tick(int tick){
         cur_heading = new_heading;
     }
     checkThermal();
-
-    if (!(tick % 10)) {
-        ageThermal();  // 0.2 s per thermal = 4.8 seconds all 24 thermals aged by 0.1 m/s
-    }
 }
