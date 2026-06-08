@@ -1140,11 +1140,7 @@ void Audio::dactask()
                         max = 5.0; // +/- 50km/h range, same audio as +/-5m/s
                     }
                     audio_value = std::clamp( audio_value, -max, max );
-                    bool ret = calculateFrequency(audio_value);
-                    if ( event.param && ret ) {
-                        // just stepped from negative to positive, make a noise
-                        event = AudioEvent(START_SOUND, AUDIO_CURBS);
-                    }
+                    calculateFrequency(audio_value);
                 }
             }
             else if ( event.cmd == VLOAD_DONE ) {
