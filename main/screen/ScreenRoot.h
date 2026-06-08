@@ -42,6 +42,7 @@ public:
     void pushTop(MenuEntry *menu); // push menu on top, e.g. the flarm traffic display
     void exit(int levels=0) override;
     int getActiveScreen() const  { return active_screen; }
+    void inPageSetupDone() { _page_setup = false; }
     // interaction
     void rot(int count) override;
     void press() override;
@@ -51,5 +52,6 @@ private:
     IpsDisplay* _display;
     int active_screen = SCREEN_VARIO;
     WatchDog_C  _ui_mon_wd;
+    bool _page_setup = false;
 };
 

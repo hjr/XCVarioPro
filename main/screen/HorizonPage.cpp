@@ -11,6 +11,7 @@
 #include "math/Units.h"
 #include "math/Floats.h"
 
+#include "ScreenRoot.h"
 #include "sensor/imu/AccMPU6050.h"
 #include "sensor/gps/GpsVSensor.h"
 #include "setup/SetupNG.h"
@@ -237,6 +238,7 @@ void HorizonPage::draw( Quaternion q )
             // save to nvs
             glider_ground_aa.set(_gaa);
             _DIRTY = true;
+            MenuRoot->inPageSetupDone();
         }
     }
     else {

@@ -174,7 +174,7 @@ void ScreenRoot::exit(int levels)
 
 void ScreenRoot::rot(int count)
 {
-    if ( active_screen == SCREEN_HORIZON ) {
+    if ( _page_setup && active_screen == SCREEN_HORIZON ) {
         HorizonPage::HORIZON()->rot(count); // todo needs a better solution than static access
         return;
     }
@@ -194,9 +194,11 @@ void ScreenRoot::rot(int count)
 
 void ScreenRoot::press()
 {
+    int current_screen = active_screen;
     ESP_LOGI(FNAME,"root press active_srceen %d (0x%x)", active_screen, (unsigned)all_screens);
 
-    int current_screen = active_screen;
+    // a press always terminates the in page quick setup
+    _page_setup = false;
 
     // cycle through screens, incl. setup
     ESP_LOGI(FNAME, "Cycle screen from %d (%d)", current_screen, gflags.inSetup);
@@ -227,6 +229,13 @@ void ScreenRoot::longPress()
 {
     // enter setup from any screen
     if (!gflags.inSetup) {
+        // check for any quick "in-page" setup option
+        if ( active_screen == SCREEN_HORIZON ) {
+            // quick access to horizon ground angle adjustment
+            HorizonPage::HORIZON()->rot(0);
+            _page_setup = true;
+            return;
+        }
         begin();
     }
 }
