@@ -40,7 +40,7 @@ void Thermal::set(mps_t s) {
 float Thermal::getStrength() const {
     // scale to peak value and limit to max disk radius
     // as well as fade with time passing
-    float agescale = 1.f - (Clock::getMillis() - timestamp) / 60000.f; // fade out over 60 seconds
+    float agescale = 1.f - std::max(0.f, (Clock::getMillis() - timestamp) - 30000.f) / 30000.f;
     if ( agescale < 0.f ) {
         return 0.f;
     }
@@ -74,7 +74,7 @@ CenterAid::CenterAid(PolarGauge &g) :
 }
 
 void CenterAid::drawThermal(const Thermal& th, int idir) {
-    // ESP_LOGI(FNAME,"drawThermal, tn: %d, idir: %d, ds: %d", tn, idir, draw_red );
+    // ESP_LOGI(FNAME,"drawThermal, th: %.1f, idir: %d", th.strength, idir);
     if (idir >= CA_NUM_DIRS || idir < 0) {
         ESP_LOGE(FNAME, "index out of range: %d", idir);
         return;
@@ -199,7 +199,7 @@ void CenterAid::checkThermal(){
 	if( peak_value > 1.0 ) {              // don't go below 1 m/s this is maximum sensitivity
 		peak_value = peak_value * 0.999;  // Peak value aging 0.1% per 100 msec or 1% per second
     }
-	// ESP_LOGI(FNAME,"newThermal dir:%d, TE:%.2f Peak:%.2f TI:%d", _idir, th, peak_value, ti  );
+	// ESP_LOGI(FNAME,"newThermal dir:%d, TE:%.2f Peak:%.2f", _idir, te, peak_value);
     thermals[_idir].set(te);
 }
 
