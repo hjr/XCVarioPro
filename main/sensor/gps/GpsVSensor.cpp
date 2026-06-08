@@ -14,7 +14,7 @@
 #include "vector.h"
 
 
-#include "logdef.h"
+#include "logdefnone.h"
 
 constexpr int SENSOR_HISTORY_DURATION_MS = 10000;  // 10 sec
 constexpr int DUTY_CYCLE_MS = 1000; // 1Hz Flarm update rate
