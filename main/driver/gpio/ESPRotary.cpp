@@ -65,22 +65,30 @@ bool IRAM_ATTR ESPRotary::tick()
 // The rotary portion ISR, PCNT event callback function
 static int IRAM_ATTR get_step(int delta_t_us)
 {
-    if (delta_t_us > 100000) return 1;
-    if (delta_t_us > 50000)  return 2;
+    if (delta_t_us > 50000) return 1;
+    if (delta_t_us > 25000)  return 2;
     return 3;
 }
+#if defined(ESP_LOGI)
 static int pulse_time;
+#endif
 static bool IRAM_ATTR pcnt_event_handler(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
 	static uint64_t lastPulseTime = 0;
 	static int wp_value = 1;
 	uint64_t currentTime = esp_timer_get_time();
 
-	pulse_time = int(currentTime-lastPulseTime);
-	int step = get_step(pulse_time);
+	int my_time = int(currentTime-lastPulseTime);
+    if (my_time < 2000) { // supress everything < 2 ms
+        return false;
+    }
+	int step = get_step(my_time);
 	if ( step == 1 ) {
 		wp_value = sign(edata->watch_point_value);
 	}
+#if defined(ESP_LOGI)
+    pulse_time = my_time;
+#endif
 	//else suppress all of a sudden changes in rotational direction
 	int evt = RotaryEvent(step * wp_value).raw;
 	BaseType_t high_task_wakeup = pdFALSE;
@@ -167,7 +175,7 @@ void ESPRotary::begin()
 	ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_chan, PCNT_CHANNEL_LEVEL_ACTION_INVERSE, PCNT_CHANNEL_LEVEL_ACTION_KEEP));
 
 	pcnt_glitch_filter_config_t filter_config = {
-		.max_glitch_ns = 1000 // Ignore pulses shorter than 1000 nS
+		.max_glitch_ns = 3000 // Ignore pulses shorter than this
 	};
 	ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
 
