@@ -788,7 +788,9 @@ void Audio::applySetup() {
         if ( ! isUp() ) {
             startAudio();
             // reload the vario sound
-            startSound(AUDIO_VARIO_SOUND);
+            if ( current_dmacmd->timeseq == no_tone_tim.data() ) {
+                current_dmacmd->loadSound(&VarioSound);
+            }
         }
     }
     _exponent_max  = std::pow( 2, audio_factor.get());
@@ -807,7 +809,7 @@ void Audio::initVarioVoice()
         unmute();
         writeVolume(speaker_volume);
         // load the vario sound
-        startSound(AUDIO_VARIO_SOUND);
+        current_dmacmd->loadSound(&VarioSound);
     }
 }
 
