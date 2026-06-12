@@ -79,7 +79,7 @@ public:
     using LowPassFilterT<float>::filter;
 private:
     float _alpha_min, _alpha_max;
-    float _beta = 0.02;
+    float _beta = 0.05f;
     float _activity = 0.f;
     float _threshold = 40.f;
 };

@@ -33,7 +33,7 @@ T AdaptiveLowPassFilterT<T>::filter(T input)
 {
     float err = std::abs(input - LowPassFilterT<float>::_last_output);
     // increase faster than decrease to be more responsive to changes, but still smooth out noise
-    _activity += _beta * (err - _activity) * (_activity > err ? 1.2f : 0.5f);
+    _activity += _beta * (err - _activity) * (_activity > err ? 1.3f : 0.5f);
 
     float tmp = std::clamp(_activity / _threshold, 0.0f, 1.0f);
     LowPassFilterT<float>::_alpha = _alpha_min + tmp * tmp * (_alpha_max - _alpha_min);
