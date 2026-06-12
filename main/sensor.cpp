@@ -691,8 +691,9 @@ void system_startup(void *args){
         // ok a MPU got probed already
         // add AHRS to my caps
         XcvCaps::addToMine(XcvCaps::AHRS_CAP);
+        float accel = .0f;
         ESP_LOGI(FNAME, "MPU setup");
-        if (accSensor->setup()) { // after CAN bus self test !
+        if (accSensor->getMpu().setup()) { // after CAN bus self test !
             vector_f accelG, sum;
             int samples = 0;
             vTaskDelay(pdMS_TO_TICKS(200));
@@ -707,17 +708,17 @@ void system_startup(void *args){
                 vTaskDelay(pdMS_TO_TICKS(10));
             }
             sum /= samples;
-            float accel = sum.get_norm();
-            char ahrs[10];
-            sprintf(ahrs, "%.2f", accel);
-            logged_tests += "IMU AHRS (" + std::string(ahrs) + "g): ";
-            if (accel > 0.8 && accel < 1.1) {
-                logged_tests += passed_text;
-            } else {
-                logged_tests += failed_text;
-                ESP_LOGE(FNAME, "MPU g avg: %.2f", sum[2]);
-                selftestPassed = false;
-            }
+            accel = sum.get_norm();
+        }
+        char ahrs[10];
+        sprintf(ahrs, "%.2f", accel);
+        logged_tests += "IMU AHRS (" + std::string(ahrs) + "g): ";
+        if (accel > 0.95 && accel < 1.05) {
+            logged_tests += passed_text;
+        } else {
+            logged_tests += failed_text;
+            ESP_LOGE(FNAME, "MPU g avg: %.2f", accel);
+            selftestPassed = false;
         }
         // register IMU sensors always, even on client XCVario
         SensorRegistry::registerSensor(gyroSensor); // giro sensor first to have the cg correction immidiately available for the acc sensor

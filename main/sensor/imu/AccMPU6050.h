@@ -28,7 +28,7 @@ public:
 
     const char *name() const override { return _my_mpu.name(); }
     bool probe() override { return false; } // probe is done in MpuImu;
-    bool setup() override { return _my_mpu.setup(); } // setup is done in MpuImu;
+    bool setup() override { return false; } // setup is done in MpuImu;
     bool doRead(vector_f& val) override;
     void postProcess() override;
     bool detectRest();
