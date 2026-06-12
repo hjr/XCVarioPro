@@ -593,7 +593,7 @@ SetupNG<float> 			wind_straight_speed_tolerance("WINDSSTOL", 15, true, SYNC_NONE
 SetupNG<int> 			wind_reference( "WIND_REF", static_cast<int>(WindReference::WR_HEADING) );
 SetupNG<float> 			wind_max_deviation("WIND_MDEV", 30.0, true, SYNC_NONE, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(0.0, 180.0, 1.0));
 SetupNG<int> 			s2f_blockspeed( "S2G_BLOCKSPEED", 0, false, SYNC_BIDIR );  // considering netto vario and g load for S2F or not
-SetupNG<int> 			needle_color("NEEDLE_COLOR", VN_COLOR_ORANGE );
+SetupNG<int> 			needle_color("NEEDLE_COLOR", VN_COLOR_POINTER );
 SetupNG<int> 			wk_label_0( "WK_LBL_0", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act );
 SetupNG<int> 			wk_label_1( "WK_LBL_1", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act );
 SetupNG<int> 			wk_label_2( "WK_LBL_2", 0, false, SYNC_BIDIR, PERSISTENT, flap_update_act );
