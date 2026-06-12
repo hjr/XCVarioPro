@@ -656,9 +656,10 @@ static void options_menu_create_screens(SetupMenu *top) { // dynamic!
         }
         top->addEntry(horizon);
 
-        SetupMenuSelect* ncolor = new SetupMenuSelect("Needle Color", RST_NONE, nullptr, &needle_color);
+        SetupMenuSelect* ncolor = new SetupMenuSelect("Indicator", RST_NONE, nullptr, &needle_color);
+        ncolor->setHelp("Color for vario needle and other indicators");
         ncolor->addEntry("Orange");
-        ncolor->addEntry("Cream");
+        ncolor->addEntry("Neon Yellow");
         ncolor->addEntry("White");
         top->addEntry(ncolor);
 
