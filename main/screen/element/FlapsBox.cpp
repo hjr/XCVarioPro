@@ -70,7 +70,7 @@ bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
 FlapsBox::FlapsBox(Flap* flap, int16_t cx, int16_t cy, bool vertical) :
     ScreenElement(cx, cy),
     _flap(flap),
-    _fp_filter(0.17f),
+    _fp_filter(0.5f),
     _last_event(0,0),
     _vertical(vertical)
 {
