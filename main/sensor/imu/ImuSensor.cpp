@@ -91,6 +91,7 @@ bool MpuImu::probe() {
 bool MpuImu::setup() {
     ESP_LOGI(FNAME, "MPU initialize");
     esp_err_t err = myMPU.reset();
+    vTaskDelay(pdMS_TO_TICKS(50)); // wait after reset (crucial for Release build)
     err |= myMPU.resetFIFO();
     // initialize the chip and set default configurations
     // which is: 500Hz; ACCEL_FS_8G scale; GYRO_FS_250DPS scale; DLPF_10HZ low pass
