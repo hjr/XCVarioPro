@@ -53,7 +53,7 @@ void WindIcon::draw(WindData w)
     _wind = w;
 
     if (dir_changed || _dirty) {
-        drawIcon(wdir_deg2);
+        drawIcon(_wind.isValid() ? wdir_deg2 : 360); // if invalid, point north
         if ( headref ) {
             // direction on top
             drawDirection();
@@ -93,10 +93,7 @@ void WindIcon::drawIcon(int16_t deg2) const
 {
     Point center = Point(_ref.x - _radius - 3, _ref.y - _radius);
     MYUCG->setColor(COLOR_MARINE);
-    if ( ! _wind.isValid() || _wind.getVal() <= 0 ) {
-        MYUCG->drawDisc(center.x, center.y, _radius, UCG_DRAW_ALL);
-        return;
-    }
+
     MYUCG->startBuffering(center.x - _radius, center.y - _radius, 2*_radius +1, 2*_radius +1);
     MYUCG->drawDisc(center.x, center.y, _radius, UCG_DRAW_ALL);
 
