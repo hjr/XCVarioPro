@@ -115,12 +115,8 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::FLARM_DEV,  {"", {{BT_SPP}}, {{FLARM_P}, 1}, 0, 0, nullptr}},
     // {DeviceId::FLARM_DEV,  {"", {{XCVPROXY}}, {{FLARM_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::JUMBO_DEV,  {"jumbo putzi", {{CAN_BUS}}, {{JUMBOCMD_P}, 1} , 0, 0, nullptr}}, // auto reg
-    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_SEL|SECOND_ONLY, &master_devsetup}}, // CAN_BUS auto reg
-    // {DeviceId::XCVARIOFIRST_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
-    {DeviceId::XCVARIOFIRST_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, &master_devsetup}},
-    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{WIFI_APSTA, S2_RS232}}, {{XCVSYNC_P}, 1}, 8884, IS_SEL|MASTER_ONLY, &second_devsetup}}, // CAN_BUS auto reg
-    // {DeviceId::XCVARIOSECOND_DEV, {"", {{BT_SPP}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}}, todo, missing the BLUEspp client implementation
-    {DeviceId::XCVARIOSECOND_DEV, {"", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, 0, nullptr}},
+    {DeviceId::XCVARIOFIRST_DEV, {"Master XCV", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, IS_SEL|SECOND_ONLY, &master_devsetup}},
+    {DeviceId::XCVARIOSECOND_DEV, {"Second XCV", {{S2_RS232}}, {{XCVSYNC_P}, 1}, 0, IS_SEL|MASTER_ONLY, &second_devsetup}},
 #ifdef DEBGUG_AND_TEST
     {DeviceId::MAGLEG_DEV, {"MagSens rev0", {{CAN_BUS}}, {{MAGSENSBIN_P}, 1}, MagSensBin::LEGACY_MAGSTREAM_ID, IS_SEL|MASTER_ONLY, &magleg_devsetup}},
 #endif
