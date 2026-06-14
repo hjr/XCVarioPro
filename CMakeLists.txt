@@ -8,6 +8,6 @@ cmake_minimum_required(VERSION 3.11)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-project(xcvario_pro)
+project(xcvario_pure)
 
 include (${project_dir}/html/CMakeLists.txt)

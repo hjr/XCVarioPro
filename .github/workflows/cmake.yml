@@ -14,10 +14,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
     - name: set-env
-      run:  VER=`date +"%y.%m%d-%H%M"`;
-            BRANCH=`git branch --show-current`;
-            echo "FILE_VERSION=${BRANCH}-${VER}" >> $GITHUB_ENV
+      shell: bash
+      run: |
+        VERSION=$(git describe --tags --dirty --abbrev=0 2>/dev/null || echo "untagged-${GITHUB_SHA::7}")
+        BRANCH=$(git branch --show-current)
+        echo "FILE_VERSION=$BRANCH-$VERSION" >> "$GITHUB_ENV"
 
     - name: Build 
       # Use a bash shell so we can use the same syntax for environment variable
@@ -36,8 +41,8 @@ jobs:
         ls -lh build/
             
         mkdir -p artifacts
-        cp build/xcvario_pro.elf artifacts/xcvario_pur-${{ env.FILE_VERSION }}.elf
-        cp build/xcvario_pro.bin artifacts/xcvario_pur-${{ env.FILE_VERSION }}.bin
+        cp build/xcvario_pure.elf artifacts/xcvario_pur-${{ env.FILE_VERSION }}.elf
+        cp build/xcvario_pure.bin artifacts/xcvario_pur-${{ env.FILE_VERSION }}.bin
         gzip artifacts/xcvario_pur-${{ env.FILE_VERSION }}.elf
             
         echo "--- Inhalt von artifacts/ auf Host ---"
@@ -46,7 +51,7 @@ jobs:
     - name: Upload binary & ELF
       uses: actions/upload-artifact@v4
       with:
-        name: XCVarioPure-${{ env.FILE_VERSION }}
+        name: XCVarioPur-${{ env.FILE_VERSION }}
         path: artifacts/*
 
 
