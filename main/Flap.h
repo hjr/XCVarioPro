@@ -9,6 +9,7 @@
 #pragma once
 
 #include "setup/Capability.h"
+#include "sensor/Filters.h"
 #include "math/Units.h"
 
 #include <cmath>
@@ -129,6 +130,7 @@ private:
     bool _sens_order = true; // if true, sensval are in descending order from flap level 0, 1, 2, ...
     static const FlapLevel dummy;
     int rawFiltered = 0;
+    AdaptiveLowPassFilterT<float> _alp_filter;
 };
 
 extern Flap* FLAP;

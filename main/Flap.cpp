@@ -49,7 +49,9 @@ static const std::array<FLConf, Flap::MAX_NR_POS> FL_STORE = {{
 
 ///////////////////////////////////////
 // Flap class implementation
-Flap::Flap() {
+Flap::Flap() :
+    _alp_filter{0.08f, 0.5f}
+{
     configureADC();
     initFromNVS();
     prepLevels();
@@ -184,8 +186,8 @@ void Flap::progress(int count) {
             return;
         }
         // ESP_LOGI(FNAME,"flap sensor =%d", wkraw );
-        rawFiltered = rawFiltered + (wkraw - rawFiltered) / 4;
-        if (!(count % 5)) { // 2 Hz
+        rawFiltered = fast_iroundf(_alp_filter.filter(wkraw));
+        if (!(count % 3)) { // 3.3 Hz
             float lever = sensorToLeverPosition(rawFiltered);
             // ESP_LOGI(FNAME, "wk sensor=%1.2f  raw=%d", lever, rawFiltered);
             if (lever < 0.) {
