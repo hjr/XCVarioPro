@@ -139,9 +139,9 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST3_DEV, {"Flarm Display", {{S1_RS232, S2_RS232}}, {{FLARMHOST_P}, 1}, 0, IS_SEL, &flarm_host3_setup}},
     {DeviceId::FLARM_HOST3_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P}, 1}, 0, 0, nullptr}},
-#ifdef DEBGUG_AND_TEST
     {DeviceId::RADIO_REMOTE_DEV, {"Radio remote", {{WIFI_APSTA}}, {{KRT2_REMOTE_P}, 1}, 8882, IS_SEL, &radio_host_setup}},
     {DeviceId::RADIO_KRT2_DEV, {"KRT 2", {{S2_RS232}}, {{KRT2_REMOTE_P}, 1}, 0, IS_SEL, &krt_devsetup}},
+#ifdef DEBGUG_AND_TEST
     {DeviceId::RADIO_ATR833_DEV, {"ATR833", {{S2_RS232}}, {{ATR833_REMOTE_P}, 1}, 0, IS_SEL, &atr_devsetup}},
 #endif
     {DeviceId::TEMPSENS_DEV, {"Temp. Sensor", {{OW_BUS}}, {{NO_ONE}, 0}, 0, IS_SEL, &temp_devsetup}},
