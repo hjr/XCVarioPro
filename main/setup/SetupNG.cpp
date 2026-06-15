@@ -535,6 +535,7 @@ SetupNG<int>  			serial2_pin_swap( "SER2_PINS", 0 );
 SetupNG<int>  			serial2_ttl_signals( "SER2_TTL", RS232_NORMAL );
 SetupNG<int>  			serial2_tx_enable( "SER2_TX_ENA", 1 );
 SetupNG<int>  			software_update( "SOFTWARE_UPDATE", 0 );
+SetupNG<t_tenchar_id>  	ota_ssid( "OTA_SSID",  t_tenchar_id(""), false );
 SetupNG<int>  			battery_display( "BAT_DISPLAY", Battery::BAT_NONE, true );
 SetupNG<int>		    log_level( "LOG_LEVEL", 3 );
 SetupNG<float>		    te_comp_adjust ( "ECOMP_ADJ", 92.f, true, SYNC_BIDIR, PERSISTENT, nullptr, quantity_t::QUANT_NONE, LIMITS(80, 100, 0.1));

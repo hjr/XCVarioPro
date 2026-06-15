@@ -16,4 +16,4 @@ void software_menu_create_OTA(SetupMenu *top);
 // void system_menu_create_hardware_imu(SetupMenu *top);
 // void system_menu_create_hardware_ahrs_parameter(SetupMenu *top);
 // extern int imu_calib(SetupMenuSelect* p);
-// void free_imu_menu();
+void free_ota_menu();

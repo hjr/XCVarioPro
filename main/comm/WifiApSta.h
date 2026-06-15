@@ -80,7 +80,7 @@ public:
 	// Ctrl
 	InterfaceId getId() const override { return WIFI_APSTA; }
 	const char *getStringId() const override { return "WiFi"; }
-	void ConfigureIntf(int port) override; // 8880, 8881, 8882, 8883, 8884, 80
+	void ConfigureIntf(int port) override; // 8880, 8881, 8882, 8883, 8884, 80, 9999
 	virtual int Send(const char *msg, int &len, int port = 0) override;
 
 	bool isAlive(); // returns true if AP is up and running
@@ -88,6 +88,7 @@ public:
 	bool isSTA() const { return _sta_netif != nullptr; }
 	// bool isConnected(int p) const;
 	bool scanMaster(int master_xcv_num);
+	bool scanAPs(wifi_ap_record_t *ap_info, uint16_t &ap_count, uint16_t max_ap);
 
 private:
     NetState state = {};

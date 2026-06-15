@@ -15,6 +15,7 @@
 #include "setup/SubMenuDevices.h"
 #include "setup/SubMenuFlap.h"
 #include "setup/SubMenuImu.h"
+#include "setup/SubMenuOTA.h"
 #include "setup/SetupNG.h"
 #include "IpsDisplay.h"
 #include "driver/audio/ESPAudio.h"
@@ -136,6 +137,7 @@ void ScreenRoot::exit(int levels)
     free_audio_menu();
     free_flap_menu();
     free_imu_menu();
+    free_ota_menu();
 
     // current menu status
     current = nullptr; // no current item any more

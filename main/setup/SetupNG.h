@@ -95,9 +95,9 @@ constexpr int NO_ELEVATION = -1;
 
 struct t_tenchar_id {
     char id[10];
-    t_tenchar_id() {}
-    t_tenchar_id(const char* val) { strncpy(id, val, 10); }
-    t_tenchar_id(const t_tenchar_id& val) { strncpy(id, val.id, 10); }
+    constexpr t_tenchar_id() {}
+    constexpr t_tenchar_id(const char* val) { strncpy(id, val, 10); }
+    constexpr t_tenchar_id(const t_tenchar_id& val) { strncpy(id, val.id, 10); }
     bool operator==(const t_tenchar_id& other) const { return (strcmp(id, other.id) == 0); }
     t_tenchar_id operator=(const t_tenchar_id& other) {
         strncpy(id, other.id, 10);

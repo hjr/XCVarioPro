@@ -746,6 +746,11 @@ static void system_menu_create_software(SetupMenu *top) {
     SetupMenu* upd_soft = new SetupMenu("Update Software", software_menu_create_OTA);
     upd_soft->setHelp("Update using the internet connection of your smart phone, or upload a binary using the ESP32 webserver.");
     top->addEntry(upd_soft);
+    if ( airborne.get() ) {
+        upd_soft->setHelp("Disabled");
+        upd_soft->lock();
+    }
+
 
     if (logged_tests.size() > 0) {
         SetupMenuDisplay* dis = new SetupMenuDisplay("Show Boot Messages", show_boot_log);

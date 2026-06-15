@@ -4,7 +4,7 @@
 #include "setup/SetupCommon.h"
 #include "comm/DataLink.h"
 #include "driver/gpio/ESPRotary.h"
-#include "logdefnone.h"
+#include "logdef.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -16,7 +16,9 @@
 #include <esp_wifi.h>
 #include <esp_mac.h>
 #include <esp_event.h>
+
 #include <mutex>
+#include <algorithm>
 
 bool netif_initialized = false;
 
@@ -591,7 +593,7 @@ bool  WifiApSta::isAlive(){
 // bool WifiApSta::isConnected(int port) const
 // {
 // 	if (port >= 8880 && port <= 8884) {
-// 		int socket_num = port - 8880;
+// 		int std::clamp(port - 8880, 0, NUM_TCP_PORTS - 1);
 // 		if (_socks[socket_num]) {
 // 			return _socks[socket_num]->alive;
 // 		}
@@ -642,23 +644,36 @@ bool WifiApSta::scanMaster(int master_xcv_num)
 	return found;
 }
 
+bool WifiApSta::scanAPs(wifi_ap_record_t *ap_info, uint16_t &ap_count, uint16_t max_ap)
+{
+    ESP_ERROR_CHECK(esp_wifi_scan_start(NULL, true));
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    ESP_LOGI(FNAME, "Total APs scanned = %u", ap_count);
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&max_ap, ap_info));
+    return ap_count > 0;
+}
+
+
 ///////////////////////////
 // the Interface Config API
 //
 // it's mostly static IP a cfg depending of port
 void WifiApSta::ConfigureIntf(int port) {
-    bool isAP = !((xcv_role.get() == SECOND_ROLE) && (port == 8884));  // client -- master connection is the only STA connection
+    // client -- master connection is the only STA connection
+    // or for the OTA internet connection, all other ports are AP
+    bool isAP = !(((xcv_role.get() == SECOND_ROLE) && (port == 8884)) || (port == 9999));
     if (port >= 8880 && port <= 8884) {
-        int pidx = port - 8880;
+        int pidx = std::clamp(port - 8880, 0, NUM_TCP_PORTS - 1);
         sock_ctrl_t* sock = _socks[pidx]; // particular pointer to socket ctl record for this port
-        if (port == 8884 && _sta_netif && sock && sock->sock_hndl >= 0) {
+        if (_sta_netif && sock && sock->sock_hndl >= 0) {
             ESP_LOGI(FNAME, "STA already configured, try to reconnect");
             // client_reconnect();
             ESP_ERROR_CHECK(esp_wifi_connect());
             return;  // STA already configured
         }
         if (sock == nullptr) {
-            _socks[pidx] = sock = new sock_ctrl_t(port); // its a one-way train, we can only create those ATM
+            // its a one-way train, we can only create those ATM
+            _socks[pidx] = sock = new sock_ctrl_t(port);
             sock->is_ap = isAP;
 
             char ssid_buf[20];
@@ -669,7 +684,8 @@ void WifiApSta::ConfigureIntf(int port) {
             initialize_wifi(isAP, MAX_CLIENTS, isAP ? SetupCommon::getID() : ssid_buf);
 
             if (isAP) {
-                int sock_err = sock->create_ap_socket();  // Create already the socket for this port structure as interface to the server task
+                // Create already the socket for this port structure as interface to the server task
+                int sock_err = sock->create_ap_socket();
                 if (sock_err < 0) {
                     ESP_LOGE(FNAME, "Socket creation port %d FAILED with (%d), wifi config aborted", port, sock_err);
                     return;
@@ -688,12 +704,12 @@ void WifiApSta::ConfigureIntf(int port) {
 }
 
 int WifiApSta::Send(const char* msg, int& len, int port) {
-    if (port < 8880 || port > 8884 || !socket_server_task_pid) {
+    if (port < 8880 || port > 9999 || !socket_server_task_pid) {
         ESP_LOGE(FNAME, "Invalid port: %d, should be between 8880 and 8884", port);
         return -1;
     }
     // ESP_LOGI(FNAME, "port %d to sent %d: bytes, %s", port, len, msg );
-    int socket_num = port - 8880;
+    int socket_num = std::clamp(port - 8880, 0, NUM_TCP_PORTS - 1);
     sock_ctrl_t* socks = _socks[socket_num];
     if (socks == nullptr) {
         ESP_LOGI(FNAME, "no such sock avail");
@@ -743,7 +759,7 @@ int WifiApSta::Send(const char* msg, int& len, int port) {
     return 0;               // we do not want to trigger retries for WiFi
 }
 
-static esp_netif_t* wifi_config_sta(const char* staid) {
+static esp_netif_t* wifi_config_sta(const char* staid, const char* appass) {
     ESP_LOGV(FNAME, "now esp_netif_create_default_wifi_sta");
     esp_netif_t* esp_netif_sta = esp_netif_create_default_wifi_sta();
 
@@ -761,7 +777,7 @@ static esp_netif_t* wifi_config_sta(const char* staid) {
             .required = false,  // but not required
         },
         strcpy((char*)wifi_sta_config.sta.ssid, staid);
-        strcpy((char*)wifi_sta_config.sta.password, AP_PASSPHARSE);
+        strcpy((char*)wifi_sta_config.sta.password, appass);
 
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config));
     }
@@ -813,10 +829,10 @@ bool WifiApSta::initialize_wifi(bool ap_mode, int maxcon, const char* ssid) {
             WIFI_EVENT_HANDLER::wifi_event_handler, NULL, &_ip_evnt_handler));
 
         if (!ap_mode) {
-        // station config
-        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-        _sta_netif = wifi_config_sta(ssid);
-        ret = true; // some thing new
+            // station config
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+            _sta_netif = wifi_config_sta(ssid, AP_PASSPHARSE);
+            ret = true; // some thing new
         }
         else {
             // access point config
@@ -839,7 +855,7 @@ bool WifiApSta::initialize_wifi(bool ap_mode, int maxcon, const char* ssid) {
         ESP_LOGI(FNAME, "WiFi already initialized, now add %s mode if needed", ap_mode ? "AP" : "STA");
     
         if (!ap_mode && !_sta_netif) {
-            _sta_netif = wifi_config_sta(ssid);
+            _sta_netif = wifi_config_sta(ssid, AP_PASSPHARSE);
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
         }
         else if (ap_mode && !_ap_netif) {
