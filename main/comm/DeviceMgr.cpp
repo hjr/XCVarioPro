@@ -58,8 +58,10 @@ static const RoutingTarget flarm_routes[] = {
 static const RoutingTarget flarm_proxy_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
     {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
-static const RoutingTarget radio_routes[] = {
+static const RoutingTarget radio_remote_routes[] = {
     {RADIO_KRT2_DEV, S2_RS232, 0}, {RADIO_ATR833_DEV, S2_RS232, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0}, {} };
+static const RoutingTarget radio_routes[] = {
+    {RADIO_REMOTE_DEV, S2_RS232, 0}, {RADIO_REMOTE_DEV, WIFI_APSTA, 8882}, {RADIO_REMOTE_DEV, BT_SPP, 0}, {} };
 static const RoutingTarget navi_routes[] = {
     {FLARM_DEV, S1_RS232, 0}, {FLARM_DEV, CAN_BUS, 0}, {RADIO_KRT2_DEV, S2_RS232, 0}, {} };
 static const RoutingTarget fhost_routes[] = {
@@ -72,7 +74,8 @@ static const std::pair<RoutingTarget, const RoutingTarget*> Routes[] = {
     { RoutingTarget(FLARM_DEV, S2_RS232, 0), flarm_routes },
     { RoutingTarget(FLARM_DEV, BT_SPP, 0), flarm_routes },
     { RoutingTarget(FLARM_DEV, CAN_BUS, 0), flarm_proxy_routes },
-    { RoutingTarget(RADIO_REMOTE_DEV, NO_PHY, 0), radio_routes },
+    { RoutingTarget(RADIO_REMOTE_DEV, NO_PHY, 0), radio_remote_routes },
+    { RoutingTarget(RADIO_KRT2_DEV, S2_RS232, 0), radio_routes},
     { RoutingTarget(NAVI_DEV, NO_PHY, 0), navi_routes },
     { RoutingTarget(FLARM_HOST_DEV, NO_PHY, 0), fhost_routes },
     { RoutingTarget(FLARM_HOST2_DEV, NO_PHY, 0), fhost_routes },
