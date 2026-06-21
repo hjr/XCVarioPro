@@ -12,17 +12,7 @@ extern SemaphoreHandle_t spiMutex;
 
 static esp32_hal_config_t *config;
 static spi_device_handle_t spi;
-static spi_transaction_t ta = {
-	.flags = 0,//SPI_TRANS_USE_RXDATA, //| SPI_TRANS_MODE_OCT | SPI_TRANS_CS_KEEP_ACTIVE,
-	.cmd = 0,
-	.addr = 0,
-	.length = 0,
-	.rxlength = 0,
-	.user = nullptr,
-	.tx_buffer = nullptr,
-	.rx_buffer = nullptr,
-};
-static bool init = false;
+static uint8_t init = false;
 
 // static void spi_pre_transfer_callback(spi_transaction_t *t);
 
@@ -145,6 +135,7 @@ static IRAM_ATTR void esend(eglib_t *_eglib, enum hal_dc_t dc, uint8_t *bytes, u
 {
 	// if ( length == 0 ) { ESP_LOGI("ILI9341", "esend() DC-IO:%d dc:%s len:%u\n", config->gpio_dc, dc? "DAT": "CMD", (unsigned)length); }
 	// ESP_LOG_BUFFER_HEXDUMP("ILI9341", bytes, length, ESP_LOG_INFO);
+    spi_transaction_t ta = {};
 	if (dc == HAL_DATA)
 	{
 		// ESP_LOGI("ILI9341", "esend() DAT %d", length );
@@ -154,7 +145,7 @@ static IRAM_ATTR void esend(eglib_t *_eglib, enum hal_dc_t dc, uint8_t *bytes, u
 		}
 		gpio_set_level(config->gpio_dc, 1);
 		// ta.user = (void *)1;
-		ta.flags =  SPI_TRANS_MODE_OCT;
+		ta.flags =  0;
 		ta.rx_buffer = nullptr;
 		ta.tx_buffer = bytes;
 		ta.length = length * 8;
@@ -163,9 +154,8 @@ static IRAM_ATTR void esend(eglib_t *_eglib, enum hal_dc_t dc, uint8_t *bytes, u
 	{
 		// ESP_LOGI("ILI9341", "esend() CMD 0x%x", *bytes );
 		// ta.user = (void *)0;
-		ta.flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_MODE_OCT;
+		ta.flags = SPI_TRANS_USE_TXDATA;
 		ta.rx_buffer = nullptr;
-		// ta.tx_data[0] = 0;
 		ta.tx_data[0] = *bytes;
 		ta.length = 8;
 		gpio_set_level(config->gpio_dc, 0);
