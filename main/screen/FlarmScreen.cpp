@@ -116,6 +116,27 @@ void FlarmScreen::display(int mode)
     MYUCG->setColor( COLOR_EARTH );
     IpsDisplay::drawPolygon(below, nb);
 
+    // draw crosshair in the middle of the screen
+    MYUCG->setColor( COLOR_WHITE );
+    Point hc0(-15, -1);
+    Point hc1(15, -1);
+    Point hc2(15, 1);
+    Point hc3(-15, 1);
+    hc0 = l.mapToHorizon(hc0);
+    hc1 = l.mapToHorizon(hc1);
+    hc2 = l.mapToHorizon(hc2);
+    hc3 = l.mapToHorizon(hc3);
+    MYUCG->drawTetragon(hc0.x, hc0.y, hc1.x, hc1.y, hc2.x, hc2.y, hc3.x, hc3.y);
+    hc0 = Point(-1, -15);
+    hc1 = Point(-1, 15);
+    hc2 = Point(1, 15);
+    hc3 = Point(1, -15);
+    hc0 = l.mapToHorizon(hc0);
+    hc1 = l.mapToHorizon(hc1);
+    hc2 = l.mapToHorizon(hc2);
+    hc3 = l.mapToHorizon(hc3);
+    MYUCG->drawTetragon(hc0.x, hc0.y, hc1.x, hc1.y, hc2.x, hc2.y, hc3.x, hc3.y);
+
     // limit target to display area
     p = l.limitToScreen(p, true);
     ESP_LOGI(FNAME,"ClippPt %d,%d", p.x, p.y);
