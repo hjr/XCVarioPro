@@ -145,16 +145,6 @@ void PolarGauge::setRange(float pos_range, float center_at, bool log)
     _dist05 = fast_iroundf(((*func)(1.) - (*func)(0.5)) * _radius); // in pixel
 }
 
-void PolarGauge::setColor(int color_idx)
-{
-    if ( _arrow ) {
-        _arrow->setColor(ndl_color[color_idx & 3]);
-    }
-    if ( _wind_live ) {
-        _wind_live->setColor(ndl_color[color_idx & 3]);
-    }
-}
-
 void PolarGauge::setFigOffset(int16_t ox, int16_t oy)
 {
     if ( ! _figure ) {

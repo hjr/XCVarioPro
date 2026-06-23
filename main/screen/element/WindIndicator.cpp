@@ -44,7 +44,7 @@ WindIndicator::WindIndicator(PolarGauge &g, bool live) :
     _indgeom[4] = { -W/2, 25};
 
     if ( _live ) {
-        _color = { ndl_color[needle_color.get()].color[0], ndl_color[needle_color.get()].color[1], ndl_color[needle_color.get()].color[2] };
+        _color = { COLOR_ORANGE};
     }
     else {
         _color = { COLOR_LBBLUE };

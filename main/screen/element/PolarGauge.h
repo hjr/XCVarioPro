@@ -59,7 +59,6 @@ public:
     float getMRange() const { return _mrange; }
     int16_t getDist05() const { return _dist05; }
     void setUnit(float uf) { _unit_fac = uf; }
-    void setColor(int color_idx);
     void setFigOffset(int16_t ox, int16_t oy);
     void setFigExtras(bool show) { if ( _figure ) _figure->showExtras(show); }
     void setFlavor(GaugeFlavor flavor) { _flavor = flavor; }

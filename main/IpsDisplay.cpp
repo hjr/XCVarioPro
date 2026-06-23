@@ -508,7 +508,6 @@ void IpsDisplay::initDisplay() {
     MAINgauge->setFigExtras(true);
     MAINgauge->setUnit(VarioUnit->scale);
     MAINgauge->setRange(scale_range.get(), 0.f, log_scale.get());
-    MAINgauge->setColor(needle_color.get());
     if (vario_mc_gauge.get() ) {
         if (!S2FBARgauge) {
             S2FBARgauge = new S2FBar(DISPLAY_W - 15, AMIDY - 61, 28, 8);
@@ -574,7 +573,6 @@ void IpsDisplay::initDisplay() {
             (display_orientation.get() == DISPLAY_NINETY) ? 56 : 58, PolarGauge::COMPASS);
     }
     WNDgauge->enableWindIndicator(false /*wind_enable.get() > WA_OFF*/, wind_enable.get() == WA_EXTERNAL);
-    WNDgauge->setColor(needle_color.get());
     WNDgauge->setUnit(SpeedUnit->scale);
 
     if (vario_centeraid.get()) {
@@ -755,7 +753,6 @@ void IpsDisplay::initLoadDisplay(){
     MAINgauge->setFigExtras(false);
 	MAINgauge->setUnit(1.);
 	MAINgauge->setRange(max_gscale, 1.f, false);
-	MAINgauge->setColor(needle_color.get());
 	MAINgauge->drawScale();
 	MAINgauge->forceAllRedraw();
 	old_gmax = 100;

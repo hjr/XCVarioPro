@@ -155,7 +155,7 @@ void HorizonPage::draw( Quaternion q )
             if (deg == 5)
                 MYUCG->setColor(COLOR_WHITE);
             else
-                MYUCG->setColor(COLOR_POINTER);
+                MYUCG->setColor(COLOR_ORANGE);
 
             int16_t y = cy - (int)((deg / 5.0f) * PX_PER_5DEG);
             int16_t len = (!(deg % 10) ? full_len : short_len);

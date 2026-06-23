@@ -13,8 +13,6 @@
 
 #include <cstdint>
 
-extern const ucg_color_t ndl_color[3];
-
 class ScreenElement
 {
 public:

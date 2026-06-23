@@ -95,7 +95,7 @@ BootUpScreen::BootUpScreen() :
             ucg_color_t c = logo_palette[pix];
             if (x<=10 && y<=8 && pix!=0) {
                 // extra pointer color for the "indicator" corner
-                c = {COLOR_POINTER};
+                c = {COLOR_ORANGE};
                 if ( pix < 3 ) {
                     c.fadeTo(c, logo_palette[pix].r / 255.f);
                 }
@@ -152,7 +152,7 @@ void BootUpScreen::animate()
     ucg_color_t c;
     _fadein += 0.1f;
     if (_fadein <= 1.f) {
-        c.fadeTo(ucg_color_t(COLOR_PURPLE), _fadein);
+        c.fadeTo(ucg_color_t(COLOR_MARINE), _fadein);
         MYUCG->setColor(c.r, c.g, c.b);
         MYUCG->setFont(ucg_font_fub20_hr);
         MYUCG->setPrintPos(MYUCG->getDisplayWidth()/2 - 22, MYUCG->getDisplayHeight()/2 + 34);

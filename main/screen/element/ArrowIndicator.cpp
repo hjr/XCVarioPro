@@ -32,7 +32,6 @@ ArrowIndicator::ArrowIndicator(PolarGauge &g, int16_t tipradius, int16_t length,
     _shoulder_val_offset(atan(static_cast<float>(half_base)/(_tip-length))*g.IDX_SCALE), // correct for cutting the radius from base points
     _half_width(half_base)
 {
-    color = { COLOR_POINTER };
     ESP_LOGI(FNAME,"Base  tl:%d off:%d tip:%d base:%d", _tip-length, _shoulder_val_offset, _tip, _root );
     prev.x_0 = _gauge.CosCenteredDeg2(0, _base); // root center
     prev.y_0 = _gauge.SinCenteredDeg2(0, _base);
@@ -101,7 +100,7 @@ bool ArrowIndicator::draw(int16_t val)
         }
 
         // draw pointer
-        MYUCG->setColor(color.color[0], color.color[1], color.color[2]);
+        MYUCG->setColor(COLOR_ORANGE);
         MYUCG->drawTriangle(n.x_0, n.y_0, n.x_1, n.y_1, n.x_2, n.y_2);
 
         // cleanup respecting overlap
@@ -126,7 +125,7 @@ bool ArrowIndicator::draw(int16_t val)
             MYUCG->setColor(COLOR_MGREY);
             MYUCG->drawTriangle(prev.x_0, prev.y_0, prev.x_1, prev.y_1, prev.x_2, prev.y_2);
             // draw pointer
-            MYUCG->setColor(color.color[0], color.color[1], color.color[2]);
+            MYUCG->setColor(COLOR_ORANGE);
             MYUCG->drawTriangle(n.x_0, n.y_0, n.x_1, n.y_1, n.x_2, n.y_2);
         }
     }
@@ -188,7 +187,7 @@ bool ArrowIndicator::drawOver(int16_t val,float a)
     float diag = (float)(std::min(box.pmax.x - box.pmin.x +1, box.pmax.y - box.pmin.y +1)) / (_gauge.getDist05()); // rough estimate
     ESP_LOGI(FNAME,"draw over diag: %.2f dist05: %d", diag, _gauge.getDist05() );
     _gauge.drawScale(_last_a + diag, _last_a - diag); // redraw scale at last position to clean up artifacts
-    MYUCG->setColor(color.color[0], color.color[1], color.color[2]);
+    MYUCG->setColor(COLOR_ORANGE);
     MYUCG->drawTetragon(n.x_0, n.y_0, n.x_1, n.y_1, n.x_4, n.y_4, n.x_5, n.y_5);
     if ( _arrowhead > 0 ) {
         MYUCG->drawTriangle(n.x_4, n.y_4, n.x_5, n.y_5, n.x_6, n.y_6);
@@ -204,7 +203,7 @@ bool ArrowIndicator::drawOver(int16_t val,float a)
 
     if ( extra_draw ) {
         // redraw arrow at new position again to have the parts that did not fit into the frame buffer
-        MYUCG->setColor(color.color[0], color.color[1], color.color[2]);
+        MYUCG->setColor(COLOR_ORANGE);
         MYUCG->drawTetragon(n.x_0, n.y_0, n.x_1, n.y_1, n.x_4, n.y_4, n.x_5, n.y_5);
         if ( _arrowhead > 0 ) {
             MYUCG->drawTriangle(n.x_4, n.y_4, n.x_5, n.y_5, n.x_6, n.y_6);

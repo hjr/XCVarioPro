@@ -152,8 +152,7 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
         int16_t lwidth = MYUCG->getStrWidth(label);
         MYUCG->setPrintPos(_ref.x + (BOX_WIDTH - lwidth)/2 + 1, _ref.y + pixoff + _LFH/2);
         // highlight the recommendation
-        const ucg_color_t& c = ndl_color[needle_color.get() & 3];
-        MYUCG->setColor(c.color[0], c.color[1], c.color[2]);
+        MYUCG->setColor(COLOR_ORANGE);
         MYUCG->print(label);
     }
 

@@ -8,7 +8,5 @@
 
 #include "ScreenElement.h"
 
-#include "Colors.h"
 
-const ucg_color_t ndl_color[3] = {{COLOR_ORANGE}, {COLOR_POINTER}, {COLOR_WHITE}};
 
