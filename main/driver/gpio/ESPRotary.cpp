@@ -63,14 +63,14 @@ bool IRAM_ATTR ESPRotary::tick()
 }
 
 // The rotary portion ISR, PCNT event callback function
-static int IRAM_ATTR get_step(int delta_t_us)
+static int IRAM_ATTR get_step(uint32_t delta_t_us)
 {
     if (delta_t_us > 50000) return 1;
     if (delta_t_us > 25000)  return 2;
     return 3;
 }
 #if defined(ESP_LOGI)
-static int pulse_time;
+static uint32_t pulse_time;
 #endif
 static bool IRAM_ATTR pcnt_event_handler(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
@@ -78,7 +78,7 @@ static bool IRAM_ATTR pcnt_event_handler(pcnt_unit_handle_t unit, const pcnt_wat
 	static int wp_value = 1;
 	uint64_t currentTime = esp_timer_get_time();
 
-	int my_time = int(currentTime-lastPulseTime);
+	uint32_t my_time = uint32_t(currentTime-lastPulseTime);
     if (my_time < 2000) { // supress everything < 2 ms
         return false;
     }
@@ -233,7 +233,7 @@ void ESPRotary::sendRot( int diff ) const
 	if (!receiverstack.empty()) {
 		auto obs = receiverstack.back();
 		float step = pow(obs->getRotDynamic(), abs(diff)-1) * sign(diff);
-		ESP_LOGI(FNAME, "Rotation step %.2f, time %d us", step, pulse_time);
+		ESP_LOGI(FNAME, "Rotation step %.2f, time %u us", step, (unsigned)pulse_time);
 		obs->rot( int(step) );
 	}
 }
