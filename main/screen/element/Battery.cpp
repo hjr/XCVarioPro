@@ -22,19 +22,13 @@ extern AdaptUGC *MYUCG;
 Battery::Battery(int16_t cx, int16_t cy) :
     ScreenElement(cx, cy)
 {
-    setThresholds();
-}
-
-void Battery::setThresholds()
-{
-    _yellow =  (int)(( bat_yellow_volt.get() - bat_low_volt.get() )*100)/( bat_full_volt.get() - bat_low_volt.get() );
-    _red = (int)(( bat_red_volt.get() - bat_low_volt.get() )*100)/( bat_full_volt.get() - bat_low_volt.get() );
+    _bbox = { Point(_ref.x-36, _ref.y-19), Point(55, 18) };
 }
 
 void Battery::blank()
 {
-    MYUCG->setColor( COLOR_BLACK );
-    MYUCG->drawBox( _ref.x-36, _ref.y-19, 55, 18);
+    MYUCG->setColor(COLOR_BLACK);
+    MYUCG->drawBox(_bbox.pmin.x, _bbox.pmin.y, _bbox.pmax.x, _bbox.pmax.y);
     _dirty = true;
 }
 
@@ -58,7 +52,7 @@ void Battery::draw(float volt)
 
     // MYUCG->setColor(COLOR_HEADER);
     // MYUCG->drawFrame(_ref.x-36,_ref.y-20, 56, 19);
-    MYUCG->startBuffering(_ref.x-36,_ref.y-19, 55, 18);
+    MYUCG->startBuffering(_bbox.pmin.x, _bbox.pmin.y, _bbox.pmax.x, _bbox.pmax.y);
     chargep = std::clamp(chargep, 0, 100);
     char buf[32];
     char unit;

@@ -17,14 +17,10 @@ public:
     Battery(int16_t cx, int16_t cy);
     // API
     using BatteryDisplay = enum { BAT_NONE, BAT_PERCENTAGE, BAT_VOLTAGE, BAT_VOLTAGE_BIG };
-    void setThresholds();
     void blank();
-    using ScreenElement::draw;
-    void draw(float mc);
+    void draw(float volt);
 
     // attributes
 private:
     int _charge = -1;
-    int _yellow;
-    int _red;
 };
