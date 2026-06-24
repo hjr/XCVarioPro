@@ -56,14 +56,14 @@ void Battery::draw(float volt)
     int chargep = (int)((chargef - bat_low_volt.get())*100)/( bat_full_volt.get() - bat_low_volt.get());
     ESP_LOGI(FNAME,"Charge: %d , Volt: %.1f V, Delta %.1f V", chargep, chargef, (bat_full_volt.get() - bat_low_volt.get()) );
 
-    // MYUCG->setColor( COLOR_HEADER );
+    // MYUCG->setColor(COLOR_HEADER);
     // MYUCG->drawFrame(_ref.x-36,_ref.y-20, 56, 19);
     MYUCG->startBuffering(_ref.x-36,_ref.y-19, 55, 18);
     chargep = std::clamp(chargep, 0, 100);
     char buf[32];
     char unit;
     if ( battery_display.get() == BAT_PERCENTAGE ){
-        MYUCG->setColor( COLOR_HEADER );
+        MYUCG->setColor(COLOR_HEADER);
         MYUCG->drawBox( _ref.x-29,_ref.y-19, 43, 18  ); // Bat body square
         MYUCG->drawBox( _ref.x+14, _ref.y-14, 3, 6  ); // Bat pluspole pimple
         float v_red    = bat_red_volt.get();
@@ -71,21 +71,21 @@ void Battery::draw(float volt)
         if (v_yellow < v_red)
             v_yellow = v_red;
         if (volt >= v_yellow) {
-            MYUCG->setColor( COLOR_GREEN );  // green = moderate to full 
+            MYUCG->setColor(DARK_GREY);  // gray = moderate to full 
         } else if (volt >= v_red) {
-            MYUCG->setColor( COLOR_YELLOW ); // yellow = critical to moderate
+            MYUCG->setColor(COLOR_YELLOW); // yellow = critical to moderate
         } else {
-            MYUCG->setColor( COLOR_RED );    // red = empty to critical
+            MYUCG->setColor(COLOR_RED);    // red = empty to critical
         }
         int chgpos=(chargep*39)/100;
         if(chgpos <= 4) {
             chgpos = 4;
         }
         MYUCG->drawBox( _ref.x-29+2, _ref.y-17, chgpos, 14  );  // Bat charge state
-        MYUCG->setColor( DARK_GREY );
+        MYUCG->setColor(DARK_DGREY);
         MYUCG->drawBox( _ref.x-29+2+chgpos, _ref.y-17, 39-chgpos, 14 );  // Empty bat bar
         MYUCG->setFont(ucg_font_fub11_hr);
-        MYUCG->setColor(COLOR_WHITE);
+        MYUCG->setColor(COLOR_WGREY);
         sprintf(buf, "%3d", chargep);
         unit = '%';
     }
@@ -100,7 +100,7 @@ void Battery::draw(float volt)
     MYUCG->setPrintPos(_ref.x - MYUCG->getStrWidth(buf), _ref.y);
     MYUCG->print(buf);
     MYUCG->setFont(ucg_font_fub11_hr);
-    MYUCG->setColor( COLOR_HEADER );
+    MYUCG->setColor(COLOR_HEADER);
     MYUCG->print(unit);
     MYUCG->finishBuffering();
 }
