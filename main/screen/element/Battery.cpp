@@ -58,7 +58,7 @@ void Battery::draw(float volt)
     char unit;
     if ( battery_display.get() == BAT_PERCENTAGE ){
         MYUCG->setColor(COLOR_HEADER);
-        MYUCG->drawBox( _ref.x-29,_ref.y-19, 43, 18  ); // Bat body square
+        MYUCG->drawFrame( _ref.x-29,_ref.y-19, 42, 17  ); // Bat body square
         MYUCG->drawBox( _ref.x+14, _ref.y-14, 3, 6  ); // Bat pluspole pimple
         float v_red    = bat_red_volt.get();
         float v_yellow = bat_yellow_volt.get();
@@ -75,9 +75,7 @@ void Battery::draw(float volt)
         if(chgpos <= 4) {
             chgpos = 4;
         }
-        MYUCG->drawBox( _ref.x-29+2, _ref.y-17, chgpos, 14  );  // Bat charge state
-        MYUCG->setColor(DARK_DGREY);
-        MYUCG->drawBox( _ref.x-29+2+chgpos, _ref.y-17, 39-chgpos, 14 );  // Empty bat bar
+        MYUCG->drawBox( _ref.x-29+2, _ref.y-17, chgpos, 15  );  // Bat charge state
         MYUCG->setFont(ucg_font_fub11_hr);
         MYUCG->setColor(COLOR_WGREY);
         sprintf(buf, "%3d", chargep);
