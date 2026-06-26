@@ -77,7 +77,7 @@ void software_menu_create_OTA(SetupMenu *top) {
     top->addEntry(ap_list);
 
     SetupMenuSelect* upd = new SetupMenuSelect("Update", RST_NONE, action_check_updates, &software_update);
-    upd->setHelp("Update using the internet connection of your smart phone, or upload a binary using the ESP32 webserver.");
+    upd->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
     upd->addEntry("Cancel");
     upd->addEntry("Check for Updates");
     upd->addEntry("Webserver");

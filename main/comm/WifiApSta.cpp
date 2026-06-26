@@ -30,7 +30,7 @@ const char* AP_PASSPHARSE = "xcvario-21";
 // The XCV access point SSID prefix
 const char* SSID_PREFIX = "XCVario-";
 // The XCV software update access point SSID
-const char* OTA_SSID = "ESP32 OTA";
+const char* OTA_SSID = "XCVario OTA";
 
 enum WifiEventType : uint8_t {
     NO_EVENT,

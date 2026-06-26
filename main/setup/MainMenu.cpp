@@ -744,7 +744,7 @@ static void system_menu_create_software(SetupMenu *top) {
     top->addEntry(ver);
 
     SetupMenu* upd_soft = new SetupMenu("Update Software", software_menu_create_OTA);
-    upd_soft->setHelp("Update using the internet connection of your smart phone, or upload a binary using the ESP32 webserver.");
+    upd_soft->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
     top->addEntry(upd_soft);
     if ( airborne.get() ) {
         upd_soft->setHelp("Disabled");
