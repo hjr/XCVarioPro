@@ -93,19 +93,21 @@ enum e_battery_type { BATTERY_CANCEL, BATTERY_LEADACID, BATTERY_LIFEPO4 };
 
 constexpr int NO_ELEVATION = -1;
 
+// A limited length string type
 struct t_tenchar_id {
-    char id[10];
+    static constexpr int MAXLEN = 40;
+    char id[MAXLEN];
     constexpr t_tenchar_id() {}
-    constexpr t_tenchar_id(const char* val) { strncpy(id, val, 10); }
-    constexpr t_tenchar_id(const t_tenchar_id& val) { strncpy(id, val.id, 10); }
+    constexpr t_tenchar_id(const char* val) { strncpy(id, val, MAXLEN); }
+    constexpr t_tenchar_id(const t_tenchar_id& val) { strncpy(id, val.id, MAXLEN); }
     bool operator==(const t_tenchar_id& other) const { return (strcmp(id, other.id) == 0); }
     t_tenchar_id operator=(const t_tenchar_id& other) {
-        strncpy(id, other.id, 10);
+        strncpy(id, other.id, MAXLEN);
         return *this;
     }
     t_tenchar_id operator=(const char* other) {
-        strncpy(id, other, 10);
-        id[9] = '\0';
+        strncpy(id, other, MAXLEN);
+        id[MAXLEN - 1] = '\0';
         return *this;
     }
 };

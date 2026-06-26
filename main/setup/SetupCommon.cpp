@@ -322,7 +322,10 @@ bool SetupCommon::initSetup()
 
 char * SetupCommon::getID()
 {
-	snprintf( _ID, 18, "%s%s", getFixedID(), custom_wireless_id.get().id );
+    strncpy(_ID, getFixedID(), 10);
+    _ID[10] = '\0';
+    size_t len = strlen(_ID);
+    strncpy(_ID + len, custom_wireless_id.get().id, 18 - len);
 	_ID[15] = '\0';
 	return _ID;
 }

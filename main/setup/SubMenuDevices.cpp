@@ -127,6 +127,7 @@ static int update_id(SetupMenuChar *p) {
 	strncpy(id, p->value(), 10);
 	id[9] = '\0'; // ensure null termination
 	custom_wireless_id.set(id);
+    custom_wireless_id.setDirty();
 	return 0;
 }
 
