@@ -47,12 +47,16 @@ else()
 endif()
 
 # a firmware version string
-execute_process(
-    COMMAND git describe --tags --dirty --abbrev=0
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE FW_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(NOT DEFINED FW_VERSION)
+    execute_process(
+        COMMAND git describe --tags --dirty --abbrev=0
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE FW_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
+
+message(STATUS "FW_VERSION='${FW_VERSION}'")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
@@ -60,7 +64,6 @@ configure_file(
     @ONLY
 )
 
-include_directories(
-    ${CMAKE_CURRENT_BINARY_DIR}
+target_include_directories(${COMPONENT_LIB}
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
 )
-

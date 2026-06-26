@@ -22,7 +22,10 @@ jobs:
       run: |
         VERSION=$(git describe --tags --dirty --abbrev=0 2>/dev/null || echo "untagged-${GITHUB_SHA::7}")
         BRANCH=$(git branch --show-current)
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
         echo "FILE_VERSION=$BRANCH-$VERSION" >> "$GITHUB_ENV"
+        git status
+        git describe --tags --dirty --abbrev=0 || echo "describe failed"
 
     - name: Build 
       # Use a bash shell so we can use the same syntax for environment variable
@@ -35,7 +38,7 @@ jobs:
 
       run: |
         docker run --rm -v ${{ github.workspace }}:/project -w /project espressif/idf:release-v5.4 \
-        bash -c ". \$IDF_PATH/export.sh && idf.py -DCMAKE_BUILD_TYPE=Release -D SDKCONFIG_DEFAULTS=\"sdkconfig.defaults;sdkconfig.defaults.release\" build"
+        bash -c ". \$IDF_PATH/export.sh && idf.py -DFW_VERSION=\"${VERSION}\" -DCMAKE_BUILD_TYPE=Release -D SDKCONFIG_DEFAULTS=\"sdkconfig.defaults;sdkconfig.defaults.release\" build"
             
         echo "--- Inhalt von build/ nach Build ---"
         ls -lh build/
