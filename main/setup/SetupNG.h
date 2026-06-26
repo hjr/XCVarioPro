@@ -403,7 +403,6 @@ extern SetupNG<degree_t>  	max_circle_wind_delta_deg;
 extern SetupNG<kmh_t>     	max_circle_wind_delta_speed;
 extern SetupNG<float>       circle_wind_lowpass;
 extern SetupNG<int> 		can_speed;
-extern SetupNG<float> 		master_xcvario;
 extern SetupNG<int> 		menu_long_press;
 extern SetupNG<int> 		screen_gmeter;
 extern SetupNG<int> 		screen_horizon;

@@ -53,7 +53,7 @@ static TaskHandle_t SendTask = nullptr;
 // target entries with zero termination, as ro flash data
 static const RoutingTarget flarm_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
-    {XCVARIOSECOND_DEV, CAN_BUS, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0}, {XCVARIOSECOND_DEV, WIFI_APSTA, 8884}, {XCVARIOFIRST_DEV, WIFI_APSTA, 8884},
+    {XCVARIOSECOND_DEV, CAN_BUS, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0},  
     {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
 static const RoutingTarget flarm_proxy_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 

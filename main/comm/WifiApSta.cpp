@@ -49,8 +49,8 @@ struct WifiEvent {
     constexpr WifiEvent(WifiEventType t, uint32_t d = 0) : type(t), data(d) {}
 };
 
-QueueHandle_t wifi_queue = nullptr;
-
+static QueueHandle_t wifi_queue = nullptr;
+static void wifi_config_sta(const char* staid, const char* appass);
 
 // Sockt control block
 sock_ctrl_t::sock_ctrl_t(int p) : port(p) {
@@ -601,48 +601,48 @@ bool  WifiApSta::isAlive(){
 // 	return false;
 // }
 
-bool WifiApSta::scanMaster(int master_xcv_num)
-{
-	ESP_LOGI(FNAME,"wifi scan");
+// bool WifiApSta::scanMaster(int master_xcv_num)
+// {
+// 	ESP_LOGI(FNAME,"wifi scan");
 
-	const int DEFAULT_SCAN_LIST_SIZE = 20;
-	uint16_t number = DEFAULT_SCAN_LIST_SIZE;
-	wifi_ap_record_t ap_info[DEFAULT_SCAN_LIST_SIZE];
-	uint16_t ap_count = 0;
-	memset(ap_info, 0, sizeof(ap_info));
+// 	const int DEFAULT_SCAN_LIST_SIZE = 20;
+// 	uint16_t number = DEFAULT_SCAN_LIST_SIZE;
+// 	wifi_ap_record_t ap_info[DEFAULT_SCAN_LIST_SIZE];
+// 	uint16_t ap_count = 0;
+// 	memset(ap_info, 0, sizeof(ap_info));
 
-	// search for this AP
-	char mxcv[14];
-    strcpy(mxcv, SSID_PREFIX);
-	if( master_xcv_num != 0 ) {
-		sprintf( mxcv+strlen(mxcv),"%d", master_xcv_num );
-	}
+// 	// search for this AP
+// 	char mxcv[14];
+//     strcpy(mxcv, SSID_PREFIX);
+// 	if( master_xcv_num != 0 ) {
+// 		sprintf( mxcv+strlen(mxcv),"%d", master_xcv_num );
+// 	}
 
-	bool found = false;
-	while( !found ) {
-		ESP_ERROR_CHECK(esp_wifi_scan_start(NULL, true));
-		ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
-		ESP_LOGI(FNAME, "Total APs scanned = %u", ap_count);
-		if( Rotary->readSwitch() ) {
-			break;
-		}
-		ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
-		for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++) {
-			ESP_LOGI(FNAME, "SSID \t%s", ap_info[i].ssid);
-			ESP_LOGI(FNAME, "LEVEL: \t%d SSID: \t%s", ap_info[i].rssi, ap_info[i].ssid);
-			ESP_LOGI(FNAME, "Hunt for %s", mxcv );
-			if( strncmp( (char*)ap_info[i].ssid, mxcv, strlen(mxcv) ) == 0 ) {
-				found = true;
-				int master_xcvario_scanned;
-				sscanf((char*)ap_info[i].ssid, "XCVario-%d", &master_xcvario_scanned);
-				master_xcvario.set(master_xcvario_scanned);
-				ESP_LOGI(FNAME, "SCAN found master XCVario: %s", (char*)ap_info[i].ssid);
-				break;
-			}
-		}
-	}
-	return found;
-}
+// 	bool found = false;
+// 	while( !found ) {
+// 		ESP_ERROR_CHECK(esp_wifi_scan_start(NULL, true));
+// 		ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+// 		ESP_LOGI(FNAME, "Total APs scanned = %u", ap_count);
+// 		if( Rotary->readSwitch() ) {
+// 			break;
+// 		}
+// 		ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
+// 		for (int i = 0; (i < DEFAULT_SCAN_LIST_SIZE) && (i < ap_count); i++) {
+// 			ESP_LOGI(FNAME, "SSID \t%s", ap_info[i].ssid);
+// 			ESP_LOGI(FNAME, "LEVEL: \t%d SSID: \t%s", ap_info[i].rssi, ap_info[i].ssid);
+// 			ESP_LOGI(FNAME, "Hunt for %s", mxcv );
+// 			if( strncmp( (char*)ap_info[i].ssid, mxcv, strlen(mxcv) ) == 0 ) {
+// 				found = true;
+// 				int master_xcvario_scanned;
+// 				sscanf((char*)ap_info[i].ssid, "XCVario-%d", &master_xcvario_scanned);
+// 				master_xcvario.set(master_xcvario_scanned);
+// 				ESP_LOGI(FNAME, "SCAN found master XCVario: %s", (char*)ap_info[i].ssid);
+// 				break;
+// 			}
+// 		}
+// 	}
+// 	return found;
+// }
 
 bool WifiApSta::scanAPs(wifi_ap_record_t *ap_info, uint16_t &ap_count, uint16_t max_ap)
 {
@@ -661,7 +661,7 @@ bool WifiApSta::scanAPs(wifi_ap_record_t *ap_info, uint16_t &ap_count, uint16_t 
 void WifiApSta::ConfigureIntf(int port) {
     // client -- master connection is the only STA connection
     // or for the OTA internet connection, all other ports are AP
-    bool isAP = !(((xcv_role.get() == SECOND_ROLE) && (port == 8884)) || (port == 9999));
+    bool isAP = port != 8884;
     if (port >= 8880 && port <= 8884) {
         int pidx = std::clamp(port - 8880, 0, NUM_TCP_PORTS - 1);
         sock_ctrl_t* sock = _socks[pidx]; // particular pointer to socket ctl record for this port
@@ -676,13 +676,7 @@ void WifiApSta::ConfigureIntf(int port) {
             _socks[pidx] = sock = new sock_ctrl_t(port);
             sock->is_ap = isAP;
 
-            char ssid_buf[20];
-            ssid_buf[0] = '\0';
-            if ((int)master_xcvario.get() != 0) {
-                sprintf(ssid_buf, "%s%d", SSID_PREFIX, (int)master_xcvario.get());
-            }
-            initialize_wifi(isAP, MAX_CLIENTS, isAP ? SetupCommon::getID() : ssid_buf);
-
+            initialize_wifi(isAP, MAX_CLIENTS, isAP ? SetupCommon::getID() : nullptr);
             if (isAP) {
                 // Create already the socket for this port structure as interface to the server task
                 int sock_err = sock->create_ap_socket();
@@ -759,9 +753,7 @@ int WifiApSta::Send(const char* msg, int& len, int port) {
     return 0;               // we do not want to trigger retries for WiFi
 }
 
-static esp_netif_t* wifi_config_sta(const char* staid, const char* appass) {
-    ESP_LOGV(FNAME, "now esp_netif_create_default_wifi_sta");
-    esp_netif_t* esp_netif_sta = esp_netif_create_default_wifi_sta();
+static void wifi_config_sta(const char* staid, const char* appass) {
 
     if (staid != nullptr && staid[0] != '\0') {
         ESP_LOGI(FNAME, "Configuring WiFi in STA mode with SSID: %s", staid);
@@ -781,7 +773,6 @@ static esp_netif_t* wifi_config_sta(const char* staid, const char* appass) {
 
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_sta_config));
     }
-    return esp_netif_sta;
 }
 
 static esp_netif_t* wifi_config_ap(uint8_t maxcon, const char* ssid) {
@@ -830,14 +821,15 @@ bool WifiApSta::initialize_wifi(bool ap_mode, int maxcon, const char* ssid) {
 
         if (!ap_mode) {
             // station config
+            ESP_LOGV(FNAME, "now esp_netif_create_default_wifi_sta");
+            _sta_netif = esp_netif_create_default_wifi_sta();
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-            _sta_netif = wifi_config_sta(ssid, AP_PASSPHARSE);
             ret = true; // some thing new
         }
         else {
             // access point config
-            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
             _ap_netif = wifi_config_ap(maxcon, ssid);
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
             ret = true; // some thing new
         }
 
@@ -855,7 +847,8 @@ bool WifiApSta::initialize_wifi(bool ap_mode, int maxcon, const char* ssid) {
         ESP_LOGI(FNAME, "WiFi already initialized, now add %s mode if needed", ap_mode ? "AP" : "STA");
     
         if (!ap_mode && !_sta_netif) {
-            _sta_netif = wifi_config_sta(ssid, AP_PASSPHARSE);
+            ESP_LOGV(FNAME, "now esp_netif_create_default_wifi_sta");
+            _sta_netif = esp_netif_create_default_wifi_sta();
             ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
         }
         else if (ap_mode && !_ap_netif) {

@@ -87,7 +87,7 @@ public:
 	bool isAP() const { return _ap_netif != nullptr; }
 	bool isSTA() const { return _sta_netif != nullptr; }
 	// bool isConnected(int p) const;
-	bool scanMaster(int master_xcv_num);
+	// bool scanMaster(int master_xcv_num);
 	bool scanAPs(wifi_ap_record_t *ap_info, uint16_t &ap_count, uint16_t max_ap);
 
 private:

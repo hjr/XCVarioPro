@@ -131,23 +131,6 @@ static int update_id(SetupMenuChar *p) {
 	return 0;
 }
 
-static int scan_for_master(SetupMenuSelect *p) {
-    if ( p->getSelect() == 1 ) {
-        ESP_LOGI(FNAME, "wifi scan for master");
-        if ( WIFI->scanMaster(0) ) {
-            p->setHelp("Successfully found a master XCVario, reboot to activate");
-            p->scheduleReboot();
-        }
-        else {
-            p->setHelp("Failed to scan for master XCVario, try again later");
-        }
-    }
-    p->showHelp(true);
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    p->setSelect(0);
-    return 0;
-}
-
 static void options_menu_custom_id(SetupMenu *top)
 {
     SetupMenuChar *cusid = new SetupMenuChar("My Id -", "0A#", 6, RST_NONE, update_id, custom_wireless_id.get().id);
@@ -162,19 +145,6 @@ static void connected_devices_menu_create_wifi(SetupMenu *top)
     wifip->setHelp("Maximum Wifi Power to be used 10..100% or 2..20dBm");
     top->addEntry(wifip);
 
-    if ( xcv_role.get() == SECOND_ROLE ) {
-        SetupMenuValFloat *masterid = new SetupMenuValFloat("Master Id -", "", nullptr, &master_xcvario);
-        masterid->setHelp("Connect only to this master XCVario ID");
-        masterid->lock();
-        top->addEntry(masterid);
-    
-        SetupMenuSelect *wifimal = new SetupMenuSelect("Search Master", RST_NONE, scan_for_master);
-        wifimal->setHelp("Scan for a master XCVario, and lock to it (cancel with button)");
-        wifimal->addEntry("Cancel");
-        wifimal->addEntry("Scan&Set");
-        wifimal->setSelect(0); // default to cancel
-        top->addEntry(wifimal);
-    }
     options_menu_custom_id(top);
 }
 
