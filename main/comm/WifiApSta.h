@@ -46,7 +46,7 @@ struct sock_ctrl_t {
     peer_record peers[MAX_CLIENTS];
     uint8_t _nr_peers = 0;
     uint8_t is_ap : 1 = true;
-    uint8_t sta_auth_ok : 1 = true;  // set to false on a authentication failure
+    uint8_t sta_is_ok : 1 = true;  // set to false on a authentication failure
     uint8_t alive : 1 = false;
     uint8_t state : 5 = SocketState::DOWN;
 };
@@ -80,7 +80,7 @@ public:
 	// Ctrl
 	InterfaceId getId() const override { return WIFI_APSTA; }
 	const char *getStringId() const override { return "WiFi"; }
-	void ConfigureIntf(int port) override; // 8880, 8881, 8882, 8883, 8884, 80, 9999
+	void ConfigureIntf(int port) override; // 8880, 8881, 8882, 8883, 8884, 80
 	virtual int Send(const char *msg, int &len, int port = 0) override;
 
 	bool isAlive(); // returns true if AP is up and running
@@ -101,6 +101,6 @@ private:
 
 	// internal functionality
 	bool initialize_wifi(bool ap_mode, int maxcon, const char* ssid);
-	void client_reconnect();
+	// void client_reconnect();
 };
 

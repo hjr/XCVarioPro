@@ -316,6 +316,8 @@ extern SetupNG<int>  		serial2_pin_swap;
 extern SetupNG<int>  		serial2_ttl_signals;
 extern SetupNG<int>  		serial2_tx_enable;
 extern SetupNG<int>  		software_update;
+extern SetupNG<t_tenchar_id> ota_ap;
+extern SetupNG<t_tenchar_id> ota_pwd;
 extern SetupNG<int>  		battery_display;
 extern SetupNG<int>		    log_level;
 extern SetupNG<float>		te_comp_adjust;

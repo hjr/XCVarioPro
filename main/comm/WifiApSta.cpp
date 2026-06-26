@@ -226,7 +226,9 @@ public:
 
                     sock_ctrl_t* xcvcl = wifi->_socks[4];
                     ESP_LOGI(FNAME, "STA started hndl %d ap%d", xcvcl ? xcvcl->sock_hndl : -2, xcvcl ? xcvcl->is_ap : -2);
-                    if (xcvcl && xcvcl->sock_hndl < 0 && !xcvcl->is_ap) {
+                    if (xcvcl && xcvcl->sock_hndl < 0 && !xcvcl->is_ap && ota_ap.get().id[0] != '\0' && xcvcl->sta_is_ok) {
+                        wifi_config_sta(ota_ap.get().id, ota_pwd.get().id);
+                        ESP_LOGI(FNAME, "STA connect to %s", ota_ap.get().id);
                         ESP_ERROR_CHECK(esp_wifi_connect());
                     }
                     break;
@@ -257,9 +259,9 @@ public:
                     ESP_LOGI(FNAME, "STA disconnected, reason=%d", (int)evt.data);
                     sock_ctrl_t* xcvcl = wifi->_socks[4];
                     if (xcvcl) {
-                        if (evt.data == WIFI_REASON_AUTH_FAIL) {
+                        if (evt.data != WIFI_REASON_BEACON_TIMEOUT) {
                             // fatal, do not try to reconnect, just mark the connection as failed
-                            xcvcl->sta_auth_ok = false;
+                            xcvcl->sta_is_ok = false;
                             break;
                         }
 
@@ -698,7 +700,7 @@ void WifiApSta::ConfigureIntf(int port) {
 }
 
 int WifiApSta::Send(const char* msg, int& len, int port) {
-    if (port < 8880 || port > 9999 || !socket_server_task_pid) {
+    if (port < 8880 || port > 8884 || !socket_server_task_pid) {
         ESP_LOGE(FNAME, "Invalid port: %d, should be between 8880 and 8884", port);
         return -1;
     }
@@ -860,17 +862,17 @@ bool WifiApSta::initialize_wifi(bool ap_mode, int maxcon, const char* ssid) {
     return ret; // s.th. new configured
 }
 
-void WifiApSta::client_reconnect()
-{
-	ESP_LOGI(FNAME,"wifi_reconnect()");
-	wifi_config_t cfg;
-	memset(&cfg, 0, sizeof(cfg));
-	cfg.sta.channel = 6; // a hint
-	sprintf( (char *)cfg.sta.ssid, "%s%d", SSID_PREFIX, (int)master_xcvario.get() );
-	strcpy((char *)cfg.sta.password, AP_PASSPHARSE);
+// void WifiApSta::client_reconnect()
+// {
+// 	ESP_LOGI(FNAME,"wifi_reconnect()");
+// 	wifi_config_t cfg;
+// 	memset(&cfg, 0, sizeof(cfg));
+// 	cfg.sta.channel = 6; // a hint
+// 	sprintf( (char *)cfg.sta.ssid, "%s%d", SSID_PREFIX, (int)master_xcvario.get() );
+// 	strcpy((char *)cfg.sta.password, AP_PASSPHARSE);
 
-	ESP_ERROR_CHECK(esp_wifi_disconnect());
-	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &cfg));
-	ESP_ERROR_CHECK(esp_wifi_connect());
-	// this will trigger the IP_EVENT_STA_GOT_IP event
-}
+// 	ESP_ERROR_CHECK(esp_wifi_disconnect());
+// 	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &cfg));
+// 	ESP_ERROR_CHECK(esp_wifi_connect());
+// 	// this will trigger the IP_EVENT_STA_GOT_IP event
+// }

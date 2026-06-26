@@ -11,6 +11,7 @@
 #include "comm/WifiApSta.h"
 #include "setup/SetupMenu.h"
 #include "setup/SetupMenuSelect.h"
+#include "setup/SetupMenuChar.h"
 #include "setup/SetupNG.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
@@ -30,7 +31,8 @@ static int action_select_ap(SetupMenuSelect* p) {
         }
         if ( !WIFI->isSTA() ) { 
             ESP_LOGI(FNAME, "Switch to STA mode");
-            WIFI->ConfigureIntf(9999);
+            WIFI->ConfigureIntf(8884);
+            vTaskDelay(pdMS_TO_TICKS(1000));
         }
         if ( wifi_scan_results == nullptr ) {
             wifi_scan_results = new wifi_ap_record_t[MAX_WIFI_SCAN_RESULTS];
@@ -39,16 +41,32 @@ static int action_select_ap(SetupMenuSelect* p) {
         WIFI->scanAPs(wifi_scan_results, num_aps, MAX_WIFI_SCAN_RESULTS);
         ESP_LOGI(FNAME, "Found %d APs", num_aps);
         p->delAllEntries();
-        p->addEntry("Select AP", 101);
+        p->addEntry("Select One", 100);
         for (int i = 0; i < num_aps; ++i) {
             p->addEntry((const char*)wifi_scan_results[i].ssid, i);
             ESP_LOGI(FNAME, "Found AP: %s", wifi_scan_results[i].ssid);
         }
+        p->addEntry("Refresh Scan", 101);
+    }
+    else if (p->getValue() < 100) {
+        int idx = p->getValue();
+        ESP_LOGI(FNAME, "Selected AP: %s", wifi_scan_results[idx].ssid);
+        ota_ap.set((const char*)wifi_scan_results[idx].ssid);
+        p->delAllEntries();
+        p->addEntry((const char*)wifi_scan_results[idx].ssid, idx);
+        p->addEntry("Refresh Scan", 101);
+    }
+    else if (p->getValue() == 100) {
+        ESP_LOGI(FNAME, "Cancel AP selection");
     }
     p->setSelect(0);
     return 0;
 }
 
+static int set_dirty(SetupMenuChar* p) {
+    ota_pwd.setDirty();
+    return 0;
+}
 
 static int action_check_updates(SetupMenuSelect* p) {
     if (p->getSelect() == 1) {
@@ -71,16 +89,24 @@ void software_menu_create_OTA(SetupMenu *top) {
 
     SetupMenuSelect *ap_list = new SetupMenuSelect("AP", RST_NONE, action_select_ap, nullptr);
     ap_list->setHelp("Select an access point to connect to the internet");
-    ap_list->addEntry("Cancel", 100);
-    ap_list->addEntry("Select AP", 101);
-    // ap_list->addEntry("Refresh List", 101);
+    if (ota_ap.get().id[0] != '\0') {
+        ap_list->addEntry(ota_ap.get().id, 0);
+    }
+    else {
+        ap_list->addEntry("Cancel", 100);
+    }
+    ap_list->addEntry("Scan", 101);
     top->addEntry(ap_list);
+
+    SetupMenuChar *ap_pw = new SetupMenuChar("PW", "Aa0+#", 32, RST_NONE, set_dirty, ota_pwd.get().id);
+    ap_pw->setHelp("Enter the password for the selected access point");
+    top->addEntry(ap_pw);
 
     SetupMenuSelect* upd = new SetupMenuSelect("Update", RST_NONE, action_check_updates, &software_update);
     upd->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
     upd->addEntry("Cancel");
-    upd->addEntry("Check for Updates");
-    upd->addEntry("Webserver");
+    upd->addEntry("Check for");
+    upd->addEntry("Start Webserver");
     top->addEntry(upd);
 
 }
