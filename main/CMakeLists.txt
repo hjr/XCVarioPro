@@ -28,6 +28,7 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "Building in Release mode")
+    set(SDKCONFIG_DEFAULTS "sdkconfig.defaults;sdkconfig.defaults.release")
     add_compile_definitions(ALL_LOGS_DISABLED=1)
     add_compile_definitions(LOG_LOCAL_LEVEL=ESP_LOG_NONE)
     add_compile_definitions(COMPILER_OPTIMIZATION_ASSERTIONS_SILENT)
