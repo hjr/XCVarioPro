@@ -1008,8 +1008,10 @@ void system_startup(void *args){
     }
     
     // TE vario "sensor" always needed, but last in line
-    bmpVario.setup();
-    SensorRegistry::registerSensor(&bmpVario);
+    if ( (baroSensor && teSensor && asSensor) || SetupCommon::isClient() ) {
+        bmpVario.setup();
+        SensorRegistry::registerSensor(&bmpVario);
+    }
 
     // apply a none default alt_select
     if ( alt_select.get() != ALT_BARO_SENSOR ) {
