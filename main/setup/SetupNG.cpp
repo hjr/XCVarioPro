@@ -189,7 +189,6 @@ bool SetupNG<T>::set( T aval, bool dosync, bool doAct ) {
         setDirty();
     }
 
-    _value = aval;
     if ( dosync && getDirty() ) {
         // ESP_LOGI( FNAME,"Syncing %s after set", _key.data());
         sync();
