@@ -743,6 +743,7 @@ static void system_menu_create_software(SetupMenu *top) {
     ver->lock();
     top->addEntry(ver);
 
+#ifdef DEBUG_AND_TEST
     SetupMenu* upd_soft = new SetupMenu("Update Software", software_menu_create_OTA);
     upd_soft->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
     top->addEntry(upd_soft);
@@ -750,7 +751,13 @@ static void system_menu_create_software(SetupMenu *top) {
         upd_soft->setHelp("Disabled");
         upd_soft->lock();
     }
-
+#else
+    SetupMenuSelect* upd = new SetupMenuSelect("Update", RST_IMMEDIATE, nullptr, &software_update);
+    upd->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
+    upd->addEntry("Cancel");
+    upd->addEntry("Start Webserver");
+    top->addEntry(upd);
+#endif
 
     if (logged_tests.size() > 0) {
         SetupMenuDisplay* dis = new SetupMenuDisplay("Show Boot Messages", show_boot_log);
