@@ -15,7 +15,7 @@ class AirspeedSensor : public SensorTP<pascal_t> {
 public:
     using ASens_Type = enum : uint8_t { ABPMRR, TE4525, MP3V5004, MCPH21, MAX_TYPES, NONE = 0xff };
 
-    static constexpr pascal_t DYNP_THRESHOLD = Units::mps_to_pascal(10.0f / 3.6f); // ca. 10 km/h
+    static constexpr pascal_t DYNP_THRESHOLD = Units::mps_to_pascal(12.f / 3.6f); // ca. 12 km/h
 
     AirspeedSensor();
     virtual ~AirspeedSensor() {};

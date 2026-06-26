@@ -85,7 +85,7 @@ PressureSensor* PressureSensor::autoSetup(SensorId id) {
     }
 
     if ( ! p_sens ) {
-        ESP_LOGW(FNAME, "No sensor not found for id %d", id);
+        ESP_LOGW(FNAME, "Sensor not found for id %d", id);
     }
 
     return p_sens;

@@ -13,7 +13,6 @@
 #include "ms4525do.h"
 #include "../SensorMgr.h"
 #include "../Filters.h"
-#include "../imu/GyroMPU6050.h"
 #include "setup/SetupNG.h"
 #include "S2F.h"
 #include "math/Floats.h"
@@ -182,13 +181,16 @@ void AirspeedSensor::postProcess()
                 // todo save airborne time
                 ESP_LOGI(FNAME, "Airborne detected by airspeed sensor");
             }
-        } else if (airborne.get() && _isResting && gyroSensor->getRef().y < Units::deg_to_rad(3.f)) {
+        } else if (airborne.get() && (ias.get() < Speed2Fly.getStallSpeed())) {
             _ab_counter++;
-            if ( _ab_counter > 10 ) { // needs to be resting for 10 seconds
+            if ( _ab_counter > 10 && _isResting ) { // needs to be resting for 10 seconds
                 _ab_counter = 0;
                 airborne.set(false);
                 ESP_LOGI(FNAME, "Landed detected by airspeed sensor");
             }
+        }
+        else {
+            _ab_counter = 0;
         }
     }
     _counter++; // increment counter for auto offset correction, starts with 0 after setup
