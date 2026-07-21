@@ -7,6 +7,17 @@ assignees: ''
 
 ---
 
+
+**Welcome!**
+We kindly ask that you:
+  1. Fill out the issue template below.
+  2. Use the discussions if you have a question rather than a bug or feature request.
+     ttps://github.com/hjr/XCVarioPure/discussions
+Thanks for understanding.
+
+**XCVario release/version you are refering to**
+Pick this info from System > Software menu.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
