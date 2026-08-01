@@ -54,7 +54,8 @@ static TaskHandle_t SendTask = nullptr;
 static const RoutingTarget flarm_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
     {XCVARIOSECOND_DEV, CAN_BUS, 0}, {XCVARIOFIRST_DEV, CAN_BUS, 0},  
-    {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
+    {FLARM_HOST2_DEV, S2_RS232, 0}, {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, 
+    {FLARM_HOST3_DEV, S2_RS232, 0}, {FLARM_HOST3_DEV, BT_LE, 0}, {} };
 static const RoutingTarget flarm_proxy_routes[] = {
     {FLARM_HOST_DEV, S2_RS232, 0}, {FLARM_HOST_DEV, WIFI_APSTA, 8881}, {FLARM_HOST_DEV, BT_SPP, 0}, {FLARM_HOST_DEV, BT_LE, 0}, 
     {FLARM_HOST2_DEV, WIFI_APSTA, 8881}, {FLARM_HOST2_DEV, BT_SPP, 0}, {FLARM_HOST2_DEV, BT_LE, 0}, {} };
@@ -79,7 +80,6 @@ static const std::pair<RoutingTarget, const RoutingTarget*> Routes[] = {
     { RoutingTarget(NAVI_DEV, NO_PHY, 0), navi_routes },
     { RoutingTarget(FLARM_HOST_DEV, NO_PHY, 0), fhost_routes },
     { RoutingTarget(FLARM_HOST2_DEV, NO_PHY, 0), fhost_routes },
-    { RoutingTarget(FLARM_HOST3_DEV, NO_PHY, 0), fhost_routes },
     { RoutingTarget(XCVARIOFIRST_DEV, NO_PHY, 0), xcv_proxy_routes },
     { RoutingTarget(XCVARIOSECOND_DEV, NO_PHY, 0), xcv_proxy_routes }
 };
