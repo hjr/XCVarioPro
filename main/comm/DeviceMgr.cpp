@@ -137,7 +137,7 @@ constexpr std::pair<DeviceId, DeviceAttributes> DEVATTR[] = {
     {DeviceId::FLARM_HOST_DEV, {"", {{S2_RS232}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
-    {DeviceId::FLARM_HOST2_DEV, {"Flarm Download", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, IS_SEL, &flarm_host2_setup}},
+    {DeviceId::FLARM_HOST2_DEV, {"Flarm Cons.2", {{WIFI_APSTA, BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 8881, IS_SEL, &flarm_host2_setup}},
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_SPP}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST2_DEV, {"", {{BT_LE}}, {{FLARMHOST_P, FLARMBIN_P}, 2}, 0, 0, nullptr}},
     {DeviceId::FLARM_HOST3_DEV, {"Flarm Display", {{S1_RS232, S2_RS232}}, {{FLARMHOST_P}, 1}, 0, IS_SEL, &flarm_host3_setup}},
