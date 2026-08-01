@@ -415,8 +415,8 @@ void DataLink::doForward(DeviceId src_dev)
     // std::string log("route ");
     // log += std::to_string(src_dev) + "/" + std::to_string(_itf_id.port) + " to ";
     xSemaphoreTake(_route_mutex, portMAX_DELAY);
-    for ( auto &target : _routes ) {
-        Message* msg = DEV::plsMessage(target.did, target.getItfTarget().port);
+    for ( const RoutingTarget target : _routes ) {
+        Message* msg = DEV::plsMessage(target);
         if ( msg ) {
             // log += std::to_string(target.did) + "/" + std::to_string(target.getItfTarget().port) + ", ";
             msg->buffer = _sm._frame;

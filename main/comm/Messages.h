@@ -11,7 +11,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
-#include "Devices.h"
+#include "Configuration.h"
 
 #include <string>
 #include <queue>
@@ -58,3 +58,14 @@ private:
 };
 
 
+
+namespace DEV
+{
+
+Message* plsMessage(RoutingTarget target); // can fail
+Message* acqMessage(DeviceId target, int port); // garanty, but potential wait
+inline void relMessage(Message *msg);
+
+bool Send(Message* msg);
+
+}

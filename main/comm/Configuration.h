@@ -55,7 +55,19 @@ union RoutingTarget {
     bool match(const RoutingTarget& target) const { return (did == target.did && getItfTarget().matchNoPhy(target.getItfTarget())); }
 };
 
-using RoutingList = std::set<RoutingTarget>;
+struct RoutingTargetCompare
+{
+    bool operator()(const RoutingTarget& a,
+                    const RoutingTarget& b) const
+    {
+        if (a.getItfId() != b.getItfId())
+            return a.getItfId() < b.getItfId();
+
+        return a.getPort() < b.getPort();
+    }
+};
+
+using RoutingList = std::set<RoutingTarget, RoutingTargetCompare>;
 
 // This stores:
 //   up to 12 interface id's that can the device connect to

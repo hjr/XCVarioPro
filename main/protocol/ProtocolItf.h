@@ -55,6 +55,7 @@ union dl_control_t {
 class ProtocolState;
 class DataLink;
 class AliveMonitor;
+class Message;
 
 // Protocol parser interface
 class ProtocolItf
@@ -72,7 +73,7 @@ public:
     virtual bool hasProtocol(ProtocolType pid) const { return getProtocolId() == pid; }
     virtual void addAliveMonitor(AliveMonitor *am) {} // optional stream surveilance
     virtual dl_control_t nextBytes(const char *cptr, int count) { return dl_control_t(NOACTION); } // control the datalink stream loop with the return value
-    inline Message* newMessage() const { return DEV::acqMessage(_did, _send_port); }
+    Message* newMessage() const;
     void setDefaultAction(dl_action_t da) { _default_action = da; }
     virtual bool isBinary() const { return false; }
     int getSendPort() const { return _send_port; }

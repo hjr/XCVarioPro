@@ -71,15 +71,4 @@ enum ProtocolType : uint8_t
 
 constexpr int CAN_REG_PORT = 0x7f0;
 
-class Message;
 
-namespace DEV
-{
-
-Message* plsMessage(DeviceId target, int port); // can fail
-Message* acqMessage(DeviceId target, int port); // garanty, but potential wait
-inline void relMessage(Message *msg);
-
-bool Send(Message* msg);
-
-}

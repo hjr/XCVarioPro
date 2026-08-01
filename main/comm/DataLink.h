@@ -42,6 +42,7 @@ public:
     int getPort() const { return _itf_id.port; } // the listen port
     InterfaceId getItfId() const { return _itf_id.iid; }
     ItfTarget getTarget() const { return _itf_id; }
+    RoutingTarget getRoutingTarget() const { return RoutingTarget(_did, _itf_id); }
     EnumList getAllSendPorts() const;
     DeviceId getDeviceId() const { return _did; } // routing purpouses
     void setDeviceId(DeviceId did) { _did = did; }

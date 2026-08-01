@@ -731,6 +731,12 @@ RoutingList DeviceManager::getRouting(RoutingTarget source)
                 }
             }
         }
+#ifdef DEBUG_AND_TEST
+        ESP_LOGI(FNAME , "Routing list for %s:%d: %d entries:", getDevName(source.did).data(), source.intf_port, (int)activeList.size());
+        for (const RoutingTarget& x : activeList) {
+            ESP_LOGI(FNAME , "  %s/%s:%d", getDevName(x.did).data(), getItfName(x.getItfId()).data(), x.getPort());
+        }
+#endif
         return activeList; // will be a move by RVO
     }
     else {
@@ -1097,12 +1103,12 @@ int Device::getSendPort(ProtocolType p) const
 namespace DEV
 {
 
-Message* plsMessage(DeviceId target_id, int port)
+Message* plsMessage(RoutingTarget target)
 {
     Message* m = MP.getOne(false);
     if ( m ) {
-        m->target_id = target_id;
-        m->port = port;
+        m->target_id = target.getDeviceId();
+        m->port = target.getPort();
         return m;
     }
     return nullptr;
