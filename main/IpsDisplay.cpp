@@ -721,12 +721,12 @@ static float old_ias_max = -1;
 
 void IpsDisplay::drawLoadDisplayTexts(){
 	ucg->setFont(ucg_font_fub11_hr, true);
-	const char *text = "ext. G-Loads";
+	const char *text = "Peak G-Loads";
 	int16_t text_width = ucg->getStrWidth( text );
 	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MPG_POS);
 	ucg->setColor( COLOR_HEADER_LIGHT );
 	ucg->print( text );
-	text = "max. IAS";
+	text = "Peak IAS";
 	text_width = ucg->getStrWidth( text );
 	ucg->setPrintPos(DISPLAY_W-10-text_width, LOAD_MIAS_POS);
 	ucg->print( text );
