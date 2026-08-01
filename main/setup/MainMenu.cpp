@@ -614,11 +614,11 @@ static void screens_menu_create_vario(SetupMenu *top) {
     mc->mkEnable();
     top->addEntry(mc);
 
-    SetupMenuSelect *scrcaid = new SetupMenuSelect("Therm.-Assist", RST_NONE, caid_reference, &vario_centeraid);
-    scrcaid->setHelp("The thermal assistant; with reference on top, or on the side.");
+    SetupMenuSelect *scrcaid = new SetupMenuSelect("Thrm-Assist", RST_NONE, caid_reference, &vario_centeraid);
+    scrcaid->setHelp("The thermal assistant and it's orientation.");
     scrcaid->addEntry(ENABLE_MODE[0].data());
-    scrcaid->addEntry("Topref");
-    scrcaid->addEntry("Sideref");
+    scrcaid->addEntry("On-Top");
+    scrcaid->addEntry("Heading-Up");
     top->addEntry(scrcaid);
 
     SetupMenuSelect *wke = new SetupMenuSelect("Flap-Assist", RST_NONE, nullptr, &flapbox_enable);
