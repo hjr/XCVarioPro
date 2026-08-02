@@ -28,7 +28,8 @@ constexpr int16_t MAX_DISK_RAD = 7;
 extern AdaptUGC *MYUCG;
 CenterAid  *theCenteraid = nullptr;
 
-float CenterAid::th_norm = 1.0;
+constexpr float TH_NORM_MIN = 0.5f;
+float CenterAid::th_norm = TH_NORM_MIN; // initial peak value for thermal strength normalization
 
 // the THermal helper struct
 void Thermal::set(mps_t s) {
@@ -36,7 +37,7 @@ void Thermal::set(mps_t s) {
     timestamp = Clock::getMillis();
 }
 
-// normalized strecngth -1 .. 0 .. 1
+// normalized strength -1 .. 0 .. 1
 float Thermal::getStrength() const {
     // scale to peak value and limit to max disk radius
     // as well as fade with time passing
@@ -196,7 +197,7 @@ void CenterAid::checkThermal(){
 	if( te > peak_value  ) {
 		peak_value += (te - peak_value)*0.1;  // a bit low passing to catch values out of the row
     }
-	if( peak_value > 1.0 ) {              // don't go below 1 m/s this is maximum sensitivity
+	if( peak_value > TH_NORM_MIN ) {              // don't go below the minimum sensitivity
 		peak_value = peak_value * 0.999;  // Peak value aging 0.1% per 100 msec or 1% per second
     }
 	// ESP_LOGI(FNAME,"newThermal dir:%d, TE:%.2f Peak:%.2f", _idir, te, peak_value);
