@@ -97,7 +97,7 @@ void CenterAid::drawThermal(const Thermal& th, int idir) {
         col.fadeTo(col, ths * 1.2f);
     }
     else {
-        col = { COLOR_BLUE };
+        ths = 0.f;
     }
     // ESP_LOGI(FNAME,"drawThermal, th: %.1f, ths: %.3f, color: %d,%d,%d", th.strength, ths, col.color[0], col.color[1], col.color[2]);
     MYUCG->setColor(col.color[0], col.color[1], col.color[2]);
