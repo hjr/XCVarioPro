@@ -26,7 +26,7 @@ static bool Omega();
 S2fSwitch *S2FSWITCH = nullptr;
 
 // clock tick timer (task context)
-bool IRAM_ATTR S2fSwitch::tick()
+bool S2fSwitch::tick()
 {
     // called every 10msec
     bool buttonRead = gpio_get_level(_sw) == _active_level; // gpio level 1 -- not pressed (open pull-up)

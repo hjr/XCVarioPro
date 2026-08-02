@@ -15,7 +15,7 @@
 // Timer isr's
 class WdTimeOut {
 public:
-    static void IRAM_ATTR timeout(WatchDog_C* wd_obj)
+    static void timeout(WatchDog_C* wd_obj)
     {
         wd_obj->_cb->barked();
     }
@@ -55,7 +55,7 @@ void WatchDog_C::start(const unsigned int t_ms)
 
 // Re-Start, returns true for a real start of the timer
 // might be called from ISR !
-bool IRAM_ATTR WatchDog_C::restart()
+bool WatchDog_C::restart()
 {
     std::lock_guard<SemaphoreMutex> lock(_mux);
     bool ret = ! esp_timer_is_active(_timer);

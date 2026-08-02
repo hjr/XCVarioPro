@@ -34,7 +34,7 @@ uint8_t  Clock::_sim_speed = 1;
 static ClockSet clock_registry;
 
 // Timer SR (called in a timer task context)
-void IRAM_ATTR Clock::clock_timer_sr(ClockSet*registry)
+void Clock::clock_timer_sr(ClockSet*registry)
 {
     // be in sync with millis, but sparse
     if ( _sim_speed == 1 ) {

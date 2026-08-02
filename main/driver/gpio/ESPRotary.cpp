@@ -24,7 +24,7 @@ static std::vector<RotaryReceiver *> receiverstack;
 static SemaphoreMutex stack_mutex;
 
 // clock tick timer (task context)
-bool IRAM_ATTR ESPRotary::tick()
+bool ESPRotary::tick()
 {
 	// called every 10msec
 	int gotEvent;

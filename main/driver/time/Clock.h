@@ -43,7 +43,7 @@ public:
     static void updateTimeUTC(int64_t gps_utc_ms);
 
 private:
-    static void IRAM_ATTR clock_timer_sr(ClockSet *registry);
+    static void clock_timer_sr(ClockSet *registry);
     static volatile IRAM_ATTR int msec_counter; // yields for 600h of flight time monotone msec since boot
     static esp_timer_handle_t _clock_timer;
     // time sync
