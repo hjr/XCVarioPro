@@ -77,11 +77,8 @@ void S2FBar::drawBlock(int16_t level)
     if (level == 0 ) {
         MYUCG->setColor(COLOR_DGREEN);
     }
-    else if (level == 1) {
-        MYUCG->setColor(COLOR_WGREY);
-    }
     else {
-        MYUCG->setColor(COLOR_BLACK);
+        MYUCG->setColor(COLOR_WGREY);
     }
     MYUCG->drawRBox(_ref.x - _width_half + 6, _ref.y - _gap_half + 1, 2 * _width_half - 12, 2 * _gap_half - 3, 2);
 }
@@ -104,8 +101,8 @@ void S2FBar::draw(mps_t s2fd, bool cruise)
 {
     int8_t level = 0;
     if ( cruise ) {
-        // dice up into 10 kmh steps
-        // draw max. three bars, then change color of the last one to red
+        // dice up into 10 kmh steps, map to -4..+4, 0 means no speed up/down
+        // draw max. three bars, then change color of the last one
         level = std::clamp((int)std::roundf(s2fd / LEVEL_DELTA), -4, 4);
     }
 
@@ -140,7 +137,7 @@ void S2FBar::draw(mps_t s2fd, bool cruise)
                     // ESP_LOGI(FNAME,"s2fbar draw %d,%d", i, (i*inc < 0)?0:inc);
                 }
             }
-       }
+        }
 
         // Fill the gap with a block if the speed is close to the target, otherwise clear it
         drawBlock(level);
