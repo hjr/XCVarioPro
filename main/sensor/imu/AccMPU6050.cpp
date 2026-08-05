@@ -14,6 +14,7 @@
 #include "math/Trigonometry.h"
 #include "vector.h"
 #include "sensor/SensorMgr.h"
+#include "CenterAid.h"
 #include "logdefnone.h"
 
 #include "mpu/math.hpp"
@@ -198,7 +199,7 @@ void AccMPU6050::postProcess() {
     // FR:%.1f", euler.Pitch(), euler.Roll(), filtered_mag_heading, curh, gyro.a,gyro.b,gyro.c, accel.a, accel.b, accel.c, filterPitch_rad,
     // filterRoll_rad  );
 
-    // update slip angle
+    // update slip angle and thermal assist
     if (airborne.get()) {
         // the slip angle: accel in NED, slip angle in ENU (nav frame)
         constexpr const float K = rad2deg(4000.f); // airplane constant and Ay correction factor
@@ -206,6 +207,10 @@ void AccMPU6050::postProcess() {
         slip = std::clamp(slip, -deg2rad(15.f), deg2rad(15.f));
         slip_angle.set( _lpf_slip_angle.filter( slip ) );  // with atan(x) = x for small x
         // ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", tas.get(), -accel.y*K / (tas.get() * tas.get()), slip_angle.get() );
+
+        if ( theCenteraid ) {
+            theCenteraid->checkHeading(circle_footing, circle_omega, euler_rad.Roll());
+        }
     }
 
     // calm status

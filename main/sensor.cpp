@@ -322,9 +322,6 @@ void readSensors(void *pvParameters)
 
         // 2Hz tasks
         if ( !(count % 5) ) {
-            // thermal assist
-            if (theCenteraid) { theCenteraid->tick(count); }
-
             // Check on warnings
             checkWarnings();
         }
