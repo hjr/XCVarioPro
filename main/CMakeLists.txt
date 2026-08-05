@@ -49,7 +49,7 @@ endif()
 # a firmware version string
 if(NOT DEFINED FW_VERSION)
     execute_process(
-        COMMAND git describe --tags --dirty --abbrev=0
+        COMMAND git describe --tags --dirty
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE FW_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
