@@ -15,6 +15,8 @@
 
 class Flap; // where all the data and logic resides
 
+enum class flap_box_conf : uint8_t { DISABLE, FLAP_BOX, FLAP_BOXNAUDIO };
+
 union SwitchEvent {
     struct {
         uint8_t from;

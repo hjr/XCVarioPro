@@ -221,7 +221,7 @@ void FlapsBox::draw(mps_t ias)
     }
     _dirty = false;
 
-    if ( flapbox_enable.get() == 2 ) {
+    if ( flapbox_enable.get() == (uint8_t)flap_box_conf::FLAP_BOX ) {
         return; // only show the indicator, do not play sounds
     }
 
