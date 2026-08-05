@@ -14,7 +14,7 @@
 #include "math/Trigonometry.h"
 #include "vector.h"
 #include "sensor/SensorMgr.h"
-#include "CenterAid.h"
+#include "screen/element/ThermalAssist.h"
 #include "logdefnone.h"
 
 #include "mpu/math.hpp"
@@ -208,8 +208,8 @@ void AccMPU6050::postProcess() {
         slip_angle.set( _lpf_slip_angle.filter( slip ) );  // with atan(x) = x for small x
         // ESP_LOGI(FNAME,"AS: %f m/s, CURSL: %f°, SLIP: %f", tas.get(), -accel.y*K / (tas.get() * tas.get()), slip_angle.get() );
 
-        if ( theCenteraid ) {
-            theCenteraid->checkHeading(circle_footing, circle_omega, euler_rad.Roll());
+        if ( thrmAssist ) {
+            thrmAssist->checkHeading(circle_footing, circle_omega, euler_rad.Roll());
         }
     }
 

@@ -20,6 +20,7 @@
 #include "screen/element/CruiseStatus.h"
 #include "screen/element/FlapsBox.h"
 #include "screen/element/Connection.h"
+#include "screen/element/ThermalAssist.h"
 #include "screen/MessageBox.h"
 
 #include "sensor/imu/AccMPU6050.h"
@@ -36,7 +37,6 @@
 #include "wind/Wind.h"
 #include "driver/time/AliveMonitor.h"
 #include "setup/SetupNG.h"
-#include "CenterAid.h"
 #include "AdaptUGC.h"
 #include "Colors.h"
 #include "sensor.h"
@@ -575,10 +575,10 @@ void IpsDisplay::initDisplay() {
     WNDgauge->enableWindIndicator(false /*wind_enable.get() > WA_OFF*/, wind_enable.get() == WA_EXTERNAL);
     WNDgauge->setUnit(SpeedUnit->scale);
 
-    if (vario_centeraid.get()) {
-        CenterAid::create(*WNDgauge);
+    if (thermal_assist.get()) {
+        ThermalAssist::create(*WNDgauge);
     } else {
-        CenterAid::remove();
+        ThermalAssist::remove();
     }
 
     if (VCSTATgauge) {
@@ -888,8 +888,8 @@ void IpsDisplay::drawDisplay(){
 
     // Wind & center aid
     if (!(tick % 5)) {
-        if (theCenteraid && !CRMOD.getCMode()) {
-            theCenteraid->drawCenterAid();
+        if (thrmAssist && !CRMOD.getCMode()) {
+            thrmAssist->draw();
         }
 
         WindData swind, iwind;
@@ -967,7 +967,7 @@ void IpsDisplay::drawDisplay(){
             MAINgauge->forceRedrawMode();
         }
 
-        if (vario_centeraid.get()) {
+        if (thermal_assist.get()) {
             WNDgauge->clearGauge();
             if (CRMOD.getCMode() && wind_enable.get() == WA_EXTERNAL) {
                 WNDgauge->drawRose();

@@ -10,7 +10,6 @@
 
 #include "math/Floats.h"
 #include "PolarGauge.h"
-#include "CenterAid.h"
 #include "LargeFigure.h"
 #include "Colors.h"
 #include "AdaptUGC.h"

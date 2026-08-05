@@ -26,17 +26,17 @@ struct Thermal {
     float getStrength() const;
 };
 
-class CenterAid {
+class ThermalAssist {
     friend Thermal;
 public:
-    static CenterAid *create(PolarGauge &g);
+    static ThermalAssist *create(PolarGauge &g);
     static void remove();
     void checkHeading(rad_t vheading, rad_t omega, rad_t bank); // 10Hz ticker
-    void drawCenterAid();
+    void draw();
     void setGliderOnTop(bool onTop) { _glider_on_top = onTop; }
 
 private:
-    CenterAid(PolarGauge &g);
+    ThermalAssist(PolarGauge &g);
     void drawThermal(const Thermal& th, int idir);
     void drawGlider(int16_t cx, int16_t cy);
     // int maxClimbIndex();
@@ -54,4 +54,4 @@ private:
     static float th_norm;
 };
 
-extern CenterAid  *theCenteraid;
+extern ThermalAssist  *thrmAssist;

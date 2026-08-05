@@ -6,7 +6,7 @@
  ***       Copyright (C) Rohs Engineering Design         ***
  ***********************************************************/
 
-#include "CenterAid.h"
+#include "ThermalAssist.h"
 
 #include "math/Units.h"
 #include "screen/element/PolarGauge.h"
@@ -26,10 +26,10 @@ constexpr rad_t CA_STEP_2 = CA_STEP/2.f;  // 7.5
 constexpr int16_t MAX_DISK_RAD = 7;
 
 extern AdaptUGC *MYUCG;
-CenterAid  *theCenteraid = nullptr;
+ThermalAssist  *thrmAssist = nullptr;
 
 constexpr float TH_NORM_MIN = 0.5f;
-float CenterAid::th_norm = TH_NORM_MIN; // initial peak value for thermal strength normalization
+float ThermalAssist::th_norm = TH_NORM_MIN; // initial peak value for thermal strength normalization
 
 enum class circdir_t : uint8_t {
     no_circle,
@@ -51,37 +51,37 @@ float Thermal::getStrength() const {
     if ( agescale < 0.f ) {
         return 0.f;
     }
-    return std::min(strength / CenterAid::th_norm * agescale, 1.f);
+    return std::min(strength / ThermalAssist::th_norm * agescale, 1.f);
 }
 
 // Thermal assistant
-CenterAid *CenterAid::create(PolarGauge &g)
+ThermalAssist *ThermalAssist::create(PolarGauge &g)
 {
-    if ( ! theCenteraid ) {
+    if ( ! thrmAssist ) {
         // create the singleton
-        theCenteraid = new CenterAid(g);
+        thrmAssist = new ThermalAssist(g);
     }
-    return theCenteraid;
+    return thrmAssist;
 }
-void CenterAid::remove()
+void ThermalAssist::remove()
 {
-    if ( theCenteraid ) {
+    if ( thrmAssist ) {
         // remove the singleton
-        CenterAid *tmp = theCenteraid;
-        theCenteraid = nullptr;
+        ThermalAssist *tmp = thrmAssist;
+        thrmAssist = nullptr;
         delete tmp;
     }
 }
 
-CenterAid::CenterAid(PolarGauge &g) :
+ThermalAssist::ThermalAssist(PolarGauge &g) :
     _gauge(g),
     _glider_on_top(true),
     _confidence(LowPassFilterT<float>::alphaFromTau(2.0, 0.1f))
 {
-    _glider_on_top = vario_centeraid.get() != 2;
+    _glider_on_top = thermal_assist.get() != 2;
 }
 
-void CenterAid::drawThermal(const Thermal& th, int idir) {
+void ThermalAssist::drawThermal(const Thermal& th, int idir) {
     // ESP_LOGI(FNAME,"drawThermal, th: %.1f, idir: %d", th.strength, idir);
     if (idir >= CA_NUM_DIRS || idir < 0) {
         ESP_LOGE(FNAME, "index out of range: %d", idir);
@@ -132,7 +132,7 @@ void CenterAid::drawThermal(const Thermal& th, int idir) {
 //  .  .
 //  x Cxy + (A,W)
 //
-void CenterAid::drawGlider(int16_t cx, int16_t cy) {
+void ThermalAssist::drawGlider(int16_t cx, int16_t cy) {
     constexpr int16_t A = -3;
     constexpr int16_t B = 3;
     constexpr int16_t W = 8;
@@ -160,7 +160,7 @@ void CenterAid::drawGlider(int16_t cx, int16_t cy) {
     MYUCG->finishBuffering();
 }
 
-// int CenterAid::maxClimbIndex() {
+// int ThermalAssist::maxClimbIndex() {
 //     int max = 0;
 //     int max_index = -1;
 //     for (int i = 0; i < CA_NUM_DIRS; i++) {
@@ -172,7 +172,7 @@ void CenterAid::drawGlider(int16_t cx, int16_t cy) {
 //     return max_index;
 // }
 
-Point CenterAid::getThermalCG() const {
+Point ThermalAssist::getThermalCG() const {
     float sx = 0.0f, sy = 0.0f;
     float sum = 0.f;
 
@@ -192,12 +192,10 @@ Point CenterAid::getThermalCG() const {
     return Point(sx, sy);
 }
 
-void CenterAid::drawCenterAid(){
-	// ESP_LOGI(FNAME,"drawCenterAid");
-
+void ThermalAssist::draw() {
     // the current thermal norm for the current peak value
     th_norm = _peak_value;
-    ESP_LOGI(FNAME,"CenterAid draw, peak norm: %.2f", th_norm);
+    ESP_LOGI(FNAME,"ThermalAssist draw, peak norm: %.2f", th_norm);
     for (int i = 0; i < CA_NUM_DIRS; i++) {
         int d = (i + _idir) % CA_NUM_DIRS;
         // ESP_LOGI(FNAME,"dir:%d TE:%.1f", d, thermals[d].strength );
@@ -205,7 +203,7 @@ void CenterAid::drawCenterAid(){
     }
 }
 
-// void CenterAid::redrawAt(int deg) {
+// void ThermalAssist::redrawAt(int deg) {
 //     int i = (deg * CA_NUM_DIRS / 360) % CA_NUM_DIRS;
 //     int d = (i+idir) % CA_NUM_DIRS;
 //     drawThermal(thermals[d], i);
@@ -217,7 +215,7 @@ void CenterAid::drawCenterAid(){
 
 // 2 Hz called from AHRS / heading sensor
 // > tick : a 10 Hz counter
-void CenterAid::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
+void ThermalAssist::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
 
     // Combined fidelity on "this is thermaling"
     // 1. turn rate confidence
@@ -251,7 +249,7 @@ void CenterAid::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
             }
             uint8_t new_c_dir = std::signbit(diff) ? (uint8_t)circdir_t::circlLeft : (uint8_t)circdir_t::circlRight;
             if ( new_c_dir != _cdir ) {
-                ESP_LOGI(FNAME,"CenterAid checkHeading, circling direction changed to %s", new_c_dir == (uint8_t)circdir_t::circlLeft ? "left" : "right");
+                ESP_LOGI(FNAME,"ThermalAssist checkHeading, circling direction changed to %s", new_c_dir == (uint8_t)circdir_t::circlLeft ? "left" : "right");
 
             }
             _cdir = new_c_dir;
@@ -260,7 +258,7 @@ void CenterAid::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
         else {
             _peak_value = TH_NORM_MIN;
             _cdir = (uint8_t)circdir_t::no_circle;
-            ESP_LOGI(FNAME,"CenterAid checkHeading, no thermal detected, reset peak value");
+            ESP_LOGI(FNAME,"ThermalAssist checkHeading, no thermal detected, reset peak value");
             thermals[_idir].set(0.f);
         }
 

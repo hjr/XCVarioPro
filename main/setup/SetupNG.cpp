@@ -628,7 +628,7 @@ SetupNG<int> 			can_speed( "CANSPEED", CAN_SPEED_1MBIT, true, SYNC_NONE, PERSIST
 SetupNG<int> 			menu_long_press("MENU_LONG", 0 );
 SetupNG<int> 			screen_gmeter("SCR_GMET", SCREEN_OFF, false);
 SetupNG<int> 			screen_horizon("SCR_HORIZ", SCREEN_OFF);
-SetupNG<int> 			vario_centeraid("SCR_CA", 1, false); // 0: off, 1: top-ref, 2: side-ref
+SetupNG<int> 			thermal_assist("SCR_CA", 1, false); // 0: off, 1: top-ref, 2: side-ref
 SetupNG<int> 			vario_upper_gauge("SCR_GT", MultiGauge::GAUGE_NONE, false);
 SetupNG<int> 			vario_lower_gauge("SCR_GB", MultiGauge::GAUGE_NONE, false);
 SetupNG<int> 			vario_mc_gauge("SCR_GMC", 1, false);

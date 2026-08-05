@@ -16,7 +16,6 @@
 #include "setup/CruiseMode.h"
 #include "driver/audio/ESPAudio.h"
 #include "driver/gpio/ESPRotary.h"
-#include "CenterAid.h"
 #include "driver/gpio/AnalogInput.h"
 #include "IpsDisplay.h"
 #include "S2F.h"

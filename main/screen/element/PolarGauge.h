@@ -18,7 +18,7 @@
 
 class ArrowIndicator;
 class WindIndicator;
-class CenterAid;
+class ThermalAssist;
 
 
 // map gauge values to gauge scale angles
@@ -46,7 +46,7 @@ class PolarGauge : public ScreenElement
     friend class ArrowIndicator;
     friend class WindIndicator;
     friend class LargeFigure;
-    friend class CenterAid;
+    friend class ThermalAssist;
 
 public:
     using GaugeFlavor = enum : uint8_t { PURE, XCVPRO, GLOAD, COMPASS};

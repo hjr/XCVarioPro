@@ -7,7 +7,6 @@
 
 #include "SetupMenu.h"
 
-#include "CenterAid.h"
 #include "SetupCommon.h"
 #include "setup/SubMenuAudio.h"
 #include "setup/SubMenuDevices.h"
@@ -19,6 +18,7 @@
 #include "setup/ShowBootMsg.h"
 #include "setup/ShowFlightInfo.h"
 #include "screen/element/MultiGauge.h"
+#include "screen/element/ThermalAssist.h"
 #include "sensor/VarioFilter.h"
 #include "S2F.h"
 #include "Flarm.h"
@@ -60,8 +60,8 @@ extern AdaptUGC *MYUCG;
 
 
 static int caid_reference(SetupMenuSelect* p) {
-    if ( theCenteraid ) {
-        theCenteraid->setGliderOnTop(p->getSelect() != 2);
+    if ( thrmAssist ) {
+        thrmAssist->setGliderOnTop(p->getSelect() != 2);
     }
     return 0;
 }
@@ -614,7 +614,7 @@ static void screens_menu_create_vario(SetupMenu *top) {
     mc->mkEnable();
     top->addEntry(mc);
 
-    SetupMenuSelect *scrcaid = new SetupMenuSelect("Thrm-Assist", RST_NONE, caid_reference, &vario_centeraid);
+    SetupMenuSelect *scrcaid = new SetupMenuSelect("Thrm-Assist", RST_NONE, caid_reference, &thermal_assist);
     scrcaid->setHelp("The thermal assistant and it's orientation.");
     scrcaid->addEntry(ENABLE_MODE[0].data());
     scrcaid->addEntry("On-Top");

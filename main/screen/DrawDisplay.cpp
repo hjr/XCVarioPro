@@ -8,7 +8,6 @@
 
 #include "DrawDisplay.h"
 
-#include "CenterAid.h"
 #include "IpsDisplay.h"
 #include "UiEvents.h"
 #include "ScreenRoot.h"
@@ -16,6 +15,7 @@
 #include "BootUpScreen.h"
 #include "FlarmScreen.h"
 #include "HorizonPage.h"
+#include "screen/element/ThermalAssist.h"
 
 #include "setup/SetupMenuValFloat.h"
 #include "setup/SetupMenuSelect.h"
