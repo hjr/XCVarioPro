@@ -494,14 +494,15 @@ static void system_menu_create_airspeed(SetupMenu *top) {
     spc->setHelp("Calibration of airspeed sensor (AS). Normally not needed, unless the pressure probe has a systematic error");
     top->addEntry(spc);
 
-    if ( !airborne.get() ) {
-        SetupMenuSelect* asze = new SetupMenuSelect("Set Zero", RST_NONE, airspeed_zero, nullptr);
-        top->addEntry(asze);
-        asze->setHelp("Recalculate zero point for airspeed sensor");
-        asze->addEntry("Cancel");
-        asze->addEntry("Now");
+    SetupMenuSelect* asze = new SetupMenuSelect("Set Zero", RST_NONE, airspeed_zero, nullptr);
+    top->addEntry(asze);
+    asze->setHelp("Recalculate zero point for airspeed sensor");
+    asze->addEntry("Cancel");
+    asze->addEntry("Now");
+    if ( airborne.get() ) {
+        asze->setHelp("Disabled while flying");
+        asze->lock();
     }
-
     if ( airspeed_sensor.get() == AirspeedSensor::ABPMRR || airspeed_sensor.get() == AirspeedSensor::TE4525 ) {
         // offer the option to switch in-between them, call it swapped tubes
         SetupMenuSelect* asswap = new SetupMenuSelect("Swapped Tubes", RST_NONE, tube_swap, &airspeed_sensor);
@@ -748,7 +749,7 @@ static void system_menu_create_software(SetupMenu *top) {
     upd_soft->setHelp("Update using the internet connection of your smart phone, or upload a binary using the embedded webserver.");
     top->addEntry(upd_soft);
     if ( airborne.get() ) {
-        upd_soft->setHelp("Disabled");
+        upd_soft->setHelp("Disabled while flying");
         upd_soft->lock();
     }
 #else

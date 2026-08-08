@@ -25,6 +25,8 @@ SetupAction::SetupAction(const char *title, int (*action)(SetupAction *), int co
 
 void SetupAction::enter()
 {
+    if (isLocked()) { return; }
+    
     // decide on return value wether this got hijacked
     if ( ! (*_action)(this) ) {
         // or control is handed straight back to the calling menu

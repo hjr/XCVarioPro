@@ -513,7 +513,7 @@ static void connected_devices_menu_device(SetupMenu *top) // dynamic!
         }
 
         // all the data links to monitor
-        if ( dev->_link && !airborne.get() ) {
+        if ( dev->_link ) {
             std::string tmp;
             int lport = dev->_link->getPort();
             tmp = "Data Monitor";
@@ -522,11 +522,19 @@ static void connected_devices_menu_device(SetupMenu *top) // dynamic!
             }
             SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)dev->_link->getTarget().raw);
             top->addEntry(monitor);
+            if ( airborne.get() && !gflags.expert ) {
+                monitor->setHelp("Disabled while flying");
+                monitor->lock();
+            }
             for ( int sp : dev->_link->getAllSendPorts() ) {
                 if ( sp != lport ) {
                     tmp = "Data Monitor port: " + std::to_string(sp);
                     SetupAction *monitor = new SetupAction(tmp.c_str(), start_dm_action, (int)ItfTarget(dev->_itf->getId(), sp).raw);
                     top->addEntry(monitor);
+                    if ( airborne.get() && !gflags.expert ) {
+                        monitor->setHelp("Disabled while flying");
+                        monitor->lock();
+                    }
                 }
             }
         }
