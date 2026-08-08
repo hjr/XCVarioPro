@@ -53,6 +53,15 @@ float fast_ceilf(float x) {
     return (float)i;
 }
 
+int fast_ifloorf(float x) {
+    int i = (int)x;
+    return i - (x < 0.0f && x != (float)i);
+}
+
+int fast_iceilf(float x) {
+    int i = (int)x;
+    return i + (x > (float)i);
+}
 
 float fast_signf(float val)
 {

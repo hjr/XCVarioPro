@@ -14,7 +14,7 @@
 #include <algorithm>
 
 
-constexpr mps_t GENERAL_V_MIN = Units::kmh_to_mps(50);
+constexpr mps_t GENERAL_V_MIN = Units::kmh_to_mps(30);
 
 Flap* Flap::_instance = nullptr;
 Flap* FLAP = nullptr;
@@ -133,7 +133,7 @@ void Flap::prepLevels()
         for (FlapLevel &fl : flevel) { // iterate 0, 1, ..
             sdelta = fl.sensval - prev->sensval;
             if (sdelta == 0) {
-                sdelta = _sens_order ? -1 : 1; // avoid zero deltas
+                sdelta = _sens_order ? -1 : 1; // avoid zero deltas 
             }
             fl.sens_delta = sdelta;
             vdelta = fl.prep_speed - prev->prep_speed;
@@ -240,16 +240,16 @@ float Flap::getOptimum(mps_t spd) const {
     float wkf = wki + 0.5 + (g_speed - flevel[wki].prep_speed) / flevel[wki].speed_delta;
     if (g_speed < GENERAL_V_MIN) {
         wkf = flap_takeoff.get();
-    } else {
-        wkf = std::clamp(wkf, -0.1f, (float)(flevel.size() - 1));
     }
-    ESP_LOGI(FNAME, "opt: g-ias:%.1fmps wki:%d wkf:%.1f (p%.1fd%.1f)", g_speed, wki, wkf, flevel[wki].prep_speed, flevel[wki].speed_delta);
+    wkf = std::clamp(wkf, -0.1f, (float)(flevel.size() - 1));
+
+    ESP_LOGI(FNAME, "opt: ias:%.1f g-ias:%.1fmps(g%.1f) wki:%d wkf:%.1f (p%.1fd%.1f)", Units::mps_to_kmh(spd), g_speed, g_force, wki, wkf, flevel[wki].prep_speed, flevel[wki].speed_delta);
     return wkf;
 }
 
 int Flap::getWkIndex(float wkf) const {
     if ( flevel.size() == 0 ) { return -1; }
-    return std::clamp((int)(wkf + 0.5), 0, (int)flevel.size()-1);
+    return std::clamp(fast_iceilf(wkf), 0, (int)flevel.size()-1);
 }
 
 // get speed band for given flap position wk
@@ -260,6 +260,7 @@ mps_t Flap::getSpeedBand(float wkf, mps_t &maxv) const
     maxv = 0.;
 
     // pick min/max speeds for given flap position index
+    wkf -= 0.5f; // center wrt. the speed band for the given flap position
     int wki = getWkIndex(wkf);
     if ( wki < 0 ) {
         return 0.;
@@ -278,23 +279,24 @@ mps_t Flap::getSpeedBand(float wkf, mps_t &maxv) const
         mps_t shift = (wkf - wki) * flevel[wki].speed_delta;
         minv += shift;
         maxv += shift;
-        ESP_LOGI(FNAME,"shift:%.1f center speed:%.1fmps", shift, (minv + maxv)/2);
+        // ESP_LOGI(FNAME,"shift:%.1f center speed:%.1fmps", shift, (minv + maxv)/2);
     }
-    ESP_LOGI(FNAME,"wki:%d wkf:%.1f minv:%.1f maxv:%.1f", wki, wkf, minv, maxv);
+    // ESP_LOGI(FNAME,"wki:%d wkf:%.1f minv:%.1f maxv:%.1f", wki, wkf, minv, maxv);
 
     return minv;
 }
 
 mps_t Flap::getSpeed(float wkf) const
 {
+    wkf -= 0.5f; // center wrt. the speed band for the given flap position
     int wki = getWkIndex(wkf);
     if ( wki < 0 ) {
         return 0.f;
     }
 
-    // speed from prep_speed@(wki+0.5) up to prep_speed+speed_delta@(wki-0.5)
+    // speed from prep_speed@(wki) up to prep_speed+speed_delta@(wki-1)
     float ret = flevel[wki].prep_speed + (wkf - wki) * flevel[wki].speed_delta;
-    ESP_LOGI(FNAME, "getspeed: %.1f (f%.1fi%d)", ret, wkf, wki);
+    ESP_LOGI(FNAME, "getspeed: %.1f (f%.1fi%d, prep%.1f delta%.1f)", Units::mps_to_kmh(ret), wkf, wki, flevel[wki].prep_speed, flevel[wki].speed_delta);
     return ret;
 }
 

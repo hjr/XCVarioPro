@@ -28,7 +28,7 @@
 //   |--           Sensor Value     ...       --|      -> steady increase/decrease of sensor reading
 //             ^- sens_delta := L1calsens - L0calsens ... etc.
 // Level 0 | Level 1 |  ...  | Level n-2 | Level n-1 | -> recommended speed band
-//         ^fl0.5..  ^fl1.5 maps to speed band prep_speed(L0) > v >= prep_speed(L1)
+//         ^idx0.5.. ^idx1.5 maps to speed band prep_speed(L0) > v >= prep_speed(L1)
 //
 // Flap levels need to be prepared for the actual wingload on initialization and after changes. The resulting
 // prepared speeds are used for all calculations. -> prep_speed
@@ -44,6 +44,14 @@
 //
 // Flap level addition/removal: A modified level list gets sorted according to speeds and is saved back 
 // to NVS on exit of the flap setup menu
+//
+// Simple application sample "Teka-Off:"
+//    For take-off phase you want to show a flap setting according to the take-off flap level index.
+//    As the flap level store let you retrieve the recommended speed band for e.g. level 4 with:
+//    Level(idx4) stores the min. speed for L4 and the sensor value for L4.
+//    Level(idx4) max. speed is found by level(idx3) min. speed, and so on.
+//    Choose to display speed half ways to level(3).min speed to have the flap box indicator showing the recommended 
+//    flap setting for take-off "centered".
 //
 
 class AnalogInput;
