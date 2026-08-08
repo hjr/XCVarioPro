@@ -510,7 +510,7 @@ void IpsDisplay::initDisplay() {
     MAINgauge->setRange(scale_range.get(), 0.f, log_scale.get());
     if (vario_mc_gauge.get() ) {
         if (!S2FBARgauge) {
-            S2FBARgauge = new S2FBar(DISPLAY_W - 15, AMIDY - 61, 28, 8);
+            S2FBARgauge = new S2FBar(DISPLAY_W - 15, AMIDY - 54, 28, 8);
         }
     }
     else {
@@ -552,7 +552,7 @@ void IpsDisplay::initDisplay() {
     }
     if ( FLAP && flapbox_enable.get() ) {
         if (!FLAPSgauge) {
-            FLAPSgauge = new FlapsBox(FLAP, DISPLAY_W - 29, AMIDY + ((display_orientation.get() == DISPLAY_NINETY) ? 0 : S2FBARgauge ? 17 : 0), true);
+            FLAPSgauge = new FlapsBox(FLAP, DISPLAY_W - 29, AMIDY + ((display_orientation.get() == DISPLAY_NINETY) ? 0 : S2FBARgauge ? 20 : 0), true);
         }
     }
     else {
@@ -630,7 +630,7 @@ void IpsDisplay::initDisplay() {
             S2FBARgauge->setWidth(36);
         } else {
             if (FLAPSgauge) {
-                S2FBARgauge->setRef(DISPLAY_W - 15, AMIDY - 61);
+                S2FBARgauge->setRef(DISPLAY_W - 15, AMIDY - 54);
                 S2FBARgauge->setWidth(28);
             } else {
                 S2FBARgauge->setRef(DISPLAY_W - 17, AMIDY);
@@ -647,10 +647,8 @@ void IpsDisplay::initDisplay() {
     }
     if (FLAPSgauge) {
         if (display_orientation.get() == DISPLAY_NINETY) {
-            FLAPSgauge->setLength(90);
         } else {
-            FLAPSgauge->setLength(90);
-            FLAPSgauge->setRef(DISPLAY_W - 29, AMIDY + (S2FBARgauge ? 17 : 0));
+            FLAPSgauge->setRef(DISPLAY_W - 29, AMIDY + (S2FBARgauge ? 20 : 0));
         }
     }
 

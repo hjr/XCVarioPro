@@ -15,7 +15,7 @@
 
 class Flap; // where all the data and logic resides
 
-enum class flap_box_conf : uint8_t { DISABLE, FLAP_BOX, FLAP_BOXNAUDIO };
+enum class flap_box_conf : uint8_t { DISABLE, FLAP_BOX_VIS, FLAP_BOXNAUDIO };
 
 union SwitchEvent {
     struct {
@@ -32,17 +32,9 @@ union SwitchEvent {
 
 struct FBoxStateHash {
     int16_t wkidx10;
-    int16_t top_pix;
-    int16_t bottom_pix;
-    union {
-        struct {
-            int16_t top_exseed :1;
-            int16_t bottom_exseed :1;
-        };
-        int16_t raw = 0;
-    };
+    int16_t center_pix;
     FBoxStateHash() = delete;
-    FBoxStateHash(float f, float minvd, float maxvd);
+    FBoxStateHash(float f, int16_t c_pix);
     constexpr int getWkIdx() const { return (wkidx10+5) / 10; }
     constexpr float getWk() const { return (float)(wkidx10) / 10.f; }
     bool operator!=(const FBoxStateHash &other) const noexcept;
@@ -54,7 +46,7 @@ class FlapsBox : public ScreenElement
 public:
     FlapsBox(Flap* flap, int16_t cx, int16_t cy, bool vertical=true);
     // API
-    void setLength(int16_t length);
+    // void setLength(int16_t length);
     using ScreenElement::draw;
     void draw(mps_t ias);
 
@@ -64,9 +56,8 @@ private:
 private: // attributes
     Flap* _flap;
     LowPassFilterT<float> _fp_filter;
-    FBoxStateHash _state = {0,0,0};
+    FBoxStateHash _state = {0,0};
     int16_t _last_flap_idx = 0;
-    int16_t _flap_ideal_idx = 0;
     int   _snd_event_time = 0;
     SwitchEvent _last_event;
     int   _same_event_to = -1;
@@ -75,6 +66,5 @@ private: // attributes
 
 public:
     static int16_t BOX_LENGTH;
-    static float   PIX_PER_MPS;
 };
 

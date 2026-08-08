@@ -13,35 +13,32 @@
 #include "AdaptUGC.h"
 #include "driver/audio/ESPAudio.h"
 #include "driver/time/Clock.h"
-#include "setup/SetupNG.h"
-#include "logdefnone.h"
 #include "math/Floats.h"
 #include "math/Units.h"
+#include "setup/SetupNG.h"
+#include "logdefnone.h"
 
 #include <cstdio>
+#include <algorithm>
 
 extern AdaptUGC *MYUCG;
 
+
+constexpr const int16_t BAND_OFF   = 26;
 constexpr const int16_t BOX_WIDTH  = 28;
-// constexpr const int16_t BOX_LENGTH = 100; // w/o corners
-constexpr const int16_t BOX_CORNER = 8;
-constexpr const int16_t LABEL_SPACING = 20;
-// constexpr const float   PIX_PER_MPS = ((float)(BOX_LENGTH)/2) / Units::kmh_to_mps(10.f); // 10 km/h range on half flap box
+constexpr const int16_t BOX_CORNER = 6;
+constexpr const int16_t LABEL_SPACING = 26;
 constexpr const int     SOUND_LATENCY = 5000; // msec to wait before making sound at all
 
-int16_t FlapsBox::BOX_LENGTH = 100;
-float   FlapsBox::PIX_PER_MPS = 17.999f;
+int16_t FlapsBox::BOX_LENGTH = BOX_WIDTH * 3;
 
 /////////////////////////
 // FBoxStateHash
 /////////////////////////
-FBoxStateHash::FBoxStateHash(float f, float minvd, float maxvd) :
+FBoxStateHash::FBoxStateHash(float f, int16_t c_pix) :
     wkidx10( fast_iroundf(f*10.) )
 {
-    top_pix = static_cast<int16_t>(minvd * FlapsBox::PIX_PER_MPS);
-    bottom_pix = static_cast<int16_t>(maxvd * FlapsBox::PIX_PER_MPS);
-    top_exseed = (bottom_pix < -(FlapsBox::BOX_LENGTH/2-5)) ? 1 : 0;
-    bottom_exseed = (top_pix > (FlapsBox::BOX_LENGTH/2-5)) ? 1 : 0;
+    center_pix = c_pix;
 }
 
 bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
@@ -49,18 +46,7 @@ bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
     // position of the wk labels
     if ( wkidx10 != other.wkidx10 ) return true;
     // position of the speed band
-    if ( ((top_pix > -FlapsBox::BOX_LENGTH/2
-            && top_pix < FlapsBox::BOX_LENGTH/2)
-        || (other.top_pix > -FlapsBox::BOX_LENGTH/2
-            && other.top_pix < FlapsBox::BOX_LENGTH/2))
-        && top_pix != other.top_pix ) return true;
-    if ( ((bottom_pix > -FlapsBox::BOX_LENGTH/2
-            && bottom_pix < FlapsBox::BOX_LENGTH/2)
-        || (other.bottom_pix > -FlapsBox::BOX_LENGTH/2
-            && other.bottom_pix < FlapsBox::BOX_LENGTH/2))
-        && bottom_pix != other.bottom_pix) return true;
-    // excess markers
-    if ( raw != other.raw ) return true;
+    if ( center_pix != other.center_pix ) return true;
     return false;
 }
 
@@ -70,7 +56,7 @@ bool FBoxStateHash::operator!=(const FBoxStateHash &other) const noexcept
 FlapsBox::FlapsBox(Flap* flap, int16_t cx, int16_t cy, bool vertical) :
     ScreenElement(cx, cy),
     _flap(flap),
-    _fp_filter(0.5f),
+    _fp_filter(0.3f),
     _last_event(0,0),
     _vertical(vertical)
 {
@@ -79,60 +65,34 @@ FlapsBox::FlapsBox(Flap* flap, int16_t cx, int16_t cy, bool vertical) :
     ESP_LOGI(FNAME, "FlapsBox label height %d, a%d d%d", _LFH, MYUCG->getFontAscent(), MYUCG->getFontDescent());
 }
 
-void FlapsBox::setLength(int16_t length)
-{
-    BOX_LENGTH = length;
-    PIX_PER_MPS = ((float)(BOX_LENGTH)/2) / Units::kmh_to_mps(10.f); // 10 km/h range on half flap box
-    ESP_LOGI(FNAME, "setLength %d, PIX_PER_MPS %.3f", BOX_LENGTH, PIX_PER_MPS);
-}
+// void FlapsBox::setLength(int16_t length)
+// {
+//     BOX_LENGTH = length;
+//     ESP_LOGI(FNAME, "setLength %d, PIX_PER_MPS %.3f", BOX_LENGTH, PIX_PER_MPS);
+// }
 
 void FlapsBox::drawLabels(FBoxStateHash cs)
 {
-    ESP_LOGI(FNAME, "draw wkf=%.1f, %d/%d", cs.wkidx10/10.f, cs.top_pix, cs.bottom_pix);
+    ESP_LOGI(FNAME, "draw wkf=%.1f, %d", cs.wkidx10/10.f, cs.center_pix);
     int16_t boxx = _ref.x;
     int16_t boxy = _ref.y - BOX_LENGTH / 2;
     int16_t boxw = BOX_WIDTH;
     int16_t boxh = BOX_LENGTH;
 
-    // colored speed range (background)
-    // draw excess corners in green
-    if ( cs.top_exseed != _state.top_exseed ) {
-        if ( cs.top_exseed ) {
-            MYUCG->setColor(COLOR_DGREEN);
-        } else {
-            MYUCG->setColor(COLOR_BLACK);
-        }
-        MYUCG->setClipRange(boxx, boxy - BOX_CORNER, boxw+1, BOX_CORNER);
-        MYUCG->drawRBox(boxx+1, boxy - BOX_CORNER + 1, boxw-1, 2 * BOX_CORNER, BOX_CORNER - 2);
-        MYUCG->undoClipRange();
-    }
-    if ( cs.bottom_exseed != _state.bottom_exseed ) {
-        if ( cs.bottom_exseed ) {
-            MYUCG->setColor(COLOR_DGREEN);
-        } else {
-            MYUCG->setColor(COLOR_BLACK);
-        }
-        MYUCG->setClipRange(boxx, boxy + boxh, boxw+1, BOX_CORNER);
-        MYUCG->drawRBox(boxx+1, boxy + boxh - BOX_CORNER - 1, boxw, 2 * BOX_CORNER, BOX_CORNER - 2);
-        MYUCG->undoClipRange();
-    }
-
     // background speed band
-    MYUCG->setColor(1, COLOR_MGREY);
+    MYUCG->setColor(1, DARK_DGREY);
     MYUCG->startBuffering(boxx, boxy, boxw+1, boxh+1);
-    int16_t green_top =  _ref.y + cs.top_pix;
+    int16_t green_top =  _ref.y + cs.center_pix - BOX_WIDTH/2;
     if ( green_top < _ref.y + boxh ) { // the green part
         MYUCG->setColor(COLOR_DGREEN);
-        MYUCG->drawBox(boxx, green_top, boxw+1, _ref.y - green_top + cs.bottom_pix+1);
+        MYUCG->drawBox(boxx, green_top, boxw+1, BOX_WIDTH);
     }
     MYUCG->setColor(1, g_col_background, g_col_background, g_col_background);
 
-    // foreground labels, clipped to the inner level box
+    // max. three foreground labels
     MYUCG->setFont(ucg_font_fub14_hr);
-    MYUCG->setColor(COLOR_WHITE); // highlight the recommendation, or current position
-    MYUCG->setClipRange(boxx, _ref.y - 13 , boxw + 1, 27);
-    const int from = std::max((int)(fast_floorf(cs.getWk() + 0.2)), 0);
-    const int to   = ((from + 1) == fast_iroundf(cs.getWk() + 0.3)) ? from + 1 : from;
+    const int from = std::max((int)(fast_floorf(cs.getWk() - 0.8)), 0);
+    const int to   = std::min(fast_iroundf(cs.getWk() + 1.3), _flap->getNrPositions() - 1);
     for (int wk = from; wk <= to; wk++)
     {
         const char *label = _flap->getFL(wk)->label;
@@ -140,19 +100,11 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
         // ESP_LOGI(FNAME, "wk %d, pixoff %d", wk, pixoff);
         int16_t lwidth = MYUCG->getStrWidth(label);
         MYUCG->setPrintPos(_ref.x + (BOX_WIDTH - lwidth)/2 + 1, _ref.y + pixoff + _LFH/2);
-        MYUCG->setColor(COLOR_WHITE); // highlight the recommendation, or current position
-        MYUCG->print(label);
-    }
-    MYUCG->undoClipRange();
-
-    // optional flap setting recommendation
-    if ( _flap_ideal_idx > -1) {
-        const char *label = _flap->getFL(_flap_ideal_idx)->label;
-        int16_t pixoff = ((_flap_ideal_idx < cs.getWk()) ? -1 : 1) * (BOX_LENGTH/2 - _LFH/2);
-        int16_t lwidth = MYUCG->getStrWidth(label);
-        MYUCG->setPrintPos(_ref.x + (BOX_WIDTH - lwidth)/2 + 1, _ref.y + pixoff + _LFH/2);
-        // highlight the recommendation
-        MYUCG->setColor(COLOR_ORANGE);
+        if ( cs.wkidx10/10 == wk ) {
+            MYUCG->setColor(COLOR_WHITE); // highlight the recommendation, or current position
+        } else {
+            MYUCG->setColor(COLOR_HEADER_LIGHT);
+        }
         MYUCG->print(label);
     }
 
@@ -170,20 +122,21 @@ void FlapsBox::drawLabels(FBoxStateHash cs)
 void FlapsBox::draw(mps_t ias)
 {
     if ( _dirty ) {
+        MYUCG->setColor(DARK_DGREY);
+        MYUCG->drawRBox(_ref.x, _ref.y - BOX_LENGTH/2 - BOX_CORNER, BOX_WIDTH, 2 * BOX_CORNER, BOX_CORNER);
+        MYUCG->drawRBox(_ref.x, _ref.y + BOX_LENGTH/2 - BOX_CORNER, BOX_WIDTH, 2 * BOX_CORNER, BOX_CORNER);
+
         MYUCG->setColor(COLOR_WHITE);
-        MYUCG->setClipRange(_ref.x - 5, _ref.y - 14, 6, 29);
-        MYUCG->drawRFrame(_ref.x - 5, _ref.y - 14, 10, 28, 4);
+        MYUCG->setClipRange(_ref.x - 5, _ref.y - BOX_WIDTH/2, 6, BOX_WIDTH + 1);
+        MYUCG->drawRFrame(_ref.x - 5, _ref.y - BOX_WIDTH/2, 10, BOX_WIDTH, 4);
         MYUCG->undoClipRange();
     }
 
     float curr_fp;
     bool have_sens = Flap::sensAvailable();
-    _flap_ideal_idx = fast_iroundf(_flap->getOptimum(ias));
+    float flap_ideal = _flap->getOptimum(ias);
     if ( have_sens ) {
         curr_fp = Flap::getFlapPosition();
-        if ( std::abs(curr_fp - _flap_ideal_idx) < 0.75f ) {
-            _flap_ideal_idx = -1; // close enough
-        }
         ESP_LOGI(FNAME, "flap position from sensor: %1.2f", curr_fp);
         // rasterize to .0, and .5
         float fp_base = fast_floorf(curr_fp);
@@ -195,33 +148,34 @@ void FlapsBox::draw(mps_t ias)
             curr_fp = fp_base + 1.f;
         }
     } else {
-        curr_fp = _flap_ideal_idx; // without sensor, just show the recommendation, and play sound when it changes
-        _flap_ideal_idx = -1; // no sensor, so no "off" position
+        curr_fp = std::roundf(flap_ideal); // without sensor, just show the recommendation, and play sound when it changes
     }
     // damp speed of indicator to make it good readable
     curr_fp = _fp_filter.filter(curr_fp);
 
-    mps_t minv, maxv;
-    minv = _flap->getSpeedBand(curr_fp, maxv);
-    // enlarge the speed band just for a nicer overlapping visualization
-    minv -= Units::kmh_to_mps(2.f);
-    maxv += Units::kmh_to_mps(2.f);
     if ( airborne.get() == false ) {
         // on ground, set the ias virtually into the green band for the correct start position
-        ias = _flap->getSpeed(flap_takeoff.get() - .5f); // pretend start speed
-        ESP_LOGI(FNAME, "on ground, set ias to %.1f for flap position %.1f", ias, curr_fp);
+        flap_ideal = flap_takeoff.get();
+        ias = _flap->getSpeed(flap_ideal); // pretend start speed
+        ESP_LOGI(FNAME, "on ground, set ias to %.1f for flap position %.1f", ias, flap_ideal); 
     }
+
+    mps_t minv, maxv;
+    minv = _flap->getSpeedBand(curr_fp, maxv);
+    float pix_per_mps = std::max(BAND_OFF / (maxv - minv), 4.f); // ensure a minimum for level 0 (ca. 180 - VNE)
+    int16_t band_offset = std::clamp((int16_t)fast_iroundf((_flap->getSpeed(curr_fp) - ias) * pix_per_mps), (int16_t)-BAND_OFF, BAND_OFF);
+    ESP_LOGI(FNAME,"bandoff - wkset: %.1f -> %.1fmps wkideal: %.1f pix_per_mps %.3f", curr_fp, _flap->getSpeed(curr_fp), flap_ideal, pix_per_mps);
     minv -= ias;
     maxv -= ias;
     // the three variables that define the box state
-    FBoxStateHash current_state( curr_fp, minv, maxv);
+    FBoxStateHash current_state( curr_fp, band_offset);
     if ( current_state != _state || _dirty ) {
-        ESP_LOGI(FNAME,"wkf:%.1f minv:%.1f maxv:%.1f ias:%.1f", current_state.getWk(), minv, maxv, ias);
+        ESP_LOGI(FNAME,"wkf:%.1f bo:%d minv:%.1f maxv:%.1f ias:%.1f", current_state.getWk(), band_offset, minv, maxv, ias);
         drawLabels(current_state);
     }
     _dirty = false;
 
-    if ( flapbox_enable.get() == (uint8_t)flap_box_conf::FLAP_BOX ) {
+    if ( flapbox_enable.get() == (uint8_t)flap_box_conf::FLAP_BOX_VIS ) {
         return; // only show the indicator, do not play sounds
     }
 
@@ -230,10 +184,10 @@ void FlapsBox::draw(mps_t ias)
     int16_t flap_idx = fast_iroundf(curr_fp);
     if ( have_sens ) {
         _last_flap_idx = flap_idx; // keep in sync with actual position, option to not play any sound
-        if ( minv > 0. && flap_idx < _flap->getNrPositions()-1 ) { // slipped below the lower speed limit
+        if ( minv > 0. && flap_idx < _flap->getNrPositions()-1 ) { // slipped below the speed band
             flap_idx++;
         }
-        else if ( maxv < 0. && flap_idx > 0 ) { // exceeded the upper speed limit
+        else if ( maxv < 0. && flap_idx > 0 ) { // exceeded the speed band
             flap_idx--;
         }
     }
