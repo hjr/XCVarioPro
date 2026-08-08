@@ -1,54 +1,71 @@
 name: CMake
 
-on: workflow_dispatch
+# This is ment for Release builds
 
-  # This is ment for Release builds only
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+# Needed to create/update GitHub Releases
+permissions:
+  contents: write
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
-    
-    - name: set-env
+
+    - name: Set version
       shell: bash
       run: |
-        VERSION=$(git describe --tags --dirty 2>/dev/null)
+        VERSION=$(git describe --tags --dirty  --long --always)
         TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "untagged-${GITHUB_SHA::7}")
-        BRANCH=$(git branch --show-current)
+
+        if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+          FILE_VERSION="${GITHUB_REF_NAME}"
+        else
+          BRANCH=$(git branch --show-current)
+          FILE_VERSION="${BRANCH}-${TAG}"
+        fi
+
         echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-        echo "FILE_VERSION=$BRANCH-$TAG" >> "$GITHUB_ENV"
+        echo "FILE_VERSION=$FILE_VERSION" >> "$GITHUB_ENV"
+
+        echo "VERSION       = $VERSION"
+        echo "TAG           = $TAG"
+        echo "FILE_VERSION  = $FILE_VERSION"
+
         git status
         git describe --tags --dirty || echo "describe failed"
 
-    - name: Build 
-      # Use a bash shell so we can use the same syntax for environment variable
-      # access regardless of the host operating system
+    - name: Build
       shell: bash
-      # working-directory: ~/XCVarioPure
-      # Note the current convention is to use the -S and -B options here to specify source 
-      # and build directories, but this is only available with CMake 3.13 and higher.  
-      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-
       run: |
-        docker run --rm -v ${{ github.workspace }}:/project -w /project espressif/idf:release-v5.4 \
-        bash -c ". \$IDF_PATH/export.sh && idf.py -DFW_VERSION=\"${{ env.VERSION }}\" -DCMAKE_BUILD_TYPE=Release -D SDKCONFIG_DEFAULTS=\"sdkconfig.defaults;sdkconfig.defaults.release\" build"
-            
+        docker run --rm \
+          -v ${{ github.workspace }}:/project \
+          -w /project \
+          espressif/idf:release-v5.4 \
+          bash -c ". \$IDF_PATH/export.sh && \
+            idf.py \
+              -DFW_VERSION=\"${{ env.VERSION }}\" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSDKCONFIG_DEFAULTS=\"sdkconfig.defaults;sdkconfig.defaults.release\" \
+              build"
+
         echo "--- Inhalt von build/ nach Build ---"
         ls -lh build/
-            
+        
         mkdir -p artifacts
         cp build/xcvario_pure.elf artifacts/xcvario_pur-${{ env.FILE_VERSION }}.elf
         cp build/xcvario_pure.bin artifacts/xcvario_pur-${{ env.FILE_VERSION }}.bin
         gzip artifacts/xcvario_pur-${{ env.FILE_VERSION }}.elf
-            
+        
         echo "--- Inhalt von artifacts/ auf Host ---"
         ls -lh artifacts/
 
