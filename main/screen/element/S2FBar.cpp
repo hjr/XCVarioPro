@@ -11,6 +11,7 @@
 #include "setup/SetupNG.h"
 #include "Colors.h"
 #include "AdaptUGC.h"
+#include "math/Floats.h"
 #include "logdefnone.h"
 
 #include <cmath>
@@ -80,7 +81,7 @@ void S2FBar::drawBlock(int16_t level)
     else {
         MYUCG->setColor(COLOR_WGREY);
     }
-    MYUCG->drawRBox(_ref.x - _width_half + 6, _ref.y - _gap_half + 1, 2 * _width_half - 12, 2 * _gap_half - 3, 2);
+    MYUCG->drawRBox(_ref.x - _width_half + 3, _ref.y - _gap_half + 1, 2 * _width_half - 6, 2 * _gap_half - 3, 2);
 }
 
 void S2FBar::drawCircle()
@@ -103,7 +104,7 @@ void S2FBar::draw(mps_t s2fd, bool cruise)
     if ( cruise ) {
         // dice up into 10 kmh steps, map to -4..+4, 0 means no speed up/down
         // draw max. three bars, then change color of the last one
-        level = std::clamp((int)std::roundf(s2fd / LEVEL_DELTA), -4, 4);
+        level = std::clamp(fast_iroundf(s2fd / LEVEL_DELTA), -4, 4);
     }
 
     if ( _dirty ) {
