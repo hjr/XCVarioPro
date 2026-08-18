@@ -21,8 +21,11 @@ SetupMenuSelect::SetupMenuSelect( const char* title, e_restart_mode_t restart, i
 {
 	// ESP_LOGI(FNAME,"SetupMenuSelect( %s ) action: %x", title, (int)action );
 	bits._restart = restart;
+    if ( _nvs && _nvs->isReadOnly() ) {
+        bits._locked = true; // lock read only variables
+    }
 	_select = -1; // no selection, init. can only be done when the menu items are added completely
-		// initialization postponed to first enter(), or value() call
+	              // initialization postponed to first enter(), or value() call
 	setRotDynamic(1.f);
 }
 

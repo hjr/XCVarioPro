@@ -496,7 +496,7 @@ void system_startup(void *args){
     // Design the pure
     gflags.isPro = false;
 
-    // Set for now hidden but used setup variable to their default
+    // For an release build: Set inaccessible but used debug setup variable to their default
 #ifndef DEBUG_AND_TEST
     rot_default.set(rot_default.getDefault(), false, false);
     display_variant.set(DISPLAY_WHITE_ON_BLACK, false, false);
@@ -508,6 +508,15 @@ void system_startup(void *args){
     imu_reference.set(imu_reference.getDefault(), false, false);
 #endif
 
+    // Check on sensorless Vario
+    {
+        int tmp;
+        if ( SetupCommon::getOldInt("CLIENTONLY", tmp) ) {
+            // Restrict sensorless Vario to function as client
+            xcv_role.set(SECOND_ROLE);
+            xcv_role.setReadOnly();
+        }
+    }
 	BatVoltage = new AnalogInput((22.0+1.2)/1200, ADC_CHANNEL_7); // created allways, but only used on master XCV
 	BatVoltage->begin(ADC_ATTEN_DB_0);  // for battery voltage
 	BatVoltage->setAdjust(factory_volt_adjust.get());

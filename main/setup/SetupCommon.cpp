@@ -222,6 +222,20 @@ int SetupCommon::restoreConfigChanges( int len, char *data ){
 				item->setValueFromStr( value.c_str() );
 				item->commit();  // lets do that lazy later
 			}else{
+                // It might be a special key not listed in the inventory
+                if ( key[0] == '_' ) {
+                    SetupCommon *tmpitem = nullptr;
+                    if ( key[1] == 'I' ) {
+                        int val = std::stoi(value);
+                        tmpitem = new SetupNG<int>(key.c_str() + 2, val, false, SYNC_NONE, PERSISTENT);
+                    } else if ( key[1] == 'X' ) {
+                        NVS.erase(key.c_str() + 2);
+                    }
+                    if ( tmpitem ) {
+                        tmpitem->commit();
+                        delete tmpitem;
+                    }
+                }
 				ESP_LOGI(FNAME, ", key not there => dropped\n" );
 			}
 			i++;

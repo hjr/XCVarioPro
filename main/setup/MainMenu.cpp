@@ -937,7 +937,12 @@ static void system_menu_create(SetupMenu *sye) {
 
 	// XCV role
 	SetupMenuSelect *role = new SetupMenuSelect("XCV device role", RST_IMMEDIATE, nullptr, &xcv_role);
-	role->setHelp("Set the intended role of this device first (needs a reboot)");
+    if ( xcv_role.isReadOnly() ) {
+        role->setHelp("This is a client only device, it has no sensors");
+    }
+    else {
+        role->setHelp("Set the intended role of this device first (needs a reboot)");
+    }
 	role->addEntry("Master", MASTER_ROLE);
 	role->addEntry("Second", SECOND_ROLE);
 	sye->addEntry(role);
