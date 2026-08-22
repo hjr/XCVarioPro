@@ -741,15 +741,21 @@ void system_startup(void *args){
         {
             printf("AS Speed sensor type %s\n", asSensor->name());
             bool as_ok = asSensor->setup();
-            pascal_t p;
-            if (asSensor->doRead(p) && p > 60.f) {
-                ias.set(Units::pascal_to_mps(p)); // initial ias from sensor
-            }
 
             // Initialize the airborne status
+            int16_t try_count = 3;
+            pascal_t p;
+            while (try_count-- > 0 ) {
+                if ( asSensor->doRead(p) ) {
+                    asSensor->pushToHistory(p, Clock::getMillis());
+                    ias.set(Units::pascal_to_mps(p)); // init. ias
+                    break;
+                }
+                vTaskDelay(pdMS_TO_TICKS(10));
+            }
             airborne.set(ias.get() > Speed2Fly.getStallSpeed());
 
-            printf("Aispeed sensor current speed=%fkm/h\n", Units::mps_to_kmh(ias.get()));
+            printf("Aispeed sensor current speed=%fkm/h stall speed=%fkm/h (%d)\n", Units::mps_to_kmh(ias.get()), Units::mps_to_kmh(Speed2Fly.getStallSpeed()), airborne.get());
             if (!as_ok && (ias.get() < Units::kmh_to_mps(35)))
             {
                 MBOX->pushMessage(2, "AS Sensor: NEED ZERO");
