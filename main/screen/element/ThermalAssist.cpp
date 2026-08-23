@@ -221,7 +221,7 @@ void ThermalAssist::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
     // 1. turn rate confidence
     float c_turn = std::clamp((fabsf(omega) - Units::deg_to_rad(2.0f)) / Units::deg_to_rad(6.0f), 0.0f, 1.0f);
     // 2. bank angle confidence
-    float c_bank = std::clamp((fabsf(bank)-Units::deg_to_rad(8.0f))/Units::deg_to_rad(18.0f), 0.0f, 1.0f);
+    float c_bank = std::clamp((fabsf(bank)-Units::deg_to_rad(8.0f)) / Units::deg_to_rad(16.0f), 0.0f, 1.0f);
     // 3. steadiness/duration confidence
     _confidence.filter( (c_turn + c_bank) / 2.f );
 
