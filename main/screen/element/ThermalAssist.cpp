@@ -28,9 +28,6 @@ constexpr int16_t MAX_DISK_RAD = 7;
 extern AdaptUGC *MYUCG;
 ThermalAssist  *thrmAssist = nullptr;
 
-constexpr float TH_NORM_MIN = 0.5f;
-float ThermalAssist::th_norm = TH_NORM_MIN; // initial peak value for thermal strength normalization
-
 enum class circdir_t : uint8_t {
     no_circle,
     circlLeft,
@@ -43,7 +40,7 @@ void Thermal::set(mps_t s) {
     timestamp = Clock::getMillis();
 }
 
-// normalized strength -1 .. 0 .. 1
+// strength -oo .. 0 .. oo
 float Thermal::getStrength() const {
     // scale to peak value and limit to max disk radius
     // as well as fade with time passing
@@ -51,7 +48,7 @@ float Thermal::getStrength() const {
     if ( agescale < 0.f ) {
         return 0.f;
     }
-    return std::min(strength / ThermalAssist::th_norm * agescale, 1.f);
+    return strength * agescale;
 }
 
 // Thermal assistant
@@ -81,8 +78,9 @@ ThermalAssist::ThermalAssist(PolarGauge &g) :
     _glider_on_top = thermal_assist.get() != 2;
 }
 
-void ThermalAssist::drawThermal(const Thermal& th, int idir) {
-    // ESP_LOGI(FNAME,"drawThermal, th: %.1f, idir: %d", th.strength, idir);
+// th_strength normalized to 0 .. 1
+void ThermalAssist::drawThermal(float th_strength, int idir) {
+    // ESP_LOGI(FNAME,"drawThermal, th_strength: %.1f, idir: %d", th_strength, idir);
     if (idir >= CA_NUM_DIRS || idir < 0) {
         ESP_LOGE(FNAME, "index out of range: %d", idir);
         return;
@@ -100,19 +98,13 @@ void ThermalAssist::drawThermal(const Thermal& th, int idir) {
 
     // a green thermal spot that brightens with increasing thermal strength (up to 10%)
     ucg_color_t col = { COLOR_GREEN };
-    float ths = th.getStrength();
-    if ( ths >= 0.f ) {
-        col.fadeTo(col, ths * 1.2f);
-    }
-    else {
-        ths = 0.f;
-    }
-    // ESP_LOGI(FNAME,"drawThermal, th: %.1f, ths: %.3f, color: %d,%d,%d", th.strength, ths, col.color[0], col.color[1], col.color[2]);
+    col.fadeTo(col, th_strength * 1.2f);
+    // ESP_LOGI(FNAME,"drawThermal, th: %.1f, ths: %.3f, color: %d,%d,%d", th.strength, th_strength, col.color[0], col.color[1], col.color[2]);
     MYUCG->setColor(col.color[0], col.color[1], col.color[2]);
     if (idir != 0) {
-        MYUCG->startBuffering(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD, 2*MAX_DISK_RAD);
-        // MYUCG->drawFrame(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD-1, 2*MAX_DISK_RAD-1);
-        int16_t radius = std::clamp((int16_t)fast_iroundf_positive(ths * MAX_DISK_RAD), (int16_t)1, MAX_DISK_RAD);
+        MYUCG->startBuffering(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD+1, 2*MAX_DISK_RAD);
+        // MYUCG->drawFrame(cx-MAX_DISK_RAD, cy-MAX_DISK_RAD, 2*MAX_DISK_RAD, 2*MAX_DISK_RAD-1);
+        int16_t radius = std::clamp((int16_t)fast_iroundf_positive(th_strength * MAX_DISK_RAD), (int16_t)1, MAX_DISK_RAD);
         MYUCG->drawDisc(cx, cy, radius, UCG_DRAW_ALL);
         MYUCG->finishBuffering();
     }
@@ -193,13 +185,29 @@ Point ThermalAssist::getThermalCG() const {
 }
 
 void ThermalAssist::draw() {
-    // the current thermal norm for the current peak value
-    th_norm = _peak_value;
-    ESP_LOGI(FNAME,"ThermalAssist draw, peak norm: %.2f", th_norm);
+    // get the peak and min thermals
+    float th_min = thermals[0].getStrength();
+    float th_max = th_min;
+    for ( int i = 1; i < CA_NUM_DIRS; i++) {
+        float tmp = thermals[i].getStrength();
+        if ( tmp > th_max) {
+            th_max = tmp;
+        }
+        if ( tmp < th_min) {
+            th_min = tmp;
+        }
+    }
+    // calc peak norm
+    th_min = std::max(th_min - 0.2f, .0f);
+    float th_norm = std::max(th_max - th_min, 0.5f);
+
+    ESP_LOGI(FNAME,"TA draw, peak norm: %.2f, %.2f, %.2f", th_min, th_max, th_norm);
     for (int i = 0; i < CA_NUM_DIRS; i++) {
         int d = (i + _idir) % CA_NUM_DIRS;
+        float ths = std::min((thermals[d].getStrength() - th_min) / th_norm, 1.f); // normalized strength 0..1
+
         // ESP_LOGI(FNAME,"dir:%d TE:%.1f", d, thermals[d].strength );
-        drawThermal(thermals[d], i);
+        drawThermal(ths, i);
     }
 }
 
@@ -243,29 +251,20 @@ void ThermalAssist::checkHeading(rad_t vheading, rad_t omega, rad_t bank) {
 
             ESP_LOGI(FNAME,"New thermal avg over %dsec", (int)dt / 1000);
             mps_t te = te_vario.get(); // (alt - _te_alt) * 1000.f / dt;
+            thermals[_idir].set(te);
             ESP_LOGI(FNAME,"New thermal at heading %.1f, TE: %.2f", Units::rad_to_deg(cur_heading), te );
-            if( te > _peak_value  ) {
-                _peak_value += (te - _peak_value) * 0.2; // a bit low passing to catch values out of the row
-            }
             uint8_t new_c_dir = std::signbit(diff) ? (uint8_t)circdir_t::circlLeft : (uint8_t)circdir_t::circlRight;
             if ( new_c_dir != _cdir ) {
                 ESP_LOGI(FNAME,"ThermalAssist checkHeading, circling direction changed to %s", new_c_dir == (uint8_t)circdir_t::circlLeft ? "left" : "right");
 
             }
             _cdir = new_c_dir;
-            thermals[_idir].set(te);
         }
         else {
-            _peak_value = TH_NORM_MIN;
-            _cdir = (uint8_t)circdir_t::no_circle;
             ESP_LOGI(FNAME,"ThermalAssist checkHeading, no thermal detected, reset peak value");
             thermals[_idir].set(0.f);
         }
 
     }
-    if( _peak_value > TH_NORM_MIN ) {
-        _peak_value = _peak_value * 0.999; // Peak value aging .1% per 100 msec
-    }
-
 }
 

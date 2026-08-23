@@ -37,7 +37,7 @@ public:
 
 private:
     ThermalAssist(PolarGauge &g);
-    void drawThermal(const Thermal& th, int idir);
+    void drawThermal(float th_strength, int idir);
     void drawGlider(int16_t cx, int16_t cy);
     // int maxClimbIndex();
     Point getThermalCG() const;
@@ -50,8 +50,6 @@ private:
     uint8_t _cdir = 0; // right & left
     LowPassFilterT<float> _confidence; // 0..1, how confident we are that we are thermaling;
     rad_t cur_heading = 0.f; // accumulating heading delta and dice in e.g.15° steps
-    mps_t _peak_value = .5f; // we start with expectation of .5 m/s thermals
-    static float th_norm;
 };
 
 extern ThermalAssist  *thrmAssist;
