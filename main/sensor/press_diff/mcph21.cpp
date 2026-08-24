@@ -60,7 +60,14 @@ bool MCPH21::probe()
 bool MCPH21::setup()
 {
     // set continuous mode
-    [[maybe_unused]] esp_err_t err = _bus->writeByte(_address, 0x30, 0x0B); // continuous mode, sleep 62.5msec
+    esp_err_t err = _bus->writeByte(_address, 0x30, 0x0B); // continuous mode, sleep 62.5msec
+
+    if (err != ESP_OK) {
+        ESP_LOGE(FNAME, "MCPH21: failed to set continuous mode: %s", esp_err_to_name(err));
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(6));
+
     return AirspeedSensor::setup();
 }
 
@@ -88,7 +95,7 @@ bool MCPH21::fetch_pressure(int32_t &p, uint16_t &t)
         return false;
     }
 #ifdef RANDOM_TEST
-    Press_H = esp_random() % 255;
+    Press_H = esp_random() % 255;   
     Press_L = esp_random() % 255;
     Temp_L = esp_random() % 255;
 #endif
