@@ -186,10 +186,10 @@ Point ThermalAssist::getThermalCG() const {
 
 void ThermalAssist::draw() {
     // get the peak and min thermals
-    float th_min = thermals[0].getStrength();
+    float th_min = thermals[0].strength;
     float th_max = th_min;
     for ( int i = 1; i < CA_NUM_DIRS; i++) {
-        float tmp = thermals[i].getStrength();
+        float tmp = thermals[i].strength;
         if ( tmp > th_max) {
             th_max = tmp;
         }
